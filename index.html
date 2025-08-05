@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prontuário Eletrônico - Método Canguru Etapa 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-base-200 min-h-screen">
+    <div class="container mx-auto p-4 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-primary text-primary-content p-6 rounded-lg shadow-lg mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-baby text-2xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold">Prontuário Eletrônico</h1>
+                    <p class="text-primary-content/80">Consulta de Rotina - Etapa 3 do Método Canguru</p>
+                </div>
+            </div>
+        </div>
+
+        <form class="space-y-6">
+            <!-- 1. Identificação da Consulta -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-primary">
+                        <i class="fas fa-id-card"></i>
+                        1. Identificação da Consulta
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Data da consulta</span>
+                            </label>
+                            <input type="date" class="input input-bordered" required>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Local do atendimento</span>
+                            </label>
+                            <select class="select select-bordered" required>
+                                <option disabled selected>Selecione</option>
+                                <option>UBS</option>
+                                <option>Visita domiciliar</option>
+                                <option>Hospital</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Profissional/Cargo</span>
+                            </label>
+                            <input type="text" placeholder="Nome + Cargo (ACS, Enf., Médico)" class="input input-bordered" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Medidas Antropométricas -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-secondary">
+                        <i class="fas fa-ruler"></i>
+                        2. Medidas Antropométricas
+                    </h2>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Sempre medir com a criança despida</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Peso atual (gramas)</span>
+                            </label>
+                            <input type="number" placeholder="Ex: 2500" class="input input-bordered" required>
+                            <label class="label">
+                                <span class="label-text-alt">
+                                    <input type="checkbox" class="checkbox checkbox-xs"> Pesado sem fralda
+                                </span>
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Comprimento (cm)</span>
+                            </label>
+                            <input type="number" step="0.1" placeholder="Ex: 45.5" class="input input-bordered">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Perímetro cefálico (cm)</span>
+                            </label>
+                            <input type="number" step="0.1" placeholder="Ex: 32.5" class="input input-bordered">
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Peso anterior (gramas)</span>
+                            </label>
+                            <input type="number" placeholder="Para cálculo do ganho" class="input input-bordered">
+                        </div>
+                        <div class="stats shadow">
+                            <div class="stat">
+                                <div class="stat-title">Ganho médio diário</div>
+                                <div class="stat-value text-secondary">-- g/dia</div>
+                                <div class="stat-desc">Calculado automaticamente</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Aleitamento e Amamentação -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-accent">
+                        <i class="fas fa-baby"></i>
+                        3. Aleitamento e Amamentação
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Tipo alimentar</span>
+                            </label>
+                            <select class="select select-bordered">
+                                <option disabled selected>Selecione</option>
+                                <option>Aleitamento materno exclusivo</option>
+                                <option>Aleitamento misto</option>
+                                <option>Fórmula</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Intervalo entre mamadas</span>
+                            </label>
+                            <input type="text" placeholder="Ex: A cada 3h ou 8x/dia" class="input input-bordered">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Número de fraldas em 24h</span>
+                            </label>
+                            <input type="number" placeholder="Quantidade" class="input input-bordered">
+                            <label class="label">
+                                <span class="label-text-alt text-info">≥ 6 fraldas/dia = ingestão adequada</span>
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Observação da mamada</span>
+                            </label>
+                            <div class="flex gap-2">
+                                <label class="label cursor-pointer">
+                                    <input type="radio" name="mamada" class="radio radio-success" value="ok">
+                                    <span class="label-text ml-2">Pega/posição OK</span>
+                                </label>
+                                <label class="label cursor-pointer">
+                                    <input type="radio" name="mamada" class="radio radio-error" value="nao">
+                                    <span class="label-text ml-2">Necessita correção</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Uso de mamadeira/chupeta</span>
+                        </label>
+                        <div class="flex gap-4">
+                            <label class="label cursor-pointer">
+                                <input type="radio" name="bico" class="radio" value="sim">
+                                <span class="label-text ml-2">Sim</span>
+                            </label>
+                            <label class="label cursor-pointer">
+                                <input type="radio" name="bico" class="radio" value="nao">
+                                <span class="label-text ml-2">Não</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Posição Canguru -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-warning">
+                        <i class="fas fa-heart"></i>
+                        4. Posição Canguru
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Horas em contato pele a pele no dia</span>
+                            </label>
+                            <input type="number" placeholder="Ex: 6" class="input input-bordered">
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Dificuldades ou interrupções</span>
+                            </label>
+                            <textarea class="textarea textarea-bordered" placeholder="Comentários sobre dificuldades"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Sinais Clínicos de Alerta -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        5. Sinais Clínicos de Alerta
+                    </h2>
+                    <div class="alert alert-warning mb-4">
+                        <i class="fas fa-clock"></i>
+                        <span>Verificar se houve nos últimos 2 dias</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Temperatura ≤ 36,5°C (hipotermia)</span>
+                                <input type="checkbox" class="checkbox checkbox-error">
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Pausas respiratórias ≥ 20 seg ou cianose</span>
+                                <input type="checkbox" class="checkbox checkbox-error">
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Perfusão da pele: cianose, palidez, marmórea</span>
+                                <input type="checkbox" class="checkbox checkbox-error">
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Regurgitação ou vômitos frequentes</span>
+                                <input type="checkbox" class="checkbox checkbox-error">
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Sinais de hipoatividade ou irritabilidade</span>
+                                <input type="checkbox" class="checkbox checkbox-error">
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Icterícia visível ou persistente</span>
+                                <input type="checkbox" class="checkbox checkbox-error">
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">Sopro, hérnia abdominal ou fontanela abaulada</span>
+                                <input type="checkbox" class="checkbox checkbox-error">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-control mt-4">
+                        <label class="label">
+                            <span class="label-text font-semibold">Observações adicionais sobre sinais de alerta</span>
+                        </label>
+                        <textarea class="textarea textarea-bordered" placeholder="Descreva qualquer sinal observado"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Percurso da Família e Rede de Apoio -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-info">
+                        <i class="fas fa-users"></i>
+                        6. Percurso da Família e Rede de Apoio
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Como foi a chegada em casa?</span>
+                            </label>
+                            <textarea class="textarea textarea-bordered" placeholder="Dificuldades ou intercorrências"></textarea>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Quem está ajudando e de que forma?</span>
+                            </label>
+                            <textarea class="textarea textarea-bordered" placeholder="Rede de apoio familiar e comunitária"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Perguntas-chave -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-purple-600">
+                        <i class="fas fa-question-circle"></i>
+                        Perguntas-chave do Agente de Saúde
+                    </h2>
+                    <div class="space-y-3">
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                1. Como foi sua chegada em casa com o bebê?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                2. Teve alguma intercorrência?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                3. Está recebendo ajuda em casa? De quem?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                4. Você (e o pai) estão fazendo a posição canguru? Como e onde o bebê dorme?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                5. Como está a alimentação? Frequência das mamadas?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                6. Como estão suas mamas e produção de leite?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                7. Quantas trocas de fralda tem por dia?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                8. Que medicações foram prescritas? Quantas vezes por dia?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="collapse collapse-arrow bg-base-200">
+                            <input type="checkbox" />
+                            <div class="collapse-title text-sm font-medium">
+                                9. Tem alguma outra dificuldade ou dúvida?
+                            </div>
+                            <div class="collapse-content">
+                                <textarea class="textarea textarea-bordered w-full" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Orientações e Conduta -->
+            <div class="card bg-base-100 shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-success">
+                        <i class="fas fa-clipboard-list"></i>
+                        7. Orientações e Conduta
+                    </h2>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Orientações dadas</span>
+                            </label>
+                            <textarea class="textarea textarea-bordered" rows="3" placeholder="Resumo das orientações: posição canguru, mamadas, higiene, etc."></textarea>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Plano de retorno agendado</span>
+                            </label>
+                            <select class="select select-bordered">
+                                <option disabled selected>Selecione</option>
+                                <option>24 horas (ganho < 15g/dia)</option>
+                                <option>48 horas (dúvidas/sinais de risco)</option>
+                                <option>1 semana (rotina normal)</option>
+                                <option>2 semanas</option>
+                                <option>Outro período</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Data do próximo retorno</span>
+                            </label>
+                            <input type="date" class="input input-bordered">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                <button type="button" class="btn btn-outline">
+                    <i class="fas fa-save"></i>
+                    Salvar Rascunho
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i>
+                    Finalizar Consulta
+                </button>
+            </div>
+        </form>
+
+        <!-- Footer -->
+        <div class="text-center text-sm text-base-content/60 mt-8 p-4">
+            <p>Baseado no Manual da Terceira Etapa do Método Canguru – Atenção Básica (Ministério da Saúde, 2015/2017)</p>
+        </div>
+    </div>
+
+    <script>
+        // Cálculo automático do ganho de peso
+        function calcularGanhoPeso() {
+            const pesoAtual = document.querySelector('input[placeholder="Ex: 2500"]').value;
+            const pesoAnterior = document.querySelector('input[placeholder="Para cálculo do ganho"]').value;
+            const statValue = document.querySelector('.stat-value');
+            
+            if (pesoAtual && pesoAnterior) {
+                const ganho = pesoAtual - pesoAnterior;
+                const ganhoDiario = Math.round(ganho / 7); // Assumindo 7 dias entre consultas
+                statValue.textContent = `${ganhoDiario} g/dia`;
+                
+                // Alertar se ganho inadequado
+                if (ganhoDiario < 15) {
+                    statValue.className = 'stat-value text-error';
+                } else {
+                    statValue.className = 'stat-value text-success';
+                }
+            }
+        }
+
+        // Adicionar listeners para cálculo automático
+        document.querySelector('input[placeholder="Ex: 2500"]').addEventListener('input', calcularGanhoPeso);
+        document.querySelector('input[placeholder="Para cálculo do ganho"]').addEventListener('input', calcularGanhoPeso);
+    </script>
+</body>
+</html>
