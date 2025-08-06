@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gestor de Saúde - Karu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="min-h-screen bg-base-100">
+    <!-- Header -->
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <div class="flex items-center space-x-3">
+                <button onclick="window.location.href='index.html'" class="btn btn-ghost btn-sm">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                </button>
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+                </div>
+                <span class="text-2xl font-bold text-primary">Karu</span>
+                <div class="badge badge-primary">Gestor de Saúde</div>
+            </div>
+        </div>
+        <div class="flex-none">
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                    <div class="w-10 rounded-full bg-primary/20">
+                        <i data-lucide="user" class="w-6 h-6 m-2 text-primary"></i>
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a><i data-lucide="settings" class="w-4 h-4"></i>Configurações</a></li>
+                    <li><a><i data-lucide="log-out" class="w-4 h-4"></i>Sair</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
+        <ul>
+            <li><a href="../index.html">Início</a></li>
+            <li>Dashboard Gestor</li>
+        </ul>
+    </div>
+
+    <!-- Page Header -->
+    <div class="px-6 py-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-4xl font-bold text-base-content mb-2">Dashboard Executivo</h1>
+                    <p class="text-base-content/70">Monitoramento geral do programa de metodologia canguru</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="btn btn-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Relatório
+                    </button>
+                    <button class="btn btn-primary btn-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        Nova Criança
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-figure text-success">
+                        <i data-lucide="heart" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stat-title">Acompanhamentos Ativos</div>
+                    <div class="stat-value text-success">127</div>
+                    <div class="stat-desc">+8% em relação ao mês anterior</div>
+                </div>
+                
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-figure text-warning">
+                        <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stat-title">Alertas Pendentes</div>
+                    <div class="stat-value text-warning">23</div>
+                    <div class="stat-desc">Requerem atenção</div>
+                </div>
+                
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-figure text-error">
+                        <i data-lucide="alert-circle" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stat-title">Casos Críticos</div>
+                    <div class="stat-value text-error">7</div>
+                    <div class="stat-desc">Intervenção imediata</div>
+                </div>
+                
+                <div class="stat bg-base-200 rounded-lg">
+                    <div class="stat-figure text-info">
+                        <i data-lucide="calendar" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stat-title">Consultas Hoje</div>
+                    <div class="stat-value text-info">15</div>
+                    <div class="stat-desc">12 realizadas</div>
+                </div>
+            </div>
+
+            <!-- Mapa de Monitoramento -->
+            <div class="card bg-base-200 shadow-xl mb-8">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="card-title text-2xl">
+                            <i data-lucide="map" class="w-6 h-6 text-primary"></i>
+                            Mapa de Monitoramento Territorial
+                        </h2>
+                        <div class="flex gap-4 text-sm">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <span>Normal (105)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-warning rounded-full"></div>
+                                <span>Atenção (23)</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-error rounded-full"></div>
+                                <span>Crítico (7)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-lg overflow-hidden">
+                        <iframe allow="geolocation" frameborder="0" style="width:100%;height:500px;" 
+                                src="https://www.zeemaps.com/pub?group=6841023">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros e Busca -->
+            <div class="card bg-base-200 shadow-xl mb-8">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        Buscar e Filtrar Crianças
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <!-- Busca por nome -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Buscar por nome</span>
+                            </label>
+                            <input type="text" placeholder="Digite o nome..." class="input input-bordered input-sm" />
+                        </div>
+                        
+                        <!-- Filtro por status -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Status</span>
+                            </label>
+                            <select class="select select-bordered select-sm">
+                                <option selected>Todos</option>
+                                <option>Normal</option>
+                                <option>Atenção</option>
+                                <option>Crítico</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por período -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Última consulta</span>
+                            </label>
+                            <select class="select select-bordered select-sm">
+                                <option selected>Qualquer período</option>
+                                <option>Últimos 7 dias</option>
+                                <option>Últimos 15 dias</option>
+                                <option>Últimos 30 dias</option>
+                                <option>Mais de 30 dias</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por região -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Região</span>
+                            </label>
+                            <select class="select select-bordered select-sm">
+                                <option selected>Todas as regiões</option>
+                                <option>Região Norte</option>
+                                <option>Região Sul</option>
+                                <option>Região Leste</option>
+                                <option>Região Oeste</option>
+                                <option>Centro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button class="btn btn-primary btn-sm">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                            Buscar
+                        </button>
+                        <button class="btn btn-ghost btn-sm">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                            Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Crianças -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="card-title text-2xl">
+                            <i data-lucide="list" class="w-6 h-6"></i>
+                            Lista de Crianças em Acompanhamento
+                        </h3>
+                        <div class="text-sm text-base-content/70">
+                            Mostrando 135 de 135 crianças
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Nome da Criança</th>
+                                    <th>Certidão de Nascimento</th>
+                                    <th>Última Consulta</th>
+                                    <th>Idade Gestacional</th>
+                                    <th>Responsável</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="w-3 h-3 bg-success rounded-full" title="Normal"></div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-primary text-primary-content rounded-full w-8">
+                                                    <span class="text-xs">MC</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold">Maria Clara Santos</div>
+                                                <div class="text-sm opacity-50">32 semanas</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>123456789012345</td>
+                                    <td>
+                                        <div class="text-sm">
+                                            <div class="font-medium">3 dias atrás</div>
+                                            <div class="text-xs opacity-50">03/08/2025</div>
+                                        </div>
+                                    </td>
+                                    <td>35 semanas + 2 dias</td>
+                                    <td>Dr. Ana Silva</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='newborn-history.html'">
+                                            Ver Prontuário
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="w-3 h-3 bg-warning rounded-full" title="Atenção"></div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-warning text-warning-content rounded-full w-8">
+                                                    <span class="text-xs">JP</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold">João Pedro Lima</div>
+                                                <div class="text-sm opacity-50">28 semanas</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>987654321098765</td>
+                                    <td>
+                                        <div class="text-sm">
+                                            <div class="font-medium text-warning">12 dias atrás</div>
+                                            <div class="text-xs opacity-50">25/07/2025</div>
+                                        </div>
+                                    </td>
+                                    <td>32 semanas + 1 dia</td>
+                                    <td>Dr. Carlos Mendes</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=2'">
+                                            Ver Prontuário
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="w-3 h-3 bg-error rounded-full" title="Crítico"></div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-error text-error-content rounded-full w-8">
+                                                    <span class="text-xs">AS</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold">Ana Sofia Rodrigues</div>
+                                                <div class="text-sm opacity-50">26 semanas</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>456789123456789</td>
+                                    <td>
+                                        <div class="text-sm">
+                                            <div class="font-medium text-error">18 dias atrás</div>
+                                            <div class="text-xs opacity-50">19/07/2025</div>
+                                        </div>
+                                    </td>
+                                    <td>30 semanas + 5 dias</td>
+                                    <td>Dra. Fernanda Costa</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=3'">
+                                            Ver Prontuário
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="w-3 h-3 bg-success rounded-full" title="Normal"></div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-primary text-primary-content rounded-full w-8">
+                                                    <span class="text-xs">LG</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold">Lucas Gabriel Sousa</div>
+                                                <div class="text-sm opacity-50">30 semanas</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>654321987654321</td>
+                                    <td>
+                                        <div class="text-sm">
+                                            <div class="font-medium">1 dia atrás</div>
+                                            <div class="text-xs opacity-50">05/08/2025</div>
+                                        </div>
+                                    </td>
+                                    <td>34 semanas + 3 dias</td>
+                                    <td>Dr. Roberto Alves</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=4'">
+                                            Ver Prontuário
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>
+                                        <div class="w-3 h-3 bg-success rounded-full" title="Normal"></div>
+                                    </td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="avatar placeholder">
+                                                <div class="bg-primary text-primary-content rounded-full w-8">
+                                                    <span class="text-xs">IM</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold">Isabella Martins</div>
+                                                <div class="text-sm opacity-50">31 semanas</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>789123456789123</td>
+                                    <td>
+                                        <div class="text-sm">
+                                            <div class="font-medium">5 dias atrás</div>
+                                            <div class="text-xs opacity-50">01/08/2025</div>
+                                        </div>
+                                    </td>
+                                    <td>36 semanas + 1 dia</td>
+                                    <td>Dra. Patricia Nunes</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=5'">
+                                            Ver Prontuário
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginação -->
+                    <div class="flex justify-between items-center mt-6">
+                        <div class="text-sm text-base-content/70">
+                            Mostrando 1 a 5 de 135 registros
+                        </div>
+                        <div class="join">
+                            <button class="join-item btn btn-sm">«</button>
+                            <button class="join-item btn btn-sm btn-active">1</button>
+                            <button class="join-item btn btn-sm">2</button>
+                            <button class="join-item btn btn-sm">3</button>
+                            <button class="join-item btn btn-sm">...</button>
+                            <button class="join-item btn btn-sm">27</button>
+                            <button class="join-item btn btn-sm">»</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializa os ícones Lucide
+        lucide.createIcons();
+    </script>
+</body>
+</html>
