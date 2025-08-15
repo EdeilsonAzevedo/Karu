@@ -3,365 +3,639 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karu - Metodologia Canguru</title>
+    <title>Karu - Transformando o Cuidado Neonatal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .gradient-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
 <body class="min-h-screen bg-base-100">
-    <!-- Header -->
-    <div class="navbar bg-base-100 shadow-lg">
-        <div class="flex-1">
+    <!-- Navigation Header -->
+    <div class="navbar bg-base-100/95 backdrop-blur-md shadow-lg fixed top-0 z-50">
+        <div class="navbar-start">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+                    <i data-lucide="heart" class="w-6 h-6 text-primary-content"></i>
                 </div>
                 <span class="text-2xl font-bold text-primary">Karu</span>
+                <div class="badge badge-primary hidden sm:inline-flex">Beta</div>
             </div>
         </div>
-        <div class="flex-none">
-            <div class="badge badge-outline">Versão Apresentação</div>
-        </div>
+        <div class="navbar-end">
+            <nav class="hidden lg:flex items-center space-x-6 mr-6" aria-label="Seções da página">
+              <a href="#sobre" class="text-base-content/70 hover:text-primary transition-colors">Sobre</a>
+              <a href="#educacao" class="text-base-content/70 hover:text-primary transition-colors">Educação</a>
+              <a href="#contato" class="text-base-content/70 hover:text-primary transition-colors">Contato</a>
+            </nav>
+          
+            <div class="flex items-center space-x-2">
+              <a href="../pages/login.html" class="btn btn-ghost btn-sm" aria-label="Ir para login">
+                <i data-lucide="log-in" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Login</span>
+              </a>
+          
+              <a href="../pages/signup.html" class="btn btn-primary btn-sm" aria-label="Ir para cadastro">
+                <i data-lucide="user-check" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Cadastrar</span>
+              </a>
+            </div>
+          </div>
+          
     </div>
 
     <!-- Hero Section -->
-    <div class="hero min-h-[60vh] bg-gradient-to-br from-primary/10 to-secondary/10">
-        <div class="hero-content text-center">
-            <div class="max-w-4xl">
-                <h1 class="text-5xl font-bold text-base-content mb-6">
-                    Transformando o cuidado de <span class="text-primary">bebês prematuros</span>
-                </h1>
-                <p class="text-xl text-base-content/80 mb-8 leading-relaxed">
-                    Plataforma digital integrada para implementar e acompanhar a metodologia canguru, 
-                    conectando profissionais de saúde e famílias no cuidado especializado de recém-nascidos prematuros.
-                </p>
-                <div class="stats shadow bg-base-200">
-                    <div class="stat">
-                        <div class="stat-title">Metodologia</div>
-                        <div class="stat-value text-primary">Canguru</div>
-                        <div class="stat-desc">Evidência científica</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-title">Cuidado</div>
-                        <div class="stat-value text-secondary">Integrado</div>
-                        <div class="stat-desc">Multiprofissional</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-title">Foco</div>
-                        <div class="stat-value text-accent">Família</div>
-                        <div class="stat-desc">Centrado no bebê</div>
-                    </div>
-                </div>
-            </div>
+    <section class="gradient-hero min-h-screen flex items-center justify-center relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="floating-animation absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="floating-animation absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" style="animation-delay: -3s;"></div>
         </div>
-    </div>
-
-    <!-- Personas Section -->
-    <div class="py-16 px-4">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-base-content mb-4">
-                    Personas e Fluxos de Navegação
-                </h2>
-                <p class="text-lg text-base-content/70 mb-4">
-                    Clique em cada card para navegar pelos fluxos específicos de cada tipo de usuário
-                </p>
-                <div class="alert alert-info max-w-2xl mx-auto">
-                    <i data-lucide="info" class="stroke-current shrink-0 w-6 h-6"></i>
-                    <span class="text-sm">Cards interativos - clique para acessar o fluxo de cada persona</span>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                <!-- Gestor de Saúde -->
-                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
-                     onclick="window.location.href='pages/manager-dashboard.html'">
-                    <div class="card-body">
-                        <div class="w-16 h-16 rounded-full bg-primary text-primary-content flex items-center justify-center mb-4">
-                            <i data-lucide="shield" class="w-8 h-8"></i>
-                        </div>
-                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
-                            Gestor de Saúde
-                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
-                        </h3>
-                        <p class="text-base-content/70 mb-4">Supervisiona o programa e monitora indicadores de qualidade</p>
-                        
-                        <div class="space-y-2">
-                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
-                            <ul class="space-y-1">
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Dashboard executivo
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Relatórios gerenciais
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Indicadores de performance
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <div class="card-actions justify-between items-center mt-4">
-                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
-                            <div class="flex items-center text-primary text-sm font-medium">
-                                Acessar <span class="ml-1">→</span>
-                            </div>
-                        </div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-6 py-20">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Content -->
+                <div class="text-center lg:text-left fade-in">
+                    <h1 class="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+                        Transformando o
+                        <span class="text-yellow-300">Cuidado Neonatal</span>
+                    </h1>
+                    <p class="text-xl lg:text-2xl text-white/90 mb-8 leading-relaxed">
+                        Sistema digital para prontuário eletrônico e acompanhamento clínico de recém-nascidos prematuros através do Método Canguru.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <button class="btn btn-lg bg-white text-primary hover:bg-white/90 border-none shadow-xl">
+                            <i data-lucide="heart" class="w-5 h-5"></i>
+                            Começar Agora
+                        </button>
+                        <button class="btn btn-lg btn-ghost text-white border-white/30 hover:bg-white/10">
+                            <i data-lucide="play" class="w-5 h-5"></i>
+                            Ver Demonstração
+                        </button>
                     </div>
                 </div>
-
-                <!-- Médico -->
-                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
-                     onclick="window.location.href='medico.html'">
-                    <div class="card-body">
-                        <div class="w-16 h-16 rounded-full bg-secondary text-secondary-content flex items-center justify-center mb-4">
-                            <i data-lucide="stethoscope" class="w-8 h-8"></i>
-                        </div>
-                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
-                            Médico
-                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
-                        </h3>
-                        <p class="text-base-content/70 mb-4">Acompanha o desenvolvimento clínico dos bebês</p>
-                        
-                        <div class="space-y-2">
-                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
-                            <ul class="space-y-1">
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Prontuário eletrônico
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Prescrições
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Evolução clínica
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <div class="card-actions justify-between items-center mt-4">
-                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
-                            <div class="flex items-center text-primary text-sm font-medium">
-                                Acessar <span class="ml-1">→</span>
+                
+                <!-- Hero Illustration -->
+                <div class="relative fade-in" style="animation-delay: 0.3s;">
+                    <div class="glass-card rounded-3xl p-8 lg:p-12">
+                        <div class="bg-white rounded-2xl p-8 shadow-2xl">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                        <i data-lucide="file-text" class="w-5 h-5 text-white"></i>
+                                    </div>
+                                    <span class="text-lg font-semibold text-base-content">Prontuário Digital</span>
+                                </div>
+                                <div class="badge badge-success">Maria Clara</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Enfermeiro -->
-                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
-                     onclick="window.location.href='enfermeiro.html'">
-                    <div class="card-body">
-                        <div class="w-16 h-16 rounded-full bg-accent text-accent-content flex items-center justify-center mb-4">
-                            <i data-lucide="heart" class="w-8 h-8"></i>
-                        </div>
-                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
-                            Enfermeiro
-                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
-                        </h3>
-                        <p class="text-base-content/70 mb-4">Coordena os cuidados diretos e orienta as famílias</p>
-                        
-                        <div class="space-y-2">
-                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
-                            <ul class="space-y-1">
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Registro de cuidados
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Orientação às famílias
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Planos de cuidado
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <div class="card-actions justify-between items-center mt-4">
-                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
-                            <div class="flex items-center text-primary text-sm font-medium">
-                                Acessar <span class="ml-1">→</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Agente de Saúde -->
-                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
-                     onclick="window.location.href='agente-saude.html'">
-                    <div class="card-body">
-                        <div class="w-16 h-16 rounded-full bg-info text-info-content flex items-center justify-center mb-4">
-                            <i data-lucide="users" class="w-8 h-8"></i>
-                        </div>
-                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
-                            Agente de Saúde
-                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
-                        </h3>
-                        <p class="text-base-content/70 mb-4">Realiza visitas domiciliares e acompanhamento territorial</p>
-                        
-                        <div class="space-y-2">
-                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
-                            <ul class="space-y-1">
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Visitas domiciliares
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Cadastro familiar
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Busca ativa
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <div class="card-actions justify-between items-center mt-4">
-                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
-                            <div class="flex items-center text-primary text-sm font-medium">
-                                Acessar <span class="ml-1">→</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pais/Cuidadores -->
-                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
-                     onclick="window.location.href='pais-cuidadores.html'">
-                    <div class="card-body">
-                        <div class="w-16 h-16 rounded-full bg-warning text-warning-content flex items-center justify-center mb-4">
-                            <i data-lucide="baby" class="w-8 h-8"></i>
-                        </div>
-                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
-                            Pais/Cuidadores
-                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
-                        </h3>
-                        <p class="text-base-content/70 mb-4">Acompanham o desenvolvimento do bebê e recebem orientações</p>
-                        
-                        <div class="space-y-2">
-                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
-                            <ul class="space-y-1">
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Diário do bebê
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Orientações personalizadas
-                                </li>
-                                <li class="flex items-center text-sm">
-                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                                    Comunicação com equipe
-                                </li>
-                            </ul>
-                        </div>
-                        
-                        <div class="card-actions justify-between items-center mt-4">
-                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
-                            <div class="flex items-center text-primary text-sm font-medium">
-                                Acessar <span class="ml-1">→</span>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-4 bg-success/10 rounded-lg">
+                                    <span class="text-success font-medium">Peso Atual</span>
+                                    <span class="text-2xl font-bold text-success">2.650g</span>
+                                </div>
+                                <div class="flex justify-between items-center p-4 bg-info/10 rounded-lg">
+                                    <span class="text-info font-medium">Idade Corrigida</span>
+                                    <span class="text-2xl font-bold text-info">35s + 2d</span>
+                                </div>
+                                <div class="flex justify-between items-center p-4 bg-warning/10 rounded-lg">
+                                    <span class="text-warning font-medium">Ganho de Peso</span>
+                                    <span class="text-2xl font-bold text-warning">28g/dia</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Features Overview -->
-    <div class="py-16 bg-base-200">
-        <div class="max-w-6xl mx-auto px-4">
+    <!-- Quick Login Section -->
+    <section class="bg-base-100 py-16 relative">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="card bg-base-200 shadow-2xl">
+                <div class="card-body">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-base-content mb-4">Acesso Rápido</h2>
+                        <p class="text-base-content/70">Entre na sua conta para continuar o acompanhamento</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Login Form -->
+                        <div class="space-y-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Email ou CPF</span>
+                                </label>
+                                <input type="text" placeholder="Digite seu email ou CPF" class="input input-bordered" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Senha</span>
+                                </label>
+                                <input type="password" placeholder="Digite sua senha" class="input input-bordered" />
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label class="label cursor-pointer">
+                                    <input type="checkbox" class="checkbox checkbox-sm checkbox-primary" />
+                                    <span class="label-text ml-2">Lembrar de mim</span>
+                                </label>
+                                <a href="#" class="text-primary text-sm hover:underline">Esqueci minha senha</a>
+                            </div>
+                            <button class="btn btn-primary w-full">
+                                <i data-lucide="log-in" class="w-4 h-4"></i>
+                                Entrar
+                            </button>
+                        </div>
+                        
+                        <!-- Quick Access Cards -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-base-content">Acesso por perfil</h3>
+                            <div class="space-y-3">
+                                <button class="w-full p-4 bg-primary/10 hover:bg-primary/20 rounded-lg border border-primary/20 transition-colors text-left">
+                                    <div class="flex items-center space-x-3">
+                                        <i data-lucide="user-check" class="w-6 h-6 text-primary"></i>
+                                        <div>
+                                            <div class="font-semibold text-primary">Profissional de Saúde</div>
+                                            <div class="text-sm text-base-content/60">Médicos, enfermeiros e gestores</div>
+                                        </div>
+                                    </div>
+                                </button>
+                                <button class="w-full p-4 bg-secondary/10 hover:bg-secondary/20 rounded-lg border border-secondary/20 transition-colors text-left">
+                                    <div class="flex items-center space-x-3">
+                                        <i data-lucide="users" class="w-6 h-6 text-secondary"></i>
+                                        <div>
+                                            <div class="font-semibold text-secondary">Pais e Familiares</div>
+                                            <div class="text-sm text-base-content/60">Acompanhar o desenvolvimento</div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="text-center pt-4">
+                                <p class="text-sm text-base-content/60 mb-2">Ainda não tem conta?</p>
+                                <button class="btn btn-outline btn-primary">
+                                    <i data-lucide="user-check" class="w-4 h-4"></i>
+                                    Criar Conta Gratuita
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="bg-primary/5 py-16">
+        <div class="max-w-6xl mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-base-content mb-4">
-                    Funcionalidades Principais
-                </h2>
+                <h2 class="text-4xl font-bold text-base-content mb-4">Impacto Real</h2>
+                <p class="text-xl text-base-content/70">Transformando vidas através da tecnologia</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="heart" class="w-8 h-8 text-primary-content"></i>
-                    </div>
-                    <h3 class="font-semibold mb-2">Monitoramento</h3>
-                    <p class="text-sm text-base-content/70">Acompanhamento contínuo do desenvolvimento</p>
+                <div class="stats-card stat bg-white shadow-lg rounded-2xl p-6 text-center">
+                    <div class="text-4xl font-bold text-primary mb-2">1,247</div>
+                    <div class="text-base-content/70">Bebês Acompanhados</div>
                 </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="users" class="w-8 h-8 text-secondary-content"></i>
-                    </div>
-                    <h3 class="font-semibold mb-2">Comunicação</h3>
-                    <p class="text-sm text-base-content/70">Integração entre profissionais e famílias</p>
+                <div class="stats-card stat bg-white shadow-lg rounded-2xl p-6 text-center">
+                    <div class="text-4xl font-bold text-success mb-2">98%</div>
+                    <div class="text-base-content/70">Taxa de Sucesso</div>
                 </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="shield" class="w-8 h-8 text-accent-content"></i>
-                    </div>
-                    <h3 class="font-semibold mb-2">Segurança</h3>
-                    <p class="text-sm text-base-content/70">Dados protegidos e conformidade LGPD</p>
+                <div class="stats-card stat bg-white shadow-lg rounded-2xl p-6 text-center">
+                    <div class="text-4xl font-bold text-info mb-2">156</div>
+                    <div class="text-base-content/70">Profissionais Ativos</div>
                 </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-info rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="stethoscope" class="w-8 h-8 text-info-content"></i>
-                    </div>
-                    <h3 class="font-semibold mb-2">Evidência</h3>
-                    <p class="text-sm text-base-content/70">Baseado em protocolos científicos</p>
+                <div class="stats-card stat bg-white shadow-lg rounded-2xl p-6 text-center">
+                    <div class="text-4xl font-bold text-warning mb-2">24h</div>
+                    <div class="text-base-content/70">Suporte Disponível</div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Call to Action -->
-    <div class="hero py-16">
-        <div class="hero-content text-center">
-            <div class="max-w-md">
-                <h2 class="text-3xl font-bold text-base-content mb-4">
-                    Explore os Fluxos de Navegação
-                </h2>
-                <p class="text-base-content/70 mb-6">
-                    Clique nos cards acima para navegar pelos diferentes fluxos de cada persona e entender como cada usuário interage com a plataforma.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button class="btn btn-primary" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-                        Voltar ao Topo
-                    </button>
-                    <button class="btn btn-outline" onclick="document.querySelector('.grid').scrollIntoView({behavior: 'smooth'})">
-                        Ver Personas
-                    </button>
+    <!-- Join Us Section -->
+    <section id="sobre" class="bg-base-100 py-20">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-4xl lg:text-5xl font-bold text-base-content mb-6">
+                        Junte-se à 
+                        <span class="text-primary">Revolução</span> 
+                        do Cuidado Neonatal
+                    </h2>
+                    <p class="text-lg text-base-content/70 mb-8 leading-relaxed">
+                        A Karu está transformando o cuidado neonatal no Brasil. Seja parte desta missão que salva vidas e fortalece famílias através da tecnologia e do amor.
+                    </p>
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-success"></i>
+                            <span class="text-base-content">Prontuário eletrônico completo</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-success"></i>
+                            <span class="text-base-content">Curvas de crescimento automatizadas</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-success"></i>
+                            <span class="text-base-content">Gestão de equipe multidisciplinar</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="btn btn-primary btn-lg">
+                            <i data-lucide="heart" class="w-5 h-5"></i>
+                            Quero Colaborar
+                        </button>
+                        <button class="btn btn-outline btn-lg">
+                            <i data-lucide="mail" class="w-5 h-5"></i>
+                            Entre em Contato
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl p-8">
+                        <div class="bg-white rounded-2xl p-6 shadow-xl">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-bold text-base-content">Dashboard Gestor</h3>
+                                <div class="badge badge-success">Ativo</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="text-center p-4 bg-primary/10 rounded-lg">
+                                    <div class="text-2xl font-bold text-primary">127</div>
+                                    <div class="text-sm text-base-content/60">Acompanhamentos</div>
+                                </div>
+                                <div class="text-center p-4 bg-success/10 rounded-lg">
+                                    <div class="text-2xl font-bold text-success">23</div>
+                                    <div class="text-sm text-base-content/60">Alertas</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-base-content/60">Última atualização:</span>
+                                <span class="font-medium">Agora mesmo</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Educational Section -->
+    <section id="educacao" class="bg-base-200 py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-base-content mb-4">Você Sabia?</h2>
+                <p class="text-xl text-base-content/70 max-w-3xl mx-auto">
+                    Informações essenciais sobre prematuridade e o Método Canguru que podem fazer toda a diferença no cuidado neonatal
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                    <figure class="px-6 pt-6">
+                        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                            <i data-lucide="heart" class="w-8 h-8 text-primary"></i>
+                        </div>
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-primary">Método Canguru</h3>
+                        <p class="text-base-content/70">
+                            O contato pele a pele pode reduzir em até 40% o risco de morte neonatal em bebês prematuros.
+                        </p>
+                        <div class="card-actions justify-end mt-4">
+                            <button class="btn btn-outline btn-primary btn-sm">
+                                <i data-lucide="user-check" class="w-4 h-4"></i>
+                                Para Profissionais
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                    <figure class="px-6 pt-6">
+                        <div class="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center">
+                            <i data-lucide="trending-up" class="w-8 h-8 text-success"></i>
+                        </div>
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-success">Desenvolvimento</h3>
+                        <p class="text-base-content/70">
+                            Bebês prematuros que recebem método canguru apresentam melhor desenvolvimento neurológico.
+                        </p>
+                        <div class="card-actions justify-end mt-4">
+                            <button class="btn btn-outline btn-success btn-sm">
+                                <i data-lucide="users" class="w-4 h-4"></i>
+                                Para Famílias
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                    <figure class="px-6 pt-6">
+                        <div class="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center">
+                            <i data-lucide="bar-chart" class="w-8 h-8 text-warning"></i>
+                        </div>
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-warning">Acompanhamento</h3>
+                        <p class="text-base-content/70">
+                            O acompanhamento digital reduz readmissões hospitalares em 35% nos primeiros 6 meses de vida.
+                        </p>
+                        <div class="card-actions justify-end mt-4">
+                            <button class="btn btn-outline btn-warning btn-sm">
+                                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                Saiba Mais
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Educational CTA -->
+            <div class="text-center mt-12">
+                <div class="card bg-gradient-to-r from-primary to-secondary shadow-2xl">
+                    <div class="card-body text-center text-white">
+                        <h3 class="text-2xl font-bold mb-4">Centro Educacional Karu</h3>
+                        <p class="mb-6 text-white/90">
+                            Acesse nosso centro de conhecimento com cursos, artigos e recursos especializados
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button class="btn bg-white text-primary hover:bg-white/90 border-none">
+                                <i data-lucide="book" class="w-5 h-5"></i>
+                                Cursos para Profissionais
+                            </button>
+                            <button class="btn btn-ghost text-white border-white/30 hover:bg-white/10">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                                Guias para Famílias
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contato" class="bg-base-100 py-20">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-base-content mb-4">Fale Conosco</h2>
+                <p class="text-xl text-base-content/70">
+                    Estamos aqui para ajudar. Entre em contato conosco!
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Contact Info -->
+                <div class="space-y-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="mail" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-base-content">Email</h4>
+                            <p class="text-base-content/70">contato@karu.com.br</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="phone" class="w-6 h-6 text-success"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-base-content">Telefone</h4>
+                            <p class="text-base-content/70">+55 (82) 9999-9999</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-info/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="map-pin" class="w-6 h-6 text-info"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-base-content">Localização</h4>
+                            <p class="text-base-content/70">Maceió, Alagoas - Brasil</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Form -->
+                <div class="lg:col-span-2">
+                    <div class="card bg-base-200 shadow-xl">
+                        <div class="card-body">
+                            <form class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Nome</span>
+                                        </label>
+                                        <input type="text" placeholder="Seu nome completo" class="input input-bordered" />
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text font-medium">Email</span>
+                                        </label>
+                                        <input type="email" placeholder="seu@email.com" class="input input-bordered" />
+                                    </div>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Assunto</span>
+                                    </label>
+                                    <select class="select select-bordered">
+                                        <option disabled selected>Selecione um assunto</option>
+                                        <option>Dúvidas sobre a plataforma</option>
+                                        <option>Suporte técnico</option>
+                                        <option>Parcerias e colaborações</option>
+                                        <option>Feedback e sugestões</option>
+                                        <option>Outros</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-medium">Mensagem</span>
+                                    </label>
+                                    <textarea class="textarea textarea-bordered h-32" placeholder="Escreva sua mensagem..."></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-full">
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                    Enviar Mensagem
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="footer footer-center p-10 bg-base-200 text-base-content">
-        <aside>
-            <div class="flex items-center space-x-2 mb-4">
-                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                    <i data-lucide="baby" class="w-5 h-5 text-primary-content"></i>
+    <footer class="bg-base-300 text-base-content py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Logo and Description -->
+                <div class="lg:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                            <i data-lucide="heart" class="w-7 h-7 text-primary-content"></i>
+                        </div>
+                        <span class="text-3xl font-bold text-primary">Karu</span>
+                    </div>
+                    <p class="text-base-content/70 mb-6 max-w-md">
+                        Transformando o cuidado neonatal através da tecnologia, conectando profissionais de saúde e famílias para oferecer prontuário eletrônico e acompanhamento clínico especializado.
+                    </p>
+                    <div class="flex space-x-4">
+                        <button class="btn btn-circle btn-outline btn-sm">
+                            <i data-lucide="facebook" class="w-4 h-4"></i>
+                        </button>
+                        <button class="btn btn-circle btn-outline btn-sm">
+                            <i data-lucide="twitter" class="w-4 h-4"></i>
+                        </button>
+                        <button class="btn btn-circle btn-outline btn-sm">
+                            <i data-lucide="instagram" class="w-4 h-4"></i>
+                        </button>
+                        <button class="btn btn-circle btn-outline btn-sm">
+                            <i data-lucide="linkedin" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
-                <span class="text-xl font-bold text-primary">Karu</span>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Links Rápidos</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Sobre a Karu</a></li>
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Como Funciona</a></li>
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Profissionais</a></li>
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Famílias</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Support -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Suporte</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Central de Ajuda</a></li>
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Documentação</a></li>
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Contato</a></li>
+                        <li><a href="#" class="text-base-content/70 hover:text-primary transition-colors">Status do Sistema</a></li>
+                    </ul>
+                </div>
             </div>
-            <p class="text-base-content/70">
-                Transformando o cuidado de bebês prematuros através da tecnologia
-            </p>
-            <div class="badge badge-outline mt-2">Versão para Apresentação</div>
-        </aside>
+            
+            <!-- Bottom Footer -->
+            <div class="border-t border-base-content/10 mt-12 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-base-content/70 text-sm mb-4 md:mb-0">
+                        © 2025 Karu. Todos os direitos reservados.
+                    </p>
+                    <div class="flex space-x-6 text-sm">
+                        <a href="#" class="text-base-content/70 hover:text-primary transition-colors">Política de Privacidade</a>
+                        <a href="#" class="text-base-content/70 hover:text-primary transition-colors">Termos de Uso</a>
+                        <a href="#" class="text-base-content/70 hover:text-primary transition-colors">Cookies</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script>
-        // Inicializa os ícones Lucide
-        lucide.createIcons();
+        // Aguardar o carregamento completo do DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se o Lucide foi carregado
+            if (typeof lucide !== 'undefined') {
+                // Inicializar os ícones Lucide
+                lucide.createIcons();
+                console.log('Ícones Lucide inicializados com sucesso!');
+            } else {
+                console.error('Lucide não foi carregado corretamente');
+            }
+        });
+
+        // Aguardar também o carregamento da janela como fallback
+        window.addEventListener('load', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
+        // Smooth scroll para links de navegação
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animação de fade-in quando elementos entram na viewport
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observar elementos que devem ter animação
+        document.querySelectorAll('.stats-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Re-inicializar ícones após 1 segundo como fallback adicional
+        setTimeout(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+                console.log('Ícones re-inicializados após timeout');
+            }
+        }, 1000);
     </script>
 </body>
 </html>
