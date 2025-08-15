@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Karu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="floating-animation absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+        <div class="floating-animation absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" style="animation-delay: -3s;"></div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="relative z-10 w-full max-w-md mx-auto px-6">
+        <div class="glass-card rounded-3xl shadow-2xl p-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center space-x-3 mb-6">
+                    <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+                        <i data-lucide="heart" class="w-7 h-7 text-primary-content"></i>
+                    </div>
+                    <span class="text-3xl font-bold text-primary">Karu</span>
+                </div>
+                <h1 class="text-2xl font-bold text-base-content mb-2">Bem-vindo de volta!</h1>
+                <p class="text-base-content/70">Entre na sua conta para continuar</p>
+            </div>
+
+            <!-- Login Form -->
+            <form class="space-y-6">
+                <!-- Email/CPF Field -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Email ou CPF</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" 
+                               placeholder="Digite seu email ou CPF" 
+                               class="input input-bordered w-full pl-12" 
+                               required />
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="user" class="w-5 h-5 text-base-content/50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Senha</span>
+                    </label>
+                    <div class="relative">
+                        <input type="password" 
+                               placeholder="Digite sua senha" 
+                               class="input input-bordered w-full pl-12 pr-12" 
+                               id="password"
+                               required />
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="lock" class="w-5 h-5 text-base-content/50"></i>
+                        </div>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <button type="button" 
+                                    class="text-base-content/50 hover:text-base-content transition-colors"
+                                    onclick="togglePassword()">
+                                <i data-lucide="eye" class="w-5 h-5" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between">
+                    <label class="label cursor-pointer">
+                        <input type="checkbox" class="checkbox checkbox-primary checkbox-sm mr-2" />
+                        <span class="label-text">Lembrar de mim</span>
+                    </label>
+                    <a href="#" class="text-primary text-sm hover:underline font-medium">
+                        Esqueci minha senha
+                    </a>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="btn btn-primary w-full">
+                    <i data-lucide="log-in" class="w-5 h-5"></i>
+                    Entrar
+                </button>
+
+                <!-- Divider -->
+                <div class="divider">ou</div>
+
+                <!-- Quick Access Buttons -->
+                <div class="space-y-3">
+                    <a href="manager-dashboard.html" class="btn btn-outline w-full">
+                        <i data-lucide="user-check" class="w-5 h-5 text-primary"></i>
+                        Acesso Profissional
+                    </a>
+                    <a href="manager-dashboard.html" class="btn btn-outline btn-secondary w-full">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                        Acesso Familiar
+                    </a>
+                </div>
+
+                <!-- Register Link -->
+                <div class="text-center pt-4">
+                    <p class="text-base-content/70">
+                        Não tem uma conta? 
+                        <a href="signup.html" class="text-primary font-medium hover:underline">
+                            Cadastre-se aqui
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Back to Home -->
+        <div class="text-center mt-6">
+            <a href="index.html" class="text-white/80 hover:text-white transition-colors text-sm">
+                <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
+                Voltar ao início
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar ícones
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.setAttribute('data-lucide', 'eye');
+            }
+            
+            // Re-initialize icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // Form validation and redirect
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.querySelector('input[type="text"]').value;
+            const password = document.querySelector('input[type="password"]').value;
+            
+            if (!email || !password) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+            
+            // Simulate login process
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Entrando...';
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
+                // Simulate login validation
+                // In a real app, this would be an API call
+                
+                // Determine user type based on email pattern (demo purposes)
+                // You can modify this logic based on your needs
+                if (email.includes('admin') || email.includes('gestor') || email.includes('medico')) {
+                    window.location.href = 'manager-dashboard.html';
+                } else {
+                    window.location.href = 'manager-dashboard.html';
+                }
+                
+                // Reset button (this won't execute due to redirect, but good practice)
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
