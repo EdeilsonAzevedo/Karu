@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karu - Metodologia Canguru</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="min-h-screen bg-base-100">
+    <!-- Header -->
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+                </div>
+                <span class="text-2xl font-bold text-primary">Karu</span>
+            </div>
+        </div>
+        <div class="flex-none">
+            <div class="badge badge-outline">Versão Apresentação</div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero min-h-[60vh] bg-gradient-to-br from-primary/10 to-secondary/10">
+        <div class="hero-content text-center">
+            <div class="max-w-4xl">
+                <h1 class="text-5xl font-bold text-base-content mb-6">
+                    Transformando o cuidado de <span class="text-primary">bebês prematuros</span>
+                </h1>
+                <p class="text-xl text-base-content/80 mb-8 leading-relaxed">
+                    Plataforma digital integrada para implementar e acompanhar a metodologia canguru, 
+                    conectando profissionais de saúde e famílias no cuidado especializado de recém-nascidos prematuros.
+                </p>
+                <div class="stats shadow bg-base-200">
+                    <div class="stat">
+                        <div class="stat-title">Metodologia</div>
+                        <div class="stat-value text-primary">Canguru</div>
+                        <div class="stat-desc">Evidência científica</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Cuidado</div>
+                        <div class="stat-value text-secondary">Integrado</div>
+                        <div class="stat-desc">Multiprofissional</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Foco</div>
+                        <div class="stat-value text-accent">Família</div>
+                        <div class="stat-desc">Centrado no bebê</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personas Section -->
+    <div class="py-16 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-base-content mb-4">
+                    Personas e Fluxos de Navegação
+                </h2>
+                <p class="text-lg text-base-content/70 mb-4">
+                    Clique em cada card para navegar pelos fluxos específicos de cada tipo de usuário
+                </p>
+                <div class="alert alert-info max-w-2xl mx-auto">
+                    <i data-lucide="info" class="stroke-current shrink-0 w-6 h-6"></i>
+                    <span class="text-sm">Cards interativos - clique para acessar o fluxo de cada persona</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Gestor de Saúde -->
+                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
+                     onclick="window.location.href='pages/manager-dashboard.html'">
+                    <div class="card-body">
+                        <div class="w-16 h-16 rounded-full bg-primary text-primary-content flex items-center justify-center mb-4">
+                            <i data-lucide="shield" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
+                            Gestor de Saúde
+                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
+                        </h3>
+                        <p class="text-base-content/70 mb-4">Supervisiona o programa e monitora indicadores de qualidade</p>
+                        
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
+                            <ul class="space-y-1">
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Dashboard executivo
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Relatórios gerenciais
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Indicadores de performance
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card-actions justify-between items-center mt-4">
+                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
+                            <div class="flex items-center text-primary text-sm font-medium">
+                                Acessar <span class="ml-1">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Médico -->
+                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
+                     onclick="window.location.href='medico.html'">
+                    <div class="card-body">
+                        <div class="w-16 h-16 rounded-full bg-secondary text-secondary-content flex items-center justify-center mb-4">
+                            <i data-lucide="stethoscope" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
+                            Médico
+                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
+                        </h3>
+                        <p class="text-base-content/70 mb-4">Acompanha o desenvolvimento clínico dos bebês</p>
+                        
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
+                            <ul class="space-y-1">
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Prontuário eletrônico
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Prescrições
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Evolução clínica
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card-actions justify-between items-center mt-4">
+                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
+                            <div class="flex items-center text-primary text-sm font-medium">
+                                Acessar <span class="ml-1">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enfermeiro -->
+                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
+                     onclick="window.location.href='enfermeiro.html'">
+                    <div class="card-body">
+                        <div class="w-16 h-16 rounded-full bg-accent text-accent-content flex items-center justify-center mb-4">
+                            <i data-lucide="heart" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
+                            Enfermeiro
+                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
+                        </h3>
+                        <p class="text-base-content/70 mb-4">Coordena os cuidados diretos e orienta as famílias</p>
+                        
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
+                            <ul class="space-y-1">
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Registro de cuidados
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Orientação às famílias
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Planos de cuidado
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card-actions justify-between items-center mt-4">
+                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
+                            <div class="flex items-center text-primary text-sm font-medium">
+                                Acessar <span class="ml-1">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agente de Saúde -->
+                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
+                     onclick="window.location.href='agente-saude.html'">
+                    <div class="card-body">
+                        <div class="w-16 h-16 rounded-full bg-info text-info-content flex items-center justify-center mb-4">
+                            <i data-lucide="users" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
+                            Agente de Saúde
+                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
+                        </h3>
+                        <p class="text-base-content/70 mb-4">Realiza visitas domiciliares e acompanhamento territorial</p>
+                        
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
+                            <ul class="space-y-1">
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Visitas domiciliares
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Cadastro familiar
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Busca ativa
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card-actions justify-between items-center mt-4">
+                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
+                            <div class="flex items-center text-primary text-sm font-medium">
+                                Acessar <span class="ml-1">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pais/Cuidadores -->
+                <div class="card bg-base-200 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-primary/20"
+                     onclick="window.location.href='pais-cuidadores.html'">
+                    <div class="card-body">
+                        <div class="w-16 h-16 rounded-full bg-warning text-warning-content flex items-center justify-center mb-4">
+                            <i data-lucide="baby" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="card-title text-xl mb-2 flex items-center justify-between">
+                            Pais/Cuidadores
+                            <div class="badge badge-primary badge-sm opacity-70">Clique aqui</div>
+                        </h3>
+                        <p class="text-base-content/70 mb-4">Acompanham o desenvolvimento do bebê e recebem orientações</p>
+                        
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-sm text-base-content/80">Funcionalidades principais:</h4>
+                            <ul class="space-y-1">
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Diário do bebê
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Orientações personalizadas
+                                </li>
+                                <li class="flex items-center text-sm">
+                                    <div class="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                                    Comunicação com equipe
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card-actions justify-between items-center mt-4">
+                            <span class="text-xs text-base-content/50">👆 Card interativo</span>
+                            <div class="flex items-center text-primary text-sm font-medium">
+                                Acessar <span class="ml-1">→</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Overview -->
+    <div class="py-16 bg-base-200">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-base-content mb-4">
+                    Funcionalidades Principais
+                </h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="heart" class="w-8 h-8 text-primary-content"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Monitoramento</h3>
+                    <p class="text-sm text-base-content/70">Acompanhamento contínuo do desenvolvimento</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="users" class="w-8 h-8 text-secondary-content"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Comunicação</h3>
+                    <p class="text-sm text-base-content/70">Integração entre profissionais e famílias</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="shield" class="w-8 h-8 text-accent-content"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Segurança</h3>
+                    <p class="text-sm text-base-content/70">Dados protegidos e conformidade LGPD</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-info rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="stethoscope" class="w-8 h-8 text-info-content"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Evidência</h3>
+                    <p class="text-sm text-base-content/70">Baseado em protocolos científicos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="hero py-16">
+        <div class="hero-content text-center">
+            <div class="max-w-md">
+                <h2 class="text-3xl font-bold text-base-content mb-4">
+                    Explore os Fluxos de Navegação
+                </h2>
+                <p class="text-base-content/70 mb-6">
+                    Clique nos cards acima para navegar pelos diferentes fluxos de cada persona e entender como cada usuário interage com a plataforma.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button class="btn btn-primary" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                        Voltar ao Topo
+                    </button>
+                    <button class="btn btn-outline" onclick="document.querySelector('.grid').scrollIntoView({behavior: 'smooth'})">
+                        Ver Personas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content">
+        <aside>
+            <div class="flex items-center space-x-2 mb-4">
+                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <i data-lucide="baby" class="w-5 h-5 text-primary-content"></i>
+                </div>
+                <span class="text-xl font-bold text-primary">Karu</span>
+            </div>
+            <p class="text-base-content/70">
+                Transformando o cuidado de bebês prematuros através da tecnologia
+            </p>
+            <div class="badge badge-outline mt-2">Versão para Apresentação</div>
+        </aside>
+    </footer>
+
+    <script>
+        // Inicializa os ícones Lucide
+        lucide.createIcons();
+    </script>
+</body>
+</html>
