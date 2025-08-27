@@ -3,430 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Gestor de Saúde - Karu</title>
+    <title>Painel Executivo - Karu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .navbar-blur {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .map-container {
+            height: calc(100vh - 200px);
+            min-height: 400px;
+        }
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        .card-acompanhamento { border-left: 4px solid #3b82f6; }
+        .card-alerta { border-left: 4px solid #f59e0b; }
+        .card-critico { border-left: 4px solid #ef4444; }
+        .card-children:hover { transform: translateY(-2px); }
+    </style>
 </head>
-<body class="min-h-screen bg-base-100">
-    <!-- Header -->
-    <div class="navbar bg-base-100 shadow-lg">
-        <div class="flex-1">
-            <div class="flex items-center space-x-3">
-                <button onclick="window.location.href='index.html'" class="btn btn-ghost btn-sm">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </button>
-                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    
+<div class="drawer">
+    <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+
+    <div class="drawer-content flex flex-col  bg-gray-50">
+
+        <div class="navbar bg-white border-b border-gray-200 px-4">
+            <div class="navbar-start">
+                <label for="main-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </label>
+                
+                <a href="/" class="flex items-center space-x-3 ml-2">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <i data-lucide="heart" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900 leading-tight">Karu</h1>
+                        <p class="text-xs text-gray-500 leading-tight">Monitoramento Neonatal</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="navbar-end">
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                        
+                    </div>
+                    
                 </div>
-                <span class="text-2xl font-bold text-primary">Karu</span>
-                <div class="badge badge-primary">Gestor de Saúde</div>
             </div>
         </div>
-        <div class="flex-none">
-            <div class="dropdown dropdown-end">
-                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-                    <div class="w-10 rounded-full bg-primary/20">
-                        <i data-lucide="user" class="w-6 h-6 m-2 text-primary"></i>
-                    </div>
+
+    </div>
+
+    <div class="drawer-side z-50">
+        <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+        
+        <div class="p-4 h-full w-80 bg-base-100 text-base-content">
+            <div class="flex justify-between items-center mb-4 p-2">
+                <h3 class="text-lg font-semibold">Menu Principal</h3>
+                <label for="main-drawer" class="btn btn-ghost btn-sm btn-circle">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </label>
+            </div>
+            <ul class="menu text-base">
+                <li><a href="buscar-rn.html"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a></li>
+                <li><a href="adicionar-crianca.html"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova Criança</a></li>
+                <li><a href="gerenciar-usuarios.html"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
+                <li><a href="relatorio.html"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
+                <li><a href="historico.html"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
+                <li><a href="logs.html"><i data-lucide="activity" class="w-5 h-5"></i> Logs do Sistema</a></li>
+                <li class="menu-title"><span>Perfil</span></li>
+                <li><a href="perfil.html"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
+                <li><a href="configuracoes.html"><i data-lucide="settings" class="w-5 h-5"></i> Configurações</a></li>
+                <li><a href="../index.html"><i data-lucide="log-out" class="w-4 h-4"></i>Sair</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <!-- ========== SECTION 2: STATS CARDS ========== -->
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300" 
+                 onclick="switchMap('acompanhamento')" title="Clique para ver mapa de acompanhamento">
+                <div class="stat-figure text-success">
+                    <i data-lucide="heart" class="w-8 h-8"></i>
                 </div>
-                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                    <li><a><i data-lucide="settings" class="w-4 h-4"></i>Configurações</a></li>
-                    <li><a><i data-lucide="log-out" class="w-4 h-4"></i>Sair</a></li>
-                </ul>
+                <div class="stat-title">Acompanhamentos Ativos</div>
+                <div class="stat-value text-success">127</div>
+                <div class="stat-desc">+8% em relação ao mês anterior</div>
+            </div>
+            
+            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300" 
+                 onclick="switchMap('alerta')" title="Clique para ver mapa de alertas">
+                <div class="stat-figure text-warning">
+                    <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                </div>
+                <div class="stat-title">Casos em Alerta</div>
+                <div class="stat-value text-warning">23</div>
+                <div class="stat-desc">Requerem atenção</div>
+            </div>
+            
+            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300" 
+                 onclick="switchMap('critico')" title="Clique para ver mapa de casos críticos">
+                <div class="stat-figure text-error">
+                    <i data-lucide="alert-circle" class="w-8 h-8"></i>
+                </div>
+                <div class="stat-title">Casos Críticos</div>
+                <div class="stat-value text-error">7</div>
+                <div class="stat-desc">Intervenção imediata</div>
+            </div>
+            
+            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
+                 onclick="switchMap('acompanhamento')" title="Clique para ver mapa de acompanhamento">
+                <div class="stat-figure text-info">
+                    <i data-lucide="trending-up" class="w-8 h-8"></i>
+                </div>
+                <div class="stat-title">Taxa de Sucesso</div>
+                <div class="stat-value text-info">92%</div>
+                <div class="stat-desc">Meta: 90% - Clique para ver</div>
             </div>
         </div>
     </div>
 
-    <!-- Breadcrumb -->
-    <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
-        <ul>
-            <li><a href="../index.html">Início</a></li>
-            <li>Dashboard Gestor</li>
-        </ul>
-    </div>
-
-    <!-- Page Header -->
-    <div class="px-6 py-8">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
-                <div>
-                    <h1 class="text-4xl font-bold text-base-content mb-2">Dashboard Executivo</h1>
-                    <p class="text-base-content/70">Monitoramento geral do programa de metodologia canguru</p>
-                </div>
-                <div class="flex gap-3">
-                    <button class="btn btn-outline btn-sm">
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                        Relatório
-                    </button>
-                    <button class="btn btn-primary btn-sm">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        Nova Criança
-                    </button>
+    <!-- ========== SECTION 3: MAP AND CHILDREN CARDS ========== -->
+    <div class="px-6 pb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Left: Map Container -->
+            <div class="lg:col-span-3">
+                <div class="card bg-white shadow-xl h-full">
+                    <div class="card-body p-0 h-full">
+                        <div class="h-full relative rounded-lg overflow-hidden map-container">
+                            <!-- Loading State -->
+                            <div id="map-loading" class="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                                <div class="text-center">
+                                    <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
+                                    <p class="text-gray-500">Carregando mapa...</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Map Iframe -->
+                            <iframe 
+                                id="map-iframe" 
+                                src="../maps/mapa_RN_acompanhados.html" 
+                                class="w-full h-full border-0 rounded-lg"
+                                onload="hideLoading()"
+                                title="Mapa interativo de crianças">
+                            </iframe>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="stat bg-base-200 rounded-lg">
-                    <div class="stat-figure text-success">
-                        <i data-lucide="heart" class="w-8 h-8"></i>
-                    </div>
-                    <div class="stat-title">Acompanhamentos Ativos</div>
-                    <div class="stat-value text-success">127</div>
-                    <div class="stat-desc">+8% em relação ao mês anterior</div>
-                </div>
-                
-                <div class="stat bg-base-200 rounded-lg">
-                    <div class="stat-figure text-warning">
-                        <i data-lucide="alert-triangle" class="w-8 h-8"></i>
-                    </div>
-                    <div class="stat-title">Alertas Pendentes</div>
-                    <div class="stat-value text-warning">23</div>
-                    <div class="stat-desc">Requerem atenção</div>
-                </div>
-                
-                <div class="stat bg-base-200 rounded-lg">
-                    <div class="stat-figure text-error">
-                        <i data-lucide="alert-circle" class="w-8 h-8"></i>
-                    </div>
-                    <div class="stat-title">Casos Críticos</div>
-                    <div class="stat-value text-error">7</div>
-                    <div class="stat-desc">Intervenção imediata</div>
-                </div>
-                
-                <div class="stat bg-base-200 rounded-lg">
-                    <div class="stat-figure text-info">
-                        <i data-lucide="calendar" class="w-8 h-8"></i>
-                    </div>
-                    <div class="stat-title">Consultas Hoje</div>
-                    <div class="stat-value text-info">15</div>
-                    <div class="stat-desc">12 realizadas</div>
-                </div>
-            </div>
+            <!-- Right: Children Cards -->
+            <div class="lg:col-span-1">
+                <div class="card bg-white shadow-xl h-full">
+                    <div class="card-body p-4 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900">Crianças Monitoradas</h3>
+                            <div class="badge badge-primary" id="current-category-badge">Acompanhamento</div>
+                        </div>
 
-            <!-- Mapa de Monitoramento -->
-            <div class="card bg-base-200 shadow-xl mb-8">
-                <div class="card-body">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="card-title text-2xl">
-                            <i data-lucide="map" class="w-6 h-6 text-primary"></i>
-                            Mapa de Monitoramento Territorial
-                        </h2>
-                        <div class="flex gap-4 text-sm">
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-success rounded-full"></div>
-                                <span>Normal (105)</span>
+                        <!-- Scrollable Children Cards -->
+                        <div class="flex-1 overflow-y-auto" id="children-cards-container">
+                            <div class="space-y-3" id="children-cards">
+                                <!-- Cards will be dynamically populated -->
                             </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-warning rounded-full"></div>
-                                <span>Atenção (23)</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 bg-error rounded-full"></div>
-                                <span>Crítico (7)</span>
+                            
+                            <!-- View All Button (inline) -->
+                            <div class="mt-3" id="view-all-inline">
+                                <button class="btn btn-outline btn-block btn-sm" onclick="navigateTo('listagem-criancas')">
+                                    <i data-lucide="list" class="w-4 h-4"></i>
+                                    Ver Todas as Crianças
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="rounded-lg overflow-hidden">
-                        <iframe allow="geolocation" frameborder="0" style="width:100%;height:500px;" 
-                                src="https://www.zeemaps.com/pub?group=6841023">
-                        </iframe>
-                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Filtros e Busca -->
-            <div class="card bg-base-200 shadow-xl mb-8">
-                <div class="card-body">
-                    <h3 class="card-title mb-4">
-                        <i data-lucide="search" class="w-5 h-5"></i>
-                        Buscar e Filtrar Crianças
+    <!-- ========== SECTION 4: CHART 1 - ATENDIMENTOS POR PROFISSIONAL ========== -->
+    <div class="px-6 mb-8">
+        <div class="card bg-white shadow-xl">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i data-lucide="stethoscope" class="w-5 h-5 inline mr-2 text-primary"></i>
+                        Atendimentos por Profissional
                     </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                        <!-- Busca por nome -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Buscar por nome</span>
-                            </label>
-                            <input type="text" placeholder="Digite o nome..." class="input input-bordered input-sm" />
-                        </div>
-                        
-                        <!-- Filtro por status -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Status</span>
-                            </label>
-                            <select class="select select-bordered select-sm">
-                                <option selected>Todos</option>
-                                <option>Normal</option>
-                                <option>Atenção</option>
-                                <option>Crítico</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Filtro por período -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Última consulta</span>
-                            </label>
-                            <select class="select select-bordered select-sm">
-                                <option selected>Qualquer período</option>
-                                <option>Últimos 7 dias</option>
-                                <option>Últimos 15 dias</option>
-                                <option>Últimos 30 dias</option>
-                                <option>Mais de 30 dias</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Filtro por região -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Região</span>
-                            </label>
-                            <select class="select select-bordered select-sm">
-                                <option selected>Todas as regiões</option>
-                                <option>Região Norte</option>
-                                <option>Região Sul</option>
-                                <option>Região Leste</option>
-                                <option>Região Oeste</option>
-                                <option>Centro</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="flex gap-2">
-                        <button class="btn btn-primary btn-sm">
-                            <i data-lucide="search" class="w-4 h-4"></i>
-                            Buscar
-                        </button>
-                        <button class="btn btn-ghost btn-sm">
-                            <i data-lucide="x" class="w-4 h-4"></i>
-                            Limpar Filtros
-                        </button>
-                    </div>
+                    <button class="btn btn-outline btn-xs" onclick="navigateTo('todos-profissionais')">
+                        Ver Todos
+                    </button>
                 </div>
-            </div>
-
-            <!-- Lista de Crianças -->
-            <div class="card bg-base-200 shadow-xl">
-                <div class="card-body">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="card-title text-2xl">
-                            <i data-lucide="list" class="w-6 h-6"></i>
-                            Lista de Crianças em Acompanhamento
-                        </h3>
-                        <div class="text-sm text-base-content/70">
-                            Mostrando 135 de 135 crianças
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="flex items-center justify-between p-3 bg-base-100 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="avatar placeholder">
+                                <div class="bg-primary text-primary-content rounded-full w-8">
+                                    <span class="text-xs">AS</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-sm">Dra. Ana Silva</p>
+                                <p class="text-xs text-gray-500">Pediatra</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-primary">47</p>
+                            <p class="text-xs text-gray-500">atendimentos</p>
                         </div>
                     </div>
                     
-                    <div class="overflow-x-auto">
-                        <table class="table table-zebra">
-                            <thead>
-                                <tr>
-                                    <th>Status</th>
-                                    <th>Nome da Criança</th>
-                                    <th>Certidão de Nascimento</th>
-                                    <th>Última Consulta</th>
-                                    <th>Idade Gestacional</th>
-                                    <th>Responsável</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="w-3 h-3 bg-success rounded-full" title="Normal"></div>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="avatar placeholder">
-                                                <div class="bg-primary text-primary-content rounded-full w-8">
-                                                    <span class="text-xs">MC</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold">Maria Clara Santos</div>
-                                                <div class="text-sm opacity-50">32 semanas</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>123456789012345</td>
-                                    <td>
-                                        <div class="text-sm">
-                                            <div class="font-medium">3 dias atrás</div>
-                                            <div class="text-xs opacity-50">03/08/2025</div>
-                                        </div>
-                                    </td>
-                                    <td>35 semanas + 2 dias</td>
-                                    <td>Dr. Ana Silva</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='newborn-history.html'">
-                                            Ver Prontuário
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="w-3 h-3 bg-warning rounded-full" title="Atenção"></div>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="avatar placeholder">
-                                                <div class="bg-warning text-warning-content rounded-full w-8">
-                                                    <span class="text-xs">JP</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold">João Pedro Lima</div>
-                                                <div class="text-sm opacity-50">28 semanas</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>987654321098765</td>
-                                    <td>
-                                        <div class="text-sm">
-                                            <div class="font-medium text-warning">12 dias atrás</div>
-                                            <div class="text-xs opacity-50">25/07/2025</div>
-                                        </div>
-                                    </td>
-                                    <td>32 semanas + 1 dia</td>
-                                    <td>Dr. Carlos Mendes</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=2'">
-                                            Ver Prontuário
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="w-3 h-3 bg-error rounded-full" title="Crítico"></div>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="avatar placeholder">
-                                                <div class="bg-error text-error-content rounded-full w-8">
-                                                    <span class="text-xs">AS</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold">Ana Sofia Rodrigues</div>
-                                                <div class="text-sm opacity-50">26 semanas</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>456789123456789</td>
-                                    <td>
-                                        <div class="text-sm">
-                                            <div class="font-medium text-error">18 dias atrás</div>
-                                            <div class="text-xs opacity-50">19/07/2025</div>
-                                        </div>
-                                    </td>
-                                    <td>30 semanas + 5 dias</td>
-                                    <td>Dra. Fernanda Costa</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=3'">
-                                            Ver Prontuário
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="w-3 h-3 bg-success rounded-full" title="Normal"></div>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="avatar placeholder">
-                                                <div class="bg-primary text-primary-content rounded-full w-8">
-                                                    <span class="text-xs">LG</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold">Lucas Gabriel Sousa</div>
-                                                <div class="text-sm opacity-50">30 semanas</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>654321987654321</td>
-                                    <td>
-                                        <div class="text-sm">
-                                            <div class="font-medium">1 dia atrás</div>
-                                            <div class="text-xs opacity-50">05/08/2025</div>
-                                        </div>
-                                    </td>
-                                    <td>34 semanas + 3 dias</td>
-                                    <td>Dr. Roberto Alves</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=4'">
-                                            Ver Prontuário
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <tr>
-                                    <td>
-                                        <div class="w-3 h-3 bg-success rounded-full" title="Normal"></div>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="avatar placeholder">
-                                                <div class="bg-primary text-primary-content rounded-full w-8">
-                                                    <span class="text-xs">IM</span>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold">Isabella Martins</div>
-                                                <div class="text-sm opacity-50">31 semanas</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>789123456789123</td>
-                                    <td>
-                                        <div class="text-sm">
-                                            <div class="font-medium">5 dias atrás</div>
-                                            <div class="text-xs opacity-50">01/08/2025</div>
-                                        </div>
-                                    </td>
-                                    <td>36 semanas + 1 dia</td>
-                                    <td>Dra. Patricia Nunes</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-xs" onclick="window.location.href='crianca-perfil.html?id=5'">
-                                            Ver Prontuário
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="flex items-center justify-between p-3 bg-base-100 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="avatar placeholder">
+                                <div class="bg-success text-success-content rounded-full w-8">
+                                    <span class="text-xs">CM</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-sm">Dr. Carlos Mendes</p>
+                                <p class="text-xs text-gray-500">Neonatologista</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-success">42</p>
+                            <p class="text-xs text-gray-500">atendimentos</p>
+                        </div>
                     </div>
                     
-                    <!-- Paginação -->
-                    <div class="flex justify-between items-center mt-6">
-                        <div class="text-sm text-base-content/70">
-                            Mostrando 1 a 5 de 135 registros
+                    <div class="flex items-center justify-between p-3 bg-base-100 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="avatar placeholder">
+                                <div class="bg-warning text-warning-content rounded-full w-8">
+                                    <span class="text-xs">FC</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-sm">Dra. Fernanda Costa</p>
+                                <p class="text-xs text-gray-500">Enfermeira</p>
+                            </div>
                         </div>
-                        <div class="join">
-                            <button class="join-item btn btn-sm">«</button>
-                            <button class="join-item btn btn-sm btn-active">1</button>
-                            <button class="join-item btn btn-sm">2</button>
-                            <button class="join-item btn btn-sm">3</button>
-                            <button class="join-item btn btn-sm">...</button>
-                            <button class="join-item btn btn-sm">27</button>
-                            <button class="join-item btn btn-sm">»</button>
+                        <div class="text-right">
+                            <p class="font-bold text-warning">38</p>
+                            <p class="text-xs text-gray-500">atendimentos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-base-100 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="avatar placeholder">
+                                <div class="bg-info text-info-content rounded-full w-8">
+                                    <span class="text-xs">RA</span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="font-medium text-sm">Dr. Roberto Alves</p>
+                                <p class="text-xs text-gray-500">Pediatra</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-info">35</p>
+                            <p class="text-xs text-gray-500">atendimentos</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- ========== SECTION 5: CHART 2 - ALTAS POR MES ========== -->
+    <div class="px-6 mb-8">
+        <div class="card bg-white shadow-xl">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i data-lucide="trending-up" class="w-5 h-5 inline mr-2 text-success"></i>
+                        Altas Hospitalares
+                    </h3>
+                    <select class="select select-bordered select-xs w-20" id="year-selector" onchange="updateYearChart()">
+                        <option value="2025" selected>2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+                <div class="h-64">
+                    <canvas id="altasChart"></canvas>
+                </div>
+                <div class="flex justify-center mt-4">
+                    <div class="stats stats-horizontal shadow-sm">
+                        <div class="stat py-2">
+                            <div class="stat-title text-xs">Total 2025</div>
+                            <div class="stat-value text-sm text-success">187</div>
+                        </div>
+                        <div class="stat py-2">
+                            <div class="stat-title text-xs">Média Mensal</div>
+                            <div class="stat-value text-sm text-info">23</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SECTION 6: FOOTER ========== -->
+    <footer class="bg-white border-t border-gray-200 py-4">
+        <div class="px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+                <div class="flex items-center space-x-4 mb-2 md:mb-0">
+                    <span>Última atualização: <span id="last-update">hoje às 14:30</span></span>
+                    <a href="#" onclick="navigateTo('ajuda-painel')" class="link link-primary">
+                        <i data-lucide="help-circle" class="w-4 h-4 inline mr-1"></i>
+                        Como interpretar este painel?
+                    </a>
+                </div>
+                <div class="text-center md:text-right">
+                    <p>&copy; 2025 Karu - Sistema de Monitoramento Neonatal</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script>
-        // Inicializa os ícones Lucide
-        lucide.createIcons();
+        // Children data for sidebar
+        const childrenData = {
+            acompanhamento: [
+                { name: "Maria Clara Santos", status: "Progredindo bem", age: "35s + 2d", type: "acompanhamento" },
+                { name: "João Pedro Lima", status: "Desenvolvimento normal", age: "32s + 1d", type: "acompanhamento" },
+                { name: "Isabella Martins", status: "Ganho de peso adequado", age: "36s + 1d", type: "acompanhamento" },
+                { name: "Lucas Gabriel", status: "Método canguru ativo", age: "34s + 3d", type: "acompanhamento" }
+            ],
+            alerta: [
+                { name: "Ana Luiza Silva", status: "Consulta atrasada", age: "31s + 5d", type: "alerta" },
+                { name: "Miguel Santos", status: "Ganho peso lento", age: "29s + 2d", type: "alerta" },
+                { name: "Sofia Oliveira", status: "Reagendar consulta", age: "33s + 4d", type: "alerta" },
+                { name: "Rafael Costa", status: "Monitorar alimentação", age: "30s + 1d", type: "alerta" }
+            ],
+            critico: [
+                { name: "Ana Sofia Rodrigues", status: "Perda de 15g em 2 dias", age: "30s + 5d", type: "critico" },
+                { name: "Pedro Henrique", status: "Internação necessária", age: "28s + 1d", type: "critico" },
+                { name: "Valentina Lima", status: "Suporte respiratório", age: "26s + 3d", type: "critico" },
+                { name: "Gabriel Martins", status: "UTI Neonatal", age: "25s + 6d", type: "critico" }
+            ]
+        };
+
+        // Map switching functionality
+        const mapConfigs = {
+            'acompanhamento': {
+                src: '../maps/mapa_RN_acompanhados.html',
+                badge: 'Acompanhamento',
+                description: 'Visualização de todas as crianças em acompanhamento no estado de Alagoas',
+                badgeClass: 'badge-primary'
+            },
+            'alerta': {
+                src: '../maps/mapa_RN_alerta.html',
+                badge: 'Alerta',
+                description: 'Crianças que requerem atenção especial e monitoramento intensivo',
+                badgeClass: 'badge-warning'
+            },
+            'critico': {
+                src: '../maps/mapa_RN_criticos.html',
+                badge: 'Crítico',
+                description: 'Casos críticos que necessitam intervenção imediata',
+                badgeClass: 'badge-error'
+            }
+        };
+
+        let currentMap = 'acompanhamento';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+            
+            // Get map from URL or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const mapParam = urlParams.get('map');
+            const savedMap = localStorage.getItem('selectedMap');
+            
+            const initialMap = mapParam || savedMap || 'acompanhamento';
+            switchMap(initialMap, false);
+            
+            // Initialize chart
+            initAltasChart();
+            
+            // Update last update time
+            updateLastUpdateTime();
+        });
+
+        function initAltasChart() {
+            const ctx = document.getElementById('altasChart');
+            if (!ctx) return;
+            
+            const altasData = {
+                2025: [15, 18, 22, 25, 21, 28, 32, 19, 0, 0, 0, 0], // Current year
+                2024: [12, 16, 20, 24, 28, 31, 29, 26, 23, 27, 25, 22],
+                2023: [10, 14, 18, 21, 25, 28, 30, 24, 21, 25, 23, 20]
+            };
+            
+            window.altasChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                    datasets: [{
+                        label: 'Altas Hospitalares',
+                        data: altasData[2025],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: '#10b981'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateYearChart() {
+            const year = document.getElementById('year-selector').value;
+            const altasData = {
+                2025: [15, 18, 22, 25, 21, 28, 32, 19, 0, 0, 0, 0],
+                2024: [12, 16, 20, 24, 28, 31, 29, 26, 23, 27, 25, 22],
+                2023: [10, 14, 18, 21, 25, 28, 30, 24, 21, 25, 23, 20]
+            };
+            
+            if (window.altasChart) {
+                window.altasChart.data.datasets[0].data = altasData[year];
+                window.altasChart.update();
+            }
+        }
+
+        function switchMap(mapType, updateUrl = true) {
+            if (!mapConfigs[mapType]) return;
+            
+            currentMap = mapType;
+            const config = mapConfigs[mapType];
+            
+            // Show loading
+            document.getElementById('map-loading').style.display = 'flex';
+            
+            // Update iframe src
+            const iframe = document.getElementById('map-iframe');
+            iframe.src = config.src;
+            
+            // Update children cards
+            updateChildrenCards(mapType);
+            
+            // Save to localStorage and URL
+            localStorage.setItem('selectedMap', mapType);
+            
+            if (updateUrl) {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('map', mapType);
+                window.history.pushState({}, '', newUrl);
+            }
+        }
+
+        function updateChildrenCards(mapType) {
+            const container = document.getElementById('children-cards');
+            const badge = document.getElementById('current-category-badge');
+            const children = childrenData[mapType] || [];
+            
+            // Update badge
+            const badgeConfig = {
+                acompanhamento: { text: 'Acompanhamento', class: 'badge-primary' },
+                alerta: { text: 'Alerta', class: 'badge-warning' },
+                critico: { text: 'Crítico', class: 'badge-error' }
+            };
+            
+            const currentBadge = badgeConfig[mapType];
+            if (badge && currentBadge) {
+                badge.className = `badge ${currentBadge.class}`;
+                badge.textContent = currentBadge.text;
+            }
+            
+            container.innerHTML = children.map(child => `
+                <div class="card bg-base-100 shadow-sm hover:shadow-md card-children card-${child.type} transition-all duration-200 cursor-pointer border border-gray-100"
+                     onclick="viewChildDetails('${child.name}')">
+                    <div class="card-body p-3">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-${child.type === 'critico' ? 'error' : child.type === 'alerta' ? 'warning' : 'primary'}/20 text-${child.type === 'critico' ? 'error' : child.type === 'alerta' ? 'warning' : 'primary'} rounded-full w-8">
+                                        <span class="text-xs font-bold">${child.name.split(' ').map(n => n[0]).join('').substring(0, 2)}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-sm leading-tight">${child.name}</h4>
+                                    <p class="text-xs text-gray-500">${child.age}</p>
+                                </div>
+                            </div>
+                            <div class="badge badge-${child.type === 'critico' ? 'error' : child.type === 'alerta' ? 'warning' : 'success'} badge-sm">
+                                ${child.type === 'critico' ? 'Crítico' : child.type === 'alerta' ? 'Alerta' : 'OK'}
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-2 line-clamp-2">${child.status}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewChildDetails(childName) {
+            console.log(`Viewing details for: ${childName}`);
+            navigateTo('crianca-detalhes');
+        }
+
+        function toggleDrawer() {
+            const drawer = document.getElementById('main-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            
+            if (drawer.classList.contains('-translate-x-full')) {
+                drawer.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                drawer.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function hideLoading() {
+            document.getElementById('map-loading').style.display = 'none';
+        }
+
+        function navigateTo(route) {
+            const routes = {
+                'relatorio': '/relatorio',
+                'adicionar-crianca': '/adicionar-crianca',
+                'historico': '/historico',
+                'listagem-criancas': '/criancas',
+                'buscar-rn': '/buscar-rn',
+                'gerenciar-usuarios': '/usuarios',
+                'logs': '/logs',
+                'configuracoes': '/configuracoes',
+                'perfil': '/perfil',
+                'crianca-detalhes': '/crianca/detalhes',
+                'ajuda-painel': '/ajuda/painel',
+                'todos-profissionais': '/profissionais'
+            };
+            
+            const url = routes[route] || '#';
+            if (url !== '#') {
+                window.location.href = url;
+            } else {
+                console.log(`Navigating to: ${route}`);
+            }
+        }
+
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const lastUpdate = document.getElementById('last-update');
+            if (lastUpdate) {
+                lastUpdate.textContent = `hoje às ${timeString}`;
+            }
+        }
+
+        window.addEventListener('load', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
     </script>
 </body>
 </html>
