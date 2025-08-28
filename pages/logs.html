@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs do Sistema - Karu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="min-h-screen bg-base-100">
+    <!-- Header -->
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <div class="flex items-center space-x-3">
+                <button onclick="window.history.back()" class="btn btn-ghost btn-sm">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                </button>
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+                </div>
+                <span class="text-2xl font-bold text-primary">Karu</span>
+                <div class="badge badge-primary">Logs do Sistema</div>
+            </div>
+        </div>
+        <div class="flex-none">
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                    <div class="w-10 rounded-full bg-primary/20">
+                        <i data-lucide="user" class="w-6 h-6 m-2 text-primary"></i>
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a><i data-lucide="settings" class="w-4 h-4"></i>Configurações</a></li>
+                    <li><a><i data-lucide="log-out" class="w-4 h-4"></i>Sair</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
+        <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="manager-dashboard.html">Dashboard Gestor</a></li>
+            <li>Logs do Sistema</li>
+        </ul>
+    </div>
+
+    <!-- Page Content -->
+    <div class="px-6 py-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Page Header -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-4xl font-bold text-base-content mb-2">Logs de Atividade</h1>
+                    <p class="text-base-content/70">Histórico de todas as ações realizadas no sistema.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="btn btn-outline btn-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Exportar Logs
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros e Busca -->
+            <div class="card bg-base-200 shadow-xl mb-8">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i data-lucide="filter" class="w-5 h-5"></i>
+                        Filtrar Logs
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Buscar</span></label>
+                            <input type="text" placeholder="Nome, ação, detalhes..." class="input input-bordered input-sm" />
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Tipo de Ação</span></label>
+                            <select class="select select-bordered select-sm">
+                                <option selected>Todas</option>
+                                <option>Cadastro</option>
+                                <option>Atualização</option>
+                                <option>Consulta</option>
+                                <option>Permissão</option>
+                                <option>Login</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Perfil do Usuário</span></label>
+                            <select class="select select-bordered select-sm">
+                                <option selected>Todos</option>
+                                <option>Gestor</option>
+                                <option>Médico</option>
+                                <option>Enfermeiro</option>
+                                <option>Agente de Saúde</option>
+                                <option>Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Período</span></label>
+                            <select class="select select-bordered select-sm">
+                                <option selected>Qualquer período</option>
+                                <option>Hoje</option>
+                                <option>Últimos 7 dias</option>
+                                <option>Este mês</option>
+                            </select>
+                        </div>
+                    </div>
+                     <div class="flex gap-2 mt-4">
+                        <button class="btn btn-primary btn-sm">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                            Aplicar Filtros
+                        </button>
+                        <button class="btn btn-ghost btn-sm">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Logs -->
+            <div class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra">
+                            <thead>
+                                <tr>
+                                    <th>Quando</th>
+                                    <th>Usuário</th>
+                                    <th>Ação</th>
+                                    <th>Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-table-body">
+                                <!-- As linhas serão inseridas aqui via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginação -->
+                    <div class="flex justify-between items-center mt-6">
+                        <div class="text-sm text-base-content/70" id="pagination-info">
+                            <!-- Info de paginação será atualizada aqui -->
+                        </div>
+                        <div class="join">
+                            <button class="join-item btn btn-sm">«</button>
+                            <button class="join-item btn btn-sm btn-active">1</button>
+                            <button class="join-item btn btn-sm">»</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ===== Mock de dados de logs =====
+        const logs = [
+          {
+            id: 1,
+            date: '2025-08-27T09:15:00',
+            actorName: 'João da Silva',
+            actorRole: 'Agente de Saúde',
+            type: 'consulta',
+            entity: 'Consulta',
+            targetName: 'Felipe Souza',
+            summary: 'Cadastrou uma nova consulta',
+            details: 'Agente de saúde primária João da Silva cadastrou uma nova consulta para o bebê Felipe Souza.'
+          },
+          {
+            id: 2,
+            date: '2025-08-26T14:40:00',
+            actorName: 'Dra. Ana Silva',
+            actorRole: 'Médico',
+            type: 'atualizacao',
+            entity: 'Criança',
+            targetName: 'Maria Clara Santos',
+            summary: 'Atualizou dados antropométricos',
+            details: 'Peso atualizado para 2.650g; comprimento 47,2cm; PC 33,8cm.'
+          },
+          {
+            id: 3,
+            date: '2025-08-25T10:10:00',
+            actorName: 'Mariana Costa',
+            actorRole: 'Enfermeiro',
+            type: 'consulta',
+            entity: 'Consulta',
+            targetName: 'João Pedro Lima',
+            summary: 'Registrou sinais clínicos de alerta',
+            details: 'Observado aumento de irritabilidade; agenda reavaliação em 48h.'
+          },
+          {
+            id: 4,
+            date: '2025-08-24T16:30:00',
+            actorName: 'Carlos Mendes',
+            actorRole: 'Gestor',
+            type: 'permissao',
+            entity: 'Usuário',
+            targetName: 'Enfª. Paula Nunes',
+            summary: 'Concedeu perfil de "Gestor Local"',
+            details: 'Alteração de perfil realizada após aprovação do comitê.'
+          },
+          {
+            id: 5,
+            date: '2025-08-24T08:05:00',
+            actorName: 'Admin Sistema',
+            actorRole: 'Admin',
+            type: 'cadastro',
+            entity: 'Usuário',
+            targetName: 'Dr. Bruno Rocha',
+            summary: 'Novo usuário cadastrado',
+            details: 'Usuário médico cadastrado e vinculado à UBS Centro.'
+          },
+          {
+            id: 6,
+            date: '2025-08-23T11:22:00',
+            actorName: 'João da Silva',
+            actorRole: 'Agente de Saúde',
+            type: 'cadastro',
+            entity: 'Criança',
+            targetName: 'Felipe Souza',
+            summary: 'Cadastro inicial da criança',
+            details: 'Registro de certidão 987654321; responsável Ana Souza.'
+          },
+          {
+            id: 7,
+            date: '2025-04-16T11:30:00',
+            actorName: 'Mariana Costa',
+            actorRole: 'Enfermeiro',
+            type: 'login',
+            entity: 'Sistema',
+            summary: 'Realizou login no sistema.',
+          },
+        ];
+
+        const tableBody = document.getElementById('logs-table-body');
+        const paginationInfo = document.getElementById('pagination-info');
+
+        // Função para obter a classe e o ícone do badge com base no tipo de log
+        function getActionBadge(type) {
+            switch (type) {
+                case 'cadastro':
+                    return { class: 'badge-info', icon: 'user-plus' };
+                case 'atualizacao':
+                    return { class: 'badge-warning', icon: 'edit-3' };
+                case 'consulta':
+                    return { class: 'badge-primary', icon: 'clipboard-list' };
+                case 'permissao':
+                    return { class: 'badge-accent', icon: 'shield-check' };
+                case 'login':
+                    return { class: 'badge-success', icon: 'log-in' };
+                default:
+                    return { class: 'badge-ghost', icon: 'alert-circle' };
+            }
+        }
+
+        // Função para obter a cor do avatar com base na função do usuário
+        function getAvatarColor(role) {
+            switch (role) {
+                case 'Agente de Saúde': return 'bg-info text-info-content';
+                case 'Médico': return 'bg-primary text-primary-content';
+                case 'Enfermeiro': return 'bg-secondary text-secondary-content';
+                case 'Gestor': return 'bg-success text-success-content';
+                case 'Admin': return 'bg-neutral text-neutral-content';
+                default: return 'bg-accent text-accent-content';
+            }
+        }
+        
+        // Função para gerar as iniciais do nome
+        function getInitials(name) {
+            if (!name) return '';
+            const words = name.split(' ');
+            if (words.length > 1) {
+                return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+            }
+            return (name.substring(0, 2)).toUpperCase();
+        }
+
+        // Função para renderizar os logs na tabela
+        function renderLogs(logsToRender) {
+            tableBody.innerHTML = ''; // Limpa a tabela antes de adicionar novos dados
+
+            logsToRender.forEach(log => {
+                const row = document.createElement('tr');
+                const badgeInfo = getActionBadge(log.type);
+                const avatarColorClass = getAvatarColor(log.actorRole);
+                const initials = getInitials(log.actorName);
+                
+                const date = new Date(log.date);
+                const formattedDate = date.toLocaleDateString('pt-BR');
+                const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                let detailsHtml = '';
+                if (log.targetName) {
+                    detailsHtml = `${log.summary} para <span class="font-semibold">${log.targetName}</span>.
+                                   <div class="text-xs opacity-70">${log.details || ''}</div>`;
+                } else {
+                    detailsHtml = `${log.summary}
+                                   <div class="text-xs opacity-70">${log.details || ''}</div>`;
+                }
+
+                row.innerHTML = `
+                    <td>
+                        <div class="font-bold">${formattedDate}</div>
+                        <div class="text-sm opacity-60">${formattedTime}</div>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar placeholder">
+                                <div class="${avatarColorClass} rounded-full w-8">
+                                    <span class="text-xs">${initials}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold">${log.actorName}</div>
+                                <div class="text-sm opacity-50">${log.actorRole}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="badge ${badgeInfo.class} gap-2 capitalize">
+                            <i data-lucide="${badgeInfo.icon}" class="w-3 h-3"></i>
+                            ${log.type}
+                        </div>
+                    </td>
+                    <td>
+                        ${detailsHtml}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Atualiza a informação de paginação
+            paginationInfo.textContent = `Mostrando ${logsToRender.length} de ${logs.length} registros`;
+            
+            // Re-inicializa os ícones Lucide após adicionar novos elementos
+            lucide.createIcons();
+        }
+
+        // Renderiza os logs iniciais
+        renderLogs(logs);
+        
+        // Inicializa os ícones Lucide na carga inicial
+        lucide.createIcons();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Recém-Nascido - Karu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .required:after{ content:' *'; color:hsl(var(--er)); }
+  </style>
+</head>
+<body class="min-h-screen bg-base-100">
+  <!-- Navbar -->
+  <div class="navbar bg-base-100 shadow-lg">
+    <div class="flex-1">
+      <div class="flex items-center space-x-3">
+        <button onclick="history.back()" class="btn btn-ghost btn-sm" title="Voltar">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+          <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+        </div>
+        <span class="text-2xl font-bold text-primary">Karu</span>
+        <div class="badge badge-outline">Cadastro de Recém-Nascido</div>
+      </div>
+    </div>
+    <div class="flex-none">
+      <label class="swap swap-rotate mr-2" title="Tema claro/escuro">
+        <input type="checkbox" id="themeToggle" />
+        <i data-lucide="sun" class="swap-on w-5 h-5"></i>
+        <i data-lucide="moon" class="swap-off w-5 h-5"></i>
+      </label>
+      <a href="manager-dashboard.html" class="btn btn-ghost btn-sm"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
+    <ul>
+      <li><a href="index.html">Início</a></li>
+      <li><a href="manager-dashboard.html">Dashboard</a></li>
+      <li>Novo Recém-Nascido</li>
+    </ul>
+  </div>
+
+  <main class="px-6 py-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h1 class="text-3xl font-bold">Cadastrar Recém-Nascido</h1>
+          <p class="text-base-content/70">Preencha as informações iniciais do bebê e do responsável. Campos marcados com * são obrigatórios.</p>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <ul class="steps w-full mb-6">
+        <li class="step step-primary" id="s1">Dados do Bebê</li>
+        <li class="step" id="s2">Nascimento</li>
+        <li class="step" id="s3">Responsável</li>
+        <li class="step" id="s4">Endereço</li>
+        <li class="step" id="s5">Confirmação</li>
+      </ul>
+
+      <form id="formNewborn" class="grid grid-cols-1 gap-6">
+        <!-- Card 1: Dados do Bebê -->
+        <section class="card bg-base-200 shadow">
+          <div class="card-body">
+            <h2 class="card-title"><i data-lucide="baby" class="w-5 h-5"></i>Dados do Bebê</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Nome do bebê</span></label>
+                <input name="baby_name" required type="text" class="input input-bordered" placeholder="Ex.: Felipe Souza" />
+              </div>
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Data de nascimento</span></label>
+                <input name="dob" required type="date" class="input input-bordered" />
+                <label class="label"><span class="label-text-alt">Idade: <span id="ageBadge" class="font-semibold"></span></span></label>
+              </div>
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Sexo</span></label>
+                <select name="sex" required class="select select-bordered">
+                  <option value="">Selecione</option>
+                  <option>Masculino</option>
+                  <option>Feminino</option>
+                  <option>Intersexo</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Cartão SUS</span></label>
+                <input name="sus" inputmode="numeric" pattern="[0-9]{15}" class="input input-bordered" placeholder="15 dígitos" />
+                <label class="label"><span class="label-text-alt">Formato: 15 dígitos</span></label>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Certidão de Nascimento</span></label>
+                <input name="certificate" class="input input-bordered" placeholder="Número da certidão" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Observações</span></label>
+                <input name="notes" class="input input-bordered" placeholder="Alergias, condições, etc." />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 2: Dados do Nascimento -->
+        <section class="card bg-base-200 shadow">
+          <div class="card-body">
+            <h2 class="card-title"><i data-lucide="stethoscope" class="w-5 h-5"></i>Dados do Nascimento</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Peso ao nascer (g)</span></label>
+                <input name="birth_weight" required inputmode="numeric" pattern="[0-9]{3,5}" class="input input-bordered" placeholder="ex.: 3200" />
+              </div>
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Comprimento (cm)</span></label>
+                <input name="length_cm" required inputmode="decimal" pattern="^[0-9]{2}(\.[0-9])?$" class="input input-bordered" placeholder="ex.: 49.5" />
+              </div>
+              <div class="form-control">
+                <label class="label required"><span class="label-text">PC (cm)</span></label>
+                <input name="hc_cm" required inputmode="decimal" pattern="^[0-9]{2}(\.[0-9])?$" class="input input-bordered" placeholder="Perímetro cefálico" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">IG (semanas)</span></label>
+                <input name="ga_weeks" inputmode="numeric" pattern="^[2-4][0-9]$" class="input input-bordered" placeholder="ex.: 39" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Apgar 1'</span></label>
+                <input name="apgar1" inputmode="numeric" pattern="^([0-9]|10)$" class="input input-bordered" placeholder="0-10" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Apgar 5'</span></label>
+                <input name="apgar5" inputmode="numeric" pattern="^([0-9]|10)$" class="input input-bordered" placeholder="0-10" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Tipo de parto</span></label>
+                <select name="delivery" class="select select-bordered">
+                  <option></option>
+                  <option>Vaginal</option>
+                  <option>Cesárea</option>
+                  <option>Fórceps</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Local do parto</span></label>
+                <input name="birth_place" class="input input-bordered" placeholder="Hospital/UBS/Maternidade" />
+              </div>
+              <div class="form-control md:col-span-2">
+                <label class="label"><span class="label-text">Vacinas ao nascer</span></label>
+                <label class="label cursor-pointer justify-start gap-3"><input type="checkbox" name="vax_bcg" class="checkbox checkbox-sm" /><span>BCG</span></label>
+                <label class="label cursor-pointer justify-start gap-3"><input type="checkbox" name="vax_hepb" class="checkbox checkbox-sm" /><span>Hepatite B</span></label>
+              </div>
+              <div class="form-control md:col-span-2">
+                <label class="label"><span class="label-text">Triagens ao nascer</span></label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="label cursor-pointer justify-start gap-3"><input type="checkbox" name="screen_ear" class="checkbox checkbox-sm" /><span>Orelhinha</span></label>
+                  <label class="label cursor-pointer justify-start gap-3"><input type="checkbox" name="screen_eye" class="checkbox checkbox-sm" /><span>Olhinho</span></label>
+                  <label class="label cursor-pointer justify-start gap-3"><input type="checkbox" name="screen_heart" class="checkbox checkbox-sm" /><span>Coraçãozinho</span></label>
+                  <label class="label cursor-pointer justify-start gap-3"><input type="checkbox" name="screen_tongue" class="checkbox checkbox-sm" /><span>Linguinha</span></label>
+                  <label class="label cursor-pointer justify-start gap-3"><input type="checkbox" name="screen_foot" class="checkbox checkbox-sm" /><span>Pezinho</span></label>
+                </div>
+              </div>
+              <div class="form-control md:col-span-4">
+                <label class="label"><span class="label-text">Classificação de risco</span></label>
+                <div class="join">
+                  <input type="radio" name="risk" value="Baixo" class="btn join-item" aria-label="Baixo" checked>
+                  <input type="radio" name="risk" value="Médio" class="btn join-item" aria-label="Médio">
+                  <input type="radio" name="risk" value="Alto" class="btn join-item btn-error" aria-label="Alto">
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 3: Responsável -->
+        <section class="card bg-base-200 shadow">
+          <div class="card-body">
+            <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Responsável</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Nome do responsável</span></label>
+                <input name="guardian_name" required type="text" class="input input-bordered" placeholder="Ex.: Ana Souza" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Parentesco</span></label>
+                <select name="guardian_relation" class="select select-bordered">
+                  <option>Mãe</option>
+                  <option>Pai</option>
+                  <option>Avó/Avô</option>
+                  <option>Tutor(a)</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">CPF</span></label>
+                <input name="guardian_cpf" inputmode="numeric" pattern="[0-9]{11}" class="input input-bordered" placeholder="Somente números" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Telefone</span></label>
+                <input name="guardian_phone" inputmode="tel" class="input input-bordered" placeholder="(DDD) 9XXXX-XXXX" />
+              </div>
+              <div class="form-control md:col-span-2">
+                <label class="label"><span class="label-text">E-mail</span></label>
+                <input name="guardian_email" type="email" class="input input-bordered" placeholder="email@exemplo.com" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 4: Endereço -->
+        <section class="card bg-base-200 shadow">
+          <div class="card-body">
+            <h2 class="card-title"><i data-lucide="map-pin" class="w-5 h-5"></i>Endereço</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="form-control md:col-span-2">
+                <label class="label required"><span class="label-text">Logradouro</span></label>
+                <input name="addr_street" required class="input input-bordered" placeholder="Rua, avenida..." />
+              </div>
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Número</span></label>
+                <input name="addr_number" required class="input input-bordered" />
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">Complemento</span></label>
+                <input name="addr_comp" class="input input-bordered" />
+              </div>
+              <div class="form-control md:col-span-2">
+                <label class="label required"><span class="label-text">Bairro</span></label>
+                <input name="addr_neigh" required class="input input-bordered" />
+              </div>
+              <div class="form-control">
+                <label class="label required"><span class="label-text">Cidade</span></label>
+                <input name="addr_city" required class="input input-bordered" />
+              </div>
+              <div class="form-control">
+                <label class="label required"><span class="label-text">UF</span></label>
+                <select name="addr_state" required class="select select-bordered">
+                  <option value="">UF</option>
+                  <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label class="label"><span class="label-text">CEP</span></label>
+                <input name="addr_zip" inputmode="numeric" pattern="^[0-9]{8}$" class="input input-bordered" placeholder="Somente números" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Card 5: Confirmação -->
+        <section class="card bg-base-200 shadow">
+          <div class="card-body">
+            <h2 class="card-title"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Confirmação</h2>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="form-control">
+                <label class="cursor-pointer label justify-start gap-3">
+                  <input type="checkbox" id="confirmConsent" class="checkbox checkbox-primary" />
+                  <span class="label-text">Confirmo que as informações foram revisadas e estão corretas.</span>
+                </label>
+              </div>
+              <div class="flex gap-2">
+                <button type="reset" class="btn btn-ghost"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>Limpar</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled><i data-lucide="save" class="w-4 h-4"></i>Salvar cadastro</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </form>
+
+      <!-- Preview rápido -->
+      <div class="card bg-base-200 shadow mt-4">
+        <div class="card-body">
+          <h2 class="card-title"><i data-lucide="eye" class="w-5 h-5"></i>Pré-visualização</h2>
+          <div id="preview" class="text-sm text-base-content/80">Preencha os campos para ver a pré-visualização do cadastro...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toasts -->
+  <div class="toast toast-end z-50" id="toast"></div>
+
+  <!-- Modal pós-cadastro -->
+  <dialog id="successModal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="check-circle2" class="w-5 h-5 text-success"></i>Cadastro concluído</h3>
+      <p id="successMessage" class="py-2">Recém-nascido cadastrado com sucesso.</p>
+      <div class="modal-action">
+        <a href="newborn-history.html" class="btn btn-primary">Abrir prontuário</a>
+        <form method="dialog"><button class="btn">Fechar</button></form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+  </dialog>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    function showToast(msg, type = 'info'){
+      const t = el('toast');
+      const div = document.createElement('div');
+      div.className = `alert alert-${type}`;
+      div.innerHTML = `<span>${msg}</span>`;
+      t.appendChild(div);
+      setTimeout(()=> div.remove(), 4000);
+    }
+
+    function calcAge(d){
+      if(!d) return '';
+      const dob = new Date(d);
+      const now = new Date();
+      const days = Math.floor((now - dob)/(1000*60*60*24));
+      if(days < 60) return `${days} dia(s)`;
+      const months = Math.floor(days/30.44);
+      return `${months} mês(es)`;
+    }
+
+    // Enable submit when consent checked
+    const consent = document.querySelector('#confirmConsent');
+    const submitBtn = document.querySelector('#submitBtn');
+    consent.addEventListener('change', () => { submitBtn.disabled = !consent.checked; });
+
+    // Live preview
+    const form = document.querySelector('#formNewborn');
+    form.addEventListener('input', () => {
+      const fd = new FormData(form);
+      const name = fd.get('baby_name') || '—';
+      const dob = fd.get('dob');
+      const sex = fd.get('sex') || '—';
+      const bw = fd.get('birth_weight') || '—';
+      const len = fd.get('length_cm') || '—';
+      const hc = fd.get('hc_cm') || '—';
+      const risk = fd.get('risk') || 'Baixo';
+      const guardian = fd.get('guardian_name') || '—';
+      const city = fd.get('addr_city') || '—';
+      const uf = fd.get('addr_state') || '';
+      document.querySelector('#ageBadge').textContent = calcAge(dob);
+      document.querySelector('#preview').innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-1">
+          <div><b>Nome:</b> ${name}</div>
+          <div><b>Nascimento:</b> ${dob || '—'} (<span class="badge badge-ghost">${calcAge(dob)||'—'}</span>)</div>
+          <div><b>Sexo:</b> ${sex}</div>
+          <div><b>Peso:</b> ${bw} g</div>
+          <div><b>Comprimento:</b> ${len} cm</div>
+          <div><b>PC:</b> ${hc} cm</div>
+          <div><b>Risco:</b> <span class="badge ${risk==='Alto'?'badge-error': risk==='Médio'?'badge-warning':'badge-success'}">${risk}</span></div>
+          <div><b>Responsável:</b> ${guardian}</div>
+          <div><b>Cidade/UF:</b> ${city} ${uf?('/ '+uf):''}</div>
+        </div>`;
+    });
+
+    // Submit (mock)
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if(!form.reportValidity()) { showToast('Preencha os campos obrigatórios.', 'error'); return; }
+
+      const fd = new FormData(form);
+      const data = Object.fromEntries(fd.entries());
+      // normalizar checkboxes
+      data.vax_bcg = fd.get('vax_bcg') ? true : false;
+      data.vax_hepb = fd.get('vax_hepb') ? true : false;
+      data.screen_ear = fd.get('screen_ear') ? true : false;
+      data.screen_eye = fd.get('screen_eye') ? true : false;
+      data.screen_heart = fd.get('screen_heart') ? true : false;
+      data.screen_tongue = fd.get('screen_tongue') ? true : false;
+      data.screen_foot = fd.get('screen_foot') ? true : false;
+
+      // Simula persistência local
+      const list = JSON.parse(localStorage.getItem('karu_newborns')||'[]');
+      const id = Date.now();
+      const record = { id, createdAt: new Date().toISOString(), ...data };
+      list.push(record);
+      localStorage.setItem('karu_newborns', JSON.stringify(list));
+
+      // Log simples (poderia chamar sua API de logs)
+      const logs = JSON.parse(localStorage.getItem('karu_logs')||'[]');
+      logs.unshift({
+        id: `log-${id}`,
+        date: new Date().toISOString(),
+        actorName: 'Agente de Saúde (mock)',
+        actorRole: 'Agente de Saúde',
+        type: 'cadastro',
+        entity: 'Criança',
+        targetName: data.baby_name,
+        summary: 'Cadastro de recém-nascido',
+        details: `Cadastro do RN ${data.baby_name} realizado. Responsável: ${data.guardian_name || '—'}.`
+      });
+      localStorage.setItem('karu_logs', JSON.stringify(logs));
+
+      // Feedback
+      const successModal = document.querySelector('#successModal');
+      document.querySelector('#successMessage').textContent = `Recém-nascido ${data.baby_name || ''} cadastrado com sucesso.`;
+      successModal.showModal();
+      showToast('Cadastro salvo!', 'success');
+      form.reset();
+      document.querySelector('#preview').textContent = 'Preencha os campos para ver a pré-visualização do cadastro...';
+      document.querySelector('#ageBadge').textContent = '';
+      submitBtn.disabled = true;
+    });
+
+    // Tema
+    const themeToggle = document.querySelector('#themeToggle');
+    themeToggle.addEventListener('change', () => {
+      document.documentElement.setAttribute('data-theme', themeToggle.checked ? 'dark' : 'light');
+    });
+
+    // Ícones
+    document.addEventListener('DOMContentLoaded', () => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+  </script>
+</body>
+</html>

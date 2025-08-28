@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerenciamento de Usuários - Karu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="min-h-screen bg-base-100">
+  <!-- Navbar -->
+  <div class="navbar bg-base-100 shadow-lg">
+    <div class="flex-1">
+      <div class="flex items-center space-x-3">
+        <button onclick="history.back()" class="btn btn-ghost btn-sm" title="Voltar">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </button>
+        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+          <i data-lucide="users" class="w-6 h-6 text-primary-content"></i>
+        </div>
+        <span class="text-2xl font-bold text-primary">Karu</span>
+        <div class="badge badge-outline">Gerenciamento de Usuários</div>
+      </div>
+    </div>
+    <div class="flex-none">
+      <label class="swap swap-rotate mr-2" title="Tema claro/escuro">
+        <input type="checkbox" id="themeToggle" />
+        <i data-lucide="sun" class="swap-on w-5 h-5"></i>
+        <i data-lucide="moon" class="swap-off w-5 h-5"></i>
+      </label>
+      <a href="new-manager.html" class="btn btn-ghost btn-sm"><i data-lucide="user-plus" class="w-4 h-4"></i>Novo Gestor</a>
+      <a href="new-professional.html" class="btn btn-ghost btn-sm"><i data-lucide="stethoscope" class="w-4 h-4"></i>Novo Profissional</a>
+      <a href="logs.html" class="btn btn-ghost btn-sm"><i data-lucide="list" class="w-4 h-4"></i>Logs</a>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
+    <ul>
+      <li><a href="index.html">Início</a></li>
+      <li><a href="manager-dashboard.html">Dashboard</a></li>
+      <li>Gerenciamento de Usuários</li>
+    </ul>
+  </div>
+
+  <!-- Conteúdo -->
+  <div class="px-6 py-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold">Gerenciamento de Usuários</h1>
+          <p class="text-base-content/70">Busque, filtre e administre contas de usuários do sistema.</p>
+        </div>
+        <div class="join">
+          <button id="btnExport" class="btn btn-outline btn-sm join-item"><i data-lucide="download" class="w-4 h-4"></i>Exportar CSV</button>
+          <a href="logs.html" class="btn btn-ghost btn-sm join-item"><i data-lucide="list" class="w-4 h-4"></i>Ver Logs</a>
+        </div>
+      </div>
+
+      <div class="card bg-base-200 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title"><i data-lucide="settings" class="w-5 h-5"></i>Usuários</h2>
+
+          <!-- Filtros -->
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
+            <input id="q" type="text" class="input input-bordered input-sm md:col-span-2" placeholder="Buscar por nome, e-mail, unidade..." />
+            <select id="fRole" class="select select-bordered select-sm">
+              <option value="">Todos os Papéis</option>
+              <option>Gestor</option>
+              <option>Médico</option>
+              <option>Enfermeiro</option>
+              <option>Profissional</option>
+              <option>Agente de Saúde</option>
+              <option>Admin</option>
+            </select>
+            <select id="fStatus" class="select select-bordered select-sm">
+              <option value="">Todos os Status</option>
+              <option>Ativo</option>
+              <option>Inativo</option>
+            </select>
+            <button id="btnApply" class="btn btn-sm btn-primary"><i data-lucide="search" class="w-4 h-4"></i>Aplicar</button>
+          </div>
+
+          <!-- Tabela -->
+          <div class="overflow-x-auto">
+            <table class="table table-zebra">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Papel</th>
+                  <th>Unidade</th>
+                  <th>E-mail</th>
+                  <th>Status</th>
+                  <th class="text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Paginação -->
+          <div class="join mt-4 justify-end">
+            <button id="prevPage" class="btn btn-sm join-item"><i data-lucide="chevron-left" class="w-4 h-4"></i>Anterior</button>
+            <button id="nextPage" class="btn btn-sm join-item">Próxima<i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modais -->
+  <dialog id="modalEdit" class="modal">
+    <div class="modal-box max-w-2xl">
+      <h3 class="font-bold text-lg mb-2 flex items-center gap-2"><i data-lucide="user-cog" class="w-5 h-5"></i>Editar Usuário</h3>
+      <form id="formEdit" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input type="hidden" name="id" />
+        <div class="form-control">
+          <label class="label"><span class="label-text">Nome</span></label>
+          <input name="name" class="input input-bordered" />
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Papel</span></label>
+          <select name="role" class="select select-bordered">
+            <option>Gestor</option>
+            <option>Médico</option>
+            <option>Enfermeiro</option>
+            <option>Profissional</option>
+            <option>Agente de Saúde</option>
+            <option>Admin</option>
+          </select>
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Unidade</span></label>
+          <input name="unit" class="input input-bordered" />
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">E-mail</span></label>
+          <input name="email" type="email" class="input input-bordered" />
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text">Status</span></label>
+          <select name="status" class="select select-bordered">
+            <option>Ativo</option>
+            <option>Inativo</option>
+          </select>
+        </div>
+        <div class="form-control md:col-span-2">
+          <label class="label"><span class="label-text">Observações</span></label>
+          <textarea name="notes" class="textarea textarea-bordered" rows="3"></textarea>
+        </div>
+        <div class="md:col-span-2 flex justify-between items-center mt-2">
+          <button id="btnResetPass" type="button" class="btn btn-outline btn-sm"><i data-lucide="key-round" class="w-4 h-4"></i>Gerar nova senha</button>
+          <div class="modal-action"><button type="submit" class="btn btn-primary">Salvar</button><form method="dialog"><button class="btn">Fechar</button></form></div>
+        </div>
+      </form>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+  </dialog>
+
+  <dialog id="modalConfirm" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Confirmação</h3>
+      <p id="confirmText" class="py-2"></p>
+      <div class="modal-action"><button id="confirmYes" class="btn btn-error">Sim</button><form method="dialog"><button class="btn">Cancelar</button></form></div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+  </dialog>
+
+  <div class="toast toast-end z-50" id="toast"></div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const toast = (msg, type='info') => { const t = el('toast'); const d = document.createElement('div'); d.className = `alert alert-${type}`; d.innerHTML = `<span>${msg}</span>`; t.appendChild(d); setTimeout(()=>d.remove(), 4000); };
+
+    // Tema
+    el('themeToggle').addEventListener('change', (e)=> document.documentElement.setAttribute('data-theme', e.target.checked?'dark':'light'));
+
+    // Utils
+    const uid = () => Math.floor(Date.now() + Math.random()*1000);
+    const tempPass = () => Math.random().toString(36).slice(-8);
+
+    // Storage
+    function loadUsers(){ return JSON.parse(localStorage.getItem('karu_users')||'[]'); }
+    function saveUsers(list){ localStorage.setItem('karu_users', JSON.stringify(list)); }
+
+    // Logs
+    function pushLog(entry){
+      const logs = JSON.parse(localStorage.getItem('karu_logs')||'[]');
+      logs.unshift({ id: `log-${uid()}`, date: new Date().toISOString(), ...entry });
+      localStorage.setItem('karu_logs', JSON.stringify(logs));
+    }
+
+    // ====== Gerenciamento ======
+    let page=1; const pageSize=10; let filtered=[];
+
+    function applyFilters(){
+      const q = el('q').value.trim().toLowerCase();
+      const fRole = el('fRole').value;
+      const fStatus = el('fStatus').value;
+      const data = loadUsers();
+      filtered = data.filter(u=>{
+        const text = `${u.name} ${u.email||''} ${u.unit||''} ${u.role||''}`.toLowerCase();
+        if(q && !text.includes(q)) return false;
+        if(fRole && (u.role!==fRole)) return false;
+        if(fStatus && (u.status!==fStatus)) return false;
+        return true;
+      });
+      page=1; renderTable();
+    }
+
+    function paginate(arr){ const start=(page-1)*pageSize; return arr.slice(start, start+pageSize); }
+
+    function renderTable(){
+      const tbody = el('usersTableBody');
+      tbody.innerHTML='';
+      const items = paginate(filtered);
+      for(const u of items){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><div class="font-medium">${u.name}</div><div class="text-xs text-base-content/60">${u.email||''}</div></td>
+          <td><div class="badge badge-ghost badge-sm">${u.role||'—'}</div></td>
+          <td>${u.unit||'—'}</td>
+          <td class="whitespace-nowrap">${u.email||'—'}</td>
+          <td>${u.status==='Ativo'?'<span class="badge badge-success badge-sm">Ativo</span>':'<span class="badge badge-ghost badge-sm">Inativo</span>'}</td>
+          <td class="text-right">
+            <div class="join">
+              <button class="btn btn-ghost btn-xs join-item" title="Editar" onclick='onEdit(${JSON.stringify(u.id)})'><i data-lucide="pencil" class="w-4 h-4"></i></button>
+              <button class="btn btn-ghost btn-xs join-item" title="(Des)ativar" onclick='onToggle(${JSON.stringify(u.id)})'><i data-lucide="power" class="w-4 h-4"></i></button>
+              <button class="btn btn-ghost btn-xs join-item" title="Resetar Senha" onclick='onReset(${JSON.stringify(u.id)})'><i data-lucide="key-round" class="w-4 h-4"></i></button>
+              <button class="btn btn-ghost btn-xs join-item" title="Excluir" onclick='onDelete(${JSON.stringify(u.id)})'><i data-lucide="trash2" class="w-4 h-4"></i></button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Ações da tabela
+    window.onEdit = function(id){
+      const list = loadUsers(); const u = list.find(x=>x.id===id); if(!u) return;
+      const form = el('formEdit');
+      form.id.value = u.id;
+      form.name.value = u.name||'';
+      form.role.value = u.role||'Profissional';
+      form.unit.value = u.unit||'';
+      form.email.value = u.email||'';
+      form.status.value = u.status||'Ativo';
+      form.notes.value = u.notes||'';
+      el('modalEdit').showModal();
+    }
+
+    window.onToggle = function(id){
+      const list = loadUsers(); const u = list.find(x=>x.id===id); if(!u) return;
+      const newStatus = u.status==='Ativo'?'Inativo':'Ativo';
+      el('confirmText').textContent = `Deseja alterar o status de ${u.name} para ${newStatus}?`;
+      el('modalConfirm').showModal();
+      el('confirmYes').onclick = ()=>{
+        u.status=newStatus; saveUsers(list); applyFilters();
+        pushLog({ actorName:'Admin (mock)', actorRole:'Admin', type:'atualizacao', entity:'Usuário', targetName:u.name, summary:'Alteração de status', details:`Usuário ${u.name} agora está ${newStatus}.` });
+        toast('Status atualizado.','success');
+        el('modalConfirm').close();
+      }
+    }
+
+    window.onReset = function(id){
+      const list = loadUsers(); const u = list.find(x=>x.id===id); if(!u) return;
+      const np = tempPass(); u.temp_password = np; saveUsers(list);
+      pushLog({ actorName:'Admin (mock)', actorRole:'Admin', type:'atualizacao', entity:'Usuário', targetName:u.name, summary:'Reset de senha', details:`Senha temporária gerada para ${u.name}.` });
+      toast(`Nova senha de ${u.name}: <b>${np}</b>`,'info');
+    }
+
+    window.onDelete = function(id){
+      const list = loadUsers(); const u = list.find(x=>x.id===id); if(!u) return;
+      el('confirmText').textContent = `Tem certeza que deseja excluir ${u.name}? Esta ação não pode ser desfeita.`;
+      el('modalConfirm').showModal();
+      el('confirmYes').onclick = ()=>{
+        const newList = list.filter(x=>x.id!==id); saveUsers(newList); applyFilters();
+        pushLog({ actorName:'Admin (mock)', actorRole:'Admin', type:'remocao', entity:'Usuário', targetName:u.name, summary:'Exclusão de usuário', details:`Usuário ${u.name} removido do sistema.` });
+        toast('Usuário excluído.','success');
+        el('modalConfirm').close();
+      }
+    }
+
+    // Editar modal submit
+    el('formEdit').addEventListener('submit', (e)=>{
+      e.preventDefault(); const fd = new FormData(e.target); const id = Number(fd.get('id'));
+      const list = loadUsers(); const u = list.find(x=>x.id===id); if(!u) return;
+      u.name = fd.get('name')||u.name; u.role = fd.get('role')||u.role; u.unit = fd.get('unit')||u.unit; u.email = fd.get('email')||u.email; u.status = fd.get('status')||u.status; u.notes = fd.get('notes')||u.notes;
+      saveUsers(list); applyFilters();
+      pushLog({ actorName:'Admin (mock)', actorRole:'Admin', type:'atualizacao', entity:'Usuário', targetName:u.name, summary:'Edição de usuário', details:`Dados de ${u.name} atualizados.` });
+      toast('Alterações salvas.','success');
+      el('modalEdit').close();
+    });
+
+    // Paginação
+    el('prevPage').addEventListener('click', ()=>{ if(page>1){ page--; renderTable(); } });
+    el('nextPage').addEventListener('click', ()=>{ if(page*pageSize<filtered.length){ page++; renderTable(); } });
+
+    // Filtros
+    el('btnApply').addEventListener('click', ()=>{ page=1; applyFilters(); });
+
+    // Export CSV
+    el('btnExport').addEventListener('click', ()=>{
+      const users = loadUsers();
+      const headers = ['id','nome','papel','email','unidade','status','criado_em'];
+      const rows = users.map(u=>[u.id,u.name,u.role||'',u.email||'',u.unit||'',u.status||'',u.createdAt||'']);
+      const csv = [headers.join(';')].concat(rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(';'))).join('\n');
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='usuarios_karu.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // Seed e init
+    document.addEventListener('DOMContentLoaded', ()=>{
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      const seed = loadUsers();
+      if(seed.length===0){
+        localStorage.setItem('karu_users', JSON.stringify([
+          { id: uid(), name:'Admin Sistema', role:'Admin', unit:'Coordenação', email:'admin@karu.br', status:'Ativo', createdAt:new Date().toISOString() }
+        ]));
+      }
+      applyFilters();
+    });
+  </script>
+</body>
+</html>

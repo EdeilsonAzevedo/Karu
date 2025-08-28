@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,88 +14,106 @@
             backdrop-filter: blur(10px);
             background: rgba(255, 255, 255, 0.95);
         }
+
         .map-container {
             height: calc(100vh - 200px);
             min-height: 400px;
         }
+
         .sidebar-transition {
             transition: transform 0.3s ease-in-out;
         }
-        .card-acompanhamento { border-left: 4px solid #3b82f6; }
-        .card-alerta { border-left: 4px solid #f59e0b; }
-        .card-critico { border-left: 4px solid #ef4444; }
-        .card-children:hover { transform: translateY(-2px); }
+
+        .card-acompanhamento {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .card-alerta {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .card-critico {
+            border-left: 4px solid #ef4444;
+        }
+
+        .card-children:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
+
 <body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-    
-<div class="drawer">
-    <input id="main-drawer" type="checkbox" class="drawer-toggle" />
 
-    <div class="drawer-content flex flex-col  bg-gray-50">
+    <div class="drawer">
+        <input id="main-drawer" type="checkbox" class="drawer-toggle" />
 
-        <div class="navbar bg-white border-b border-gray-200 px-4">
-            <div class="navbar-start">
-                <label for="main-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
-                    <i data-lucide="menu" class="w-5 h-5"></i>
-                </label>
-                
-                <a href="/" class="flex items-center space-x-3 ml-2">
-                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                        <i data-lucide="heart" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-bold text-gray-900 leading-tight">Karu</h1>
-                        <p class="text-xs text-gray-500 leading-tight">Monitoramento Neonatal</p>
-                    </div>
-                </a>
-            </div>
+        <div class="drawer-content flex flex-col  bg-gray-50">
 
-            <div class="navbar-end">
-                <div class="dropdown dropdown-end">
-                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-                        
+            <div class="navbar bg-white border-b border-gray-200 px-4">
+                <div class="navbar-start">
+                    <label for="main-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </label>
+
+                    <a href="/" class="flex items-center space-x-3 ml-2">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <i data-lucide="heart" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-bold text-gray-900 leading-tight">Karu</h1>
+                            <p class="text-xs text-gray-500 leading-tight">Monitoramento Neonatal</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="navbar-end">
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+
+                        </div>
+
                     </div>
-                    
                 </div>
             </div>
+
         </div>
 
-    </div>
-
-    <div class="drawer-side z-50">
-        <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-        
-        <div class="p-4 h-full w-80 bg-base-100 text-base-content">
-<div class="flex justify-between items-center mb-4 p-2">
-  <a href="manager-dashboard.html" class="text-lg font-semibold hover:text-primary transition-colors">
-    Menu Principal
-  </a>
-  <label for="main-drawer" class="btn btn-ghost btn-sm btn-circle">
-    <i data-lucide="x" class="w-4 h-4"></i>
-  </label>
-</div>
-            <ul class="menu text-base">
-                <li><a href="search-rn.html"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a></li>
-                <li><a href="adicionar-crianca.html"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova Criança</a></li>
-                <li><a href="gerenciar-usuarios.html"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
-                <li><a href="relatorio.html"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
-                <li><a href="historico.html"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
-                <li><a href="logs.html"><i data-lucide="activity" class="w-5 h-5"></i> Logs do Sistema</a></li>
-                <li class="menu-title"><span>Perfil</span></li>
-                <li><a href="perfil.html"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
-                <li><a href="configuracoes.html"><i data-lucide="settings" class="w-5 h-5"></i> Configurações</a></li>
-                <li><a href="../index.html"><i data-lucide="log-out" class="w-4 h-4"></i>Sair</a></li>
-            </ul>
+        <div class="drawer-side z-50">
+            <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+            <div class="p-4 h-full w-80 bg-base-100 text-base-content">
+                <div class="flex justify-between items-center mb-4 p-2">
+                    <a href="manager-dashboard.html"
+                        class="text-lg font-semibold hover:text-primary transition-colors">Menu Principal</a>
+                    <label for="main-drawer" class="btn btn-ghost btn-sm btn-circle"><i data-lucide="x"
+                            class="w-4 h-4"></i></label>
+                </div>
+                <ul class="menu text-base">
+                    <li><a href="search-rn.html"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a>
+                    </li>
+                    <li><a href="newborn-registration.html"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova
+                            Criança</a></li>
+                    <li><a href="new-manager.html"><i data-lucide="user-plus" class="w-5 h-5"></i> Novo Gestor</a></li>
+                    <li><a href="new-professional.html"><i data-lucide="user-plus" class="w-5 h-5"></i> Novo Profissional de Sáude</a></li>
+                    <li><a href="user-management.html"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar
+                            Usuários</a></li>
+                    <li><a href="relatorio.html"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
+                    <li><a href="newborn-history.html"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
+                    <li><a href="logs.html"><i data-lucide="activity" class="w-5 h-5"></i> Logs do Sistema</a></li>
+                    <li class="menu-title"><span>Perfil</span></li>
+                    <li><a href="perfil.html"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
+                    <li><a href="configuracoes.html"><i data-lucide="settings" class="w-5 h-5"></i> Configurações</a>
+                    </li>
+                    <li><a href="../index.html"><i data-lucide="log-out" class="w-4 h-4"></i>Sair</a></li>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- ========== SECTION 2: STATS CARDS ========== -->
     <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300" 
-                 onclick="switchMap('acompanhamento')" title="Clique para ver mapa de acompanhamento">
+            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
+                onclick="switchMap('acompanhamento')" title="Clique para ver mapa de acompanhamento">
                 <div class="stat-figure text-success">
                     <i data-lucide="heart" class="w-8 h-8"></i>
                 </div>
@@ -102,9 +121,9 @@
                 <div class="stat-value text-success">127</div>
                 <div class="stat-desc">+8% em relação ao mês anterior</div>
             </div>
-            
-            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300" 
-                 onclick="switchMap('alerta')" title="Clique para ver mapa de alertas">
+
+            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
+                onclick="switchMap('alerta')" title="Clique para ver mapa de alertas">
                 <div class="stat-figure text-warning">
                     <i data-lucide="alert-triangle" class="w-8 h-8"></i>
                 </div>
@@ -112,9 +131,9 @@
                 <div class="stat-value text-warning">23</div>
                 <div class="stat-desc">Requerem atenção</div>
             </div>
-            
-            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300" 
-                 onclick="switchMap('critico')" title="Clique para ver mapa de casos críticos">
+
+            <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
+                onclick="switchMap('critico')" title="Clique para ver mapa de casos críticos">
                 <div class="stat-figure text-error">
                     <i data-lucide="alert-circle" class="w-8 h-8"></i>
                 </div>
@@ -122,9 +141,9 @@
                 <div class="stat-value text-error">7</div>
                 <div class="stat-desc">Intervenção imediata</div>
             </div>
-            
+
             <div class="stat bg-base-200 rounded-lg cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300"
-                 onclick="switchMap('acompanhamento')" title="Clique para ver mapa de acompanhamento">
+                onclick="switchMap('acompanhamento')" title="Clique para ver mapa de acompanhamento">
                 <div class="stat-figure text-info">
                     <i data-lucide="trending-up" class="w-8 h-8"></i>
                 </div>
@@ -144,19 +163,17 @@
                     <div class="card-body p-0 h-full">
                         <div class="h-full relative rounded-lg overflow-hidden map-container">
                             <!-- Loading State -->
-                            <div id="map-loading" class="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                            <div id="map-loading"
+                                class="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
                                 <div class="text-center">
                                     <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
                                     <p class="text-gray-500">Carregando mapa...</p>
                                 </div>
                             </div>
-                            
+
                             <!-- Map Iframe -->
-                            <iframe 
-                                id="map-iframe" 
-                                src="../maps/mapa_RN_acompanhados.html" 
-                                class="w-full h-full border-0 rounded-lg"
-                                onload="hideLoading()"
+                            <iframe id="map-iframe" src="../maps/mapa_RN_acompanhados.html"
+                                class="w-full h-full border-0 rounded-lg" onload="hideLoading()"
                                 title="Mapa interativo de crianças">
                             </iframe>
                         </div>
@@ -178,10 +195,11 @@
                             <div class="space-y-3" id="children-cards">
                                 <!-- Cards will be dynamically populated -->
                             </div>
-                            
+
                             <!-- View All Button (inline) -->
                             <div class="mt-3" id="view-all-inline">
-                                <button class="btn btn-outline btn-block btn-sm" onclick="navigateTo('listagem-criancas')">
+                                <button class="btn btn-outline btn-block btn-sm"
+                                    onclick="navigateTo('listagem-criancas')">
                                     <i data-lucide="list" class="w-4 h-4"></i>
                                     Ver Todas as Crianças
                                 </button>
@@ -224,7 +242,7 @@
                             <p class="text-xs text-gray-500">atendimentos</p>
                         </div>
                     </div>
-                    
+
                     <div class="flex items-center justify-between p-3 bg-base-100 rounded-lg">
                         <div class="flex items-center space-x-3">
                             <div class="avatar placeholder">
@@ -242,7 +260,7 @@
                             <p class="text-xs text-gray-500">atendimentos</p>
                         </div>
                     </div>
-                    
+
                     <div class="flex items-center justify-between p-3 bg-base-100 rounded-lg">
                         <div class="flex items-center space-x-3">
                             <div class="avatar placeholder">
@@ -260,7 +278,7 @@
                             <p class="text-xs text-gray-500">atendimentos</p>
                         </div>
                     </div>
-                    
+
                     <div class="flex items-center justify-between p-3 bg-base-100 rounded-lg">
                         <div class="flex items-center space-x-3">
                             <div class="avatar placeholder">
@@ -292,7 +310,8 @@
                         <i data-lucide="trending-up" class="w-5 h-5 inline mr-2 text-success"></i>
                         Altas Hospitalares
                     </h3>
-                    <select class="select select-bordered select-xs w-20" id="year-selector" onchange="updateYearChart()">
+                    <select class="select select-bordered select-xs w-20" id="year-selector"
+                        onchange="updateYearChart()">
                         <option value="2025" selected>2025</option>
                         <option value="2024">2024</option>
                         <option value="2023">2023</option>
@@ -383,20 +402,20 @@
         let currentMap = 'acompanhamento';
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             lucide.createIcons();
-            
+
             // Get map from URL or localStorage
             const urlParams = new URLSearchParams(window.location.search);
             const mapParam = urlParams.get('map');
             const savedMap = localStorage.getItem('selectedMap');
-            
+
             const initialMap = mapParam || savedMap || 'acompanhamento';
             switchMap(initialMap, false);
-            
+
             // Initialize chart
             initAltasChart();
-            
+
             // Update last update time
             updateLastUpdateTime();
         });
@@ -404,13 +423,13 @@
         function initAltasChart() {
             const ctx = document.getElementById('altasChart');
             if (!ctx) return;
-            
+
             const altasData = {
                 2025: [15, 18, 22, 25, 21, 28, 32, 19, 0, 0, 0, 0], // Current year
                 2024: [12, 16, 20, 24, 28, 31, 29, 26, 23, 27, 25, 22],
                 2023: [10, 14, 18, 21, 25, 28, 30, 24, 21, 25, 23, 20]
             };
-            
+
             window.altasChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -477,7 +496,7 @@
                 2024: [12, 16, 20, 24, 28, 31, 29, 26, 23, 27, 25, 22],
                 2023: [10, 14, 18, 21, 25, 28, 30, 24, 21, 25, 23, 20]
             };
-            
+
             if (window.altasChart) {
                 window.altasChart.data.datasets[0].data = altasData[year];
                 window.altasChart.update();
@@ -486,23 +505,23 @@
 
         function switchMap(mapType, updateUrl = true) {
             if (!mapConfigs[mapType]) return;
-            
+
             currentMap = mapType;
             const config = mapConfigs[mapType];
-            
+
             // Show loading
             document.getElementById('map-loading').style.display = 'flex';
-            
+
             // Update iframe src
             const iframe = document.getElementById('map-iframe');
             iframe.src = config.src;
-            
+
             // Update children cards
             updateChildrenCards(mapType);
-            
+
             // Save to localStorage and URL
             localStorage.setItem('selectedMap', mapType);
-            
+
             if (updateUrl) {
                 const newUrl = new URL(window.location);
                 newUrl.searchParams.set('map', mapType);
@@ -514,20 +533,20 @@
             const container = document.getElementById('children-cards');
             const badge = document.getElementById('current-category-badge');
             const children = childrenData[mapType] || [];
-            
+
             // Update badge
             const badgeConfig = {
                 acompanhamento: { text: 'Acompanhamento', class: 'badge-primary' },
                 alerta: { text: 'Alerta', class: 'badge-warning' },
                 critico: { text: 'Crítico', class: 'badge-error' }
             };
-            
+
             const currentBadge = badgeConfig[mapType];
             if (badge && currentBadge) {
                 badge.className = `badge ${currentBadge.class}`;
                 badge.textContent = currentBadge.text;
             }
-            
+
             container.innerHTML = children.map(child => `
                 <div class="card bg-base-100 shadow-sm hover:shadow-md card-children card-${child.type} transition-all duration-200 cursor-pointer border border-gray-100"
                      onclick="viewChildDetails('${child.name}')">
@@ -562,7 +581,7 @@
         function toggleDrawer() {
             const drawer = document.getElementById('main-drawer');
             const overlay = document.getElementById('drawer-overlay');
-            
+
             if (drawer.classList.contains('-translate-x-full')) {
                 drawer.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');
@@ -593,7 +612,7 @@
                 'ajuda-painel': '/ajuda/painel',
                 'todos-profissionais': '/profissionais'
             };
-            
+
             const url = routes[route] || '#';
             if (url !== '#') {
                 window.location.href = url;
@@ -614,11 +633,12 @@
             }
         }
 
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
         });
     </script>
 </body>
+
 </html>

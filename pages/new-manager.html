@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Novo Gestor - Karu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <style>.required:after{content:' *';color:hsl(var(--er));}</style>
+</head>
+<body class="min-h-screen bg-base-100">
+  <!-- Navbar -->
+  <div class="navbar bg-base-100 shadow">
+    <div class="flex-1">
+      <button onclick="history.back()" class="btn btn-ghost btn-sm" title="Voltar"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+      <span class="ml-2 text-2xl font-bold text-primary">Karu</span>
+      <div class="badge badge-outline ml-2">Cadastro de Gestor</div>
+    </div>
+    <div class="flex-none">
+      <label class="swap swap-rotate mr-2" title="Tema claro/escuro"><input type="checkbox" id="themeToggle" /><i data-lucide="sun" class="swap-on w-5 h-5"></i><i data-lucide="moon" class="swap-off w-5 h-5"></i></label>
+      <a href="user-management.html" class="btn btn-ghost btn-sm"><i data-lucide="users" class="w-4 h-4"></i>Usuários</a>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
+    <ul>
+      <li><a href="manager-dashboard.html">Dashboard</a></li>
+      <li><a href="user-management.html">Usuários</a></li>
+      <li>Novo Gestor</li>
+    </ul>
+  </div>
+
+  <main class="px-6 py-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-3xl font-bold">Cadastrar Gestor</h1>
+        <button form="formGestor" type="submit" class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i>Salvar</button>
+      </div>
+
+      <form id="formGestor" class="card bg-base-200 shadow">
+        <div class="card-body grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-control md:col-span-2">
+            <label class="label required"><span class="label-text">Nome completo</span></label>
+            <input name="name" required class="input input-bordered" placeholder="Ex.: Carla Pereira" />
+          </div>
+          <div class="form-control">
+            <label class="label required"><span class="label-text">CPF</span></label>
+            <input name="cpf" required inputmode="numeric" pattern="^[0-9]{11}$" class="input input-bordered" placeholder="Somente números" />
+          </div>
+          <div class="form-control">
+            <label class="label required"><span class="label-text">E-mail</span></label>
+            <input name="email" required type="email" class="input input-bordered" placeholder="email@exemplo.com" />
+          </div>
+          <div class="form-control">
+            <label class="label"><span class="label-text">Telefone</span></label>
+            <input name="phone" inputmode="tel" class="input input-bordered" placeholder="(DDD) 9XXXX-XXXX" />
+          </div>
+          <div class="form-control">
+            <label class="label required"><span class="label-text">Unidade (UBS)</span></label>
+            <input name="unit" required class="input input-bordered" placeholder="UBS Centro" />
+          </div>
+          <div class="form-control">
+            <label class="label"><span class="label-text">Cargo</span></label>
+            <input name="role_title" class="input input-bordered" placeholder="Gestor Municipal / Local" />
+          </div>
+          <div class="form-control">
+            <label class="label"><span class="label-text">Senha temporária</span></label>
+            <input name="temp_password" class="input input-bordered" placeholder="Gerada automaticamente se vazio" />
+          </div>
+          <div class="form-control">
+            <label class="label"><span class="label-text">Status</span></label>
+            <select name="status" class="select select-bordered">
+              <option>Ativo</option>
+              <option>Inativo</option>
+            </select>
+          </div>
+          <div class="md:col-span-3 flex justify-end gap-2 mt-2">
+            <button type="reset" class="btn btn-ghost">Limpar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar Gestor</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="alert alert-info mt-4"><i data-lucide="info" class="w-4 h-4"></i><span>Após salvar, o gestor aparecerá na lista de <a class="link" href="user-management.html">Usuários</a>.</span></div>
+    </div>
+  </main>
+
+  <div class="toast toast-end z-50" id="toast"></div>
+  <dialog id="successModal" class="modal">
+    <div class="modal-box"><h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="check-circle2" class="w-5 h-5 text-success"></i>Gestor cadastrado</h3><p id="successMsg" class="py-2">Registro salvo com sucesso.</p><div class="modal-action"><a href="user-management.html" class="btn btn-primary">Ir para Usuários</a><form method="dialog"><button class="btn">Fechar</button></form></div></div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+  </dialog>
+
+  <script>
+    const el=id=>document.getElementById(id);
+    const toast=(m,t='info')=>{const d=document.createElement('div');d.className=`alert alert-${t}`;d.innerHTML=`<span>${m}</span>`;el('toast').appendChild(d);setTimeout(()=>d.remove(),4000)};
+    const uid=()=>Math.floor(Date.now()+Math.random()*1000);
+    const tempPass=()=>Math.random().toString(36).slice(-8);
+    const loadUsers=()=>JSON.parse(localStorage.getItem('karu_users')||'[]');
+    const saveUsers=(l)=>localStorage.setItem('karu_users',JSON.stringify(l));
+    const pushLog=(entry)=>{const logs=JSON.parse(localStorage.getItem('karu_logs')||'[]');logs.unshift({id:`log-${uid()}`,date:new Date().toISOString(),...entry});localStorage.setItem('karu_logs',JSON.stringify(logs));};
+
+    el('themeToggle').addEventListener('change',e=>document.documentElement.setAttribute('data-theme',e.target.checked?'dark':'light'));
+
+    el('formGestor').addEventListener('submit',e=>{
+      e.preventDefault();
+      const fd=new FormData(e.target);
+      const user={id:uid(),name:fd.get('name'),cpf:fd.get('cpf'),email:fd.get('email'),phone:fd.get('phone')||'',unit:fd.get('unit'),role_title:fd.get('role_title')||'Gestor Local',role:'Gestor',status:fd.get('status')||'Ativo',temp_password:fd.get('temp_password')||tempPass(),createdAt:new Date().toISOString()};
+      const list=loadUsers();list.unshift(user);saveUsers(list);
+      pushLog({actorName:'Admin (mock)',actorRole:'Admin',type:'cadastro',entity:'Usuário',targetName:user.name,summary:'Cadastro de Gestor',details:`Gestor ${user.name} criado (UBS ${user.unit}).`});
+      el('successMsg').textContent=`Gestor ${user.name} cadastrado com sucesso.`;document.querySelector('#successModal').showModal();toast('Gestor cadastrado!','success');e.target.reset();
+    });
+
+    document.addEventListener('DOMContentLoaded',()=>{ if(typeof lucide!=='undefined') lucide.createIcons(); });
+  </script>
+</body>
+</html>
