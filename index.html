@@ -102,37 +102,58 @@
                     </div>
                 </div>
                 
-                <div class="relative fade-in" style="animation-delay: 0.3s;">
-                    <div class="glass-card rounded-3xl p-8 lg:p-12">
-                        <div class="bg-white rounded-2xl p-8 shadow-2xl">
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                                        <i data-lucide="activity" class="w-5 h-5 text-white"></i>
-                                    </div>
-                                    <span class="text-lg font-semibold text-base-content">Monitoramento Ativo</span>
-                                </div>
-                                <div class="badge badge-warning">3 Alertas</div>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="alert alert-warning py-2">
-                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                                    <span class="text-sm">João - Vacina atrasada (7 dias)</span>
-                                </div>
-                                <div class="alert alert-error py-2">
-                                    <i data-lucide="trending-down" class="w-4 h-4"></i>
-                                    <span class="text-sm">Maria - Baixo ganho: 8g/dia</span>
-                                </div>
-                                <div class="alert alert-info py-2">
-                                    <i data-lucide="calendar-x" class="w-4 h-4"></i>
-                                    <span class="text-sm">Ana - Consulta perdida</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<div class="relative fade-in" style="animation-delay: 0.3s;">
+    <div class="glass-card rounded-3xl p-8 lg:p-12">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <i data-lucide="play-circle" class="w-5 h-5 text-white"></i>
                 </div>
+                <span class="text-lg font-semibold text-white">Gestora Sirmani</span>
+            </div>
+            <div class="badge badge-success">Depoimento</div>
+        </div>
+        
+        <!-- Video Player -->
+        <div class="relative rounded-lg overflow-hidden bg-black/20 mb-6">
+            <video id="hero-video" 
+                   class="w-full h-auto max-h-80 object-cover cursor-pointer"
+                   loop 
+                   playsinline
+                   preload="metadata"
+                   onclick="toggleVideo()">
+                <source src="videos/depoimento_Dr_Sirmane.mp4" type="video/mp4">
+                <p class="text-center p-4 text-white/60">
+                    Seu navegador não suporta vídeo HTML5.
+                </p>
+            </video>
+            
+            <!-- Play overlay quando pausado -->
+            <div id="play-overlay" class="absolute inset-0 flex items-center justify-center bg-black/30">
+                <button class="btn btn-circle btn-lg bg-white/20 border-white/50 text-white hover:bg-white/30" 
+                        onclick="toggleVideo()">
+                    <i data-lucide="play" class="w-8 h-8"></i>
+                </button>
+            </div>
+            
+            <!-- Video Controls -->
+            <div class="absolute bottom-2 right-2 flex space-x-2 opacity-0 hover:opacity-100 transition-opacity">
+                <button id="mute-btn" 
+                        class="btn btn-circle btn-sm bg-black/70 text-white border-none hover:bg-black/90"
+                        onclick="toggleMute()"
+                        type="button">
+                    <i data-lucide="volume-2" class="w-4 h-4" id="volume-icon"></i>
+                </button>
             </div>
         </div>
+        
+        <div class="text-center">
+            <p class="text-white/90 text-base">
+                "O sistema Karu transformou nossa gestão do cuidado neonatal"
+            </p>
+        </div>
+    </div>
+</div>
     </section>
 
     <!-- Solution Features -->
@@ -583,6 +604,42 @@
                 lucide.createIcons();
             }
         }, 1000);
+
+      function toggleVideo() {
+    const video = document.getElementById('hero-video');
+    const overlay = document.getElementById('play-overlay');
+    
+    if (video.paused) {
+        video.play().then(() => {
+            overlay.style.display = 'none';
+        }).catch(error => {
+            console.log('Erro ao reproduzir vídeo:', error);
+        });
+    } else {
+        video.pause();
+        overlay.style.display = 'flex';
+    }
+}
+
+function toggleMute() {
+    const video = document.getElementById('hero-video');
+    const volumeIcon = document.getElementById('volume-icon');
+    
+    if (video.muted) {
+        video.muted = false;
+        volumeIcon.setAttribute('data-lucide', 'volume-2');
+    } else {
+        video.muted = true;
+        volumeIcon.setAttribute('data-lucide', 'volume-x');
+    }
+    
+    lucide.createIcons();
+}
+
+
+
+
+
     </script>
 </body>
 </html>
