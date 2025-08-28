@@ -23,6 +23,11 @@
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
         }
+        .user-type-selected {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg flex items-center justify-center relative overflow-hidden">
@@ -43,21 +48,52 @@
                     </div>
                     <span class="text-3xl font-bold text-primary">Karu</span>
                 </div>
-                <h1 class="text-2xl font-bold text-base-content mb-2">Bem-vindo de volta!</h1>
-                <p class="text-base-content/70">Entre na sua conta para continuar</p>
+                <h1 class="text-2xl font-bold text-base-content mb-2">Acesso ao Sistema</h1>
+                <p class="text-base-content/70">Selecione seu perfil e faça login</p>
+            </div>
+
+            <!-- User Type Selection -->
+            <div class="mb-6">
+                <label class="label">
+                    <span class="label-text font-medium">Tipo de Usuário</span>
+                </label>
+                <div class="grid grid-cols-1 gap-3">
+                    <button type="button" 
+                            class="btn btn-outline w-full justify-start user-type-btn" 
+                            data-type="gestor"
+                            onclick="selectUserType('gestor')">
+                        <i data-lucide="user-cog" class="w-5 h-5"></i>
+                        <div class="text-left flex-1">
+                            <div class="font-semibold">Gestor</div>
+                            <div class="text-xs opacity-70">Administração e relatórios</div>
+                        </div>
+                    </button>
+                    
+                    <button type="button" 
+                            class="btn btn-outline w-full justify-start user-type-btn" 
+                            data-type="profissional"
+                            onclick="selectUserType('profissional')">
+                        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                        <div class="text-left flex-1">
+                            <div class="font-semibold">Profissional de Saúde</div>
+                            <div class="text-xs opacity-70">Atendimento e consultas</div>
+                        </div>
+                    </button>
+                </div>
             </div>
 
             <!-- Login Form -->
-            <form class="space-y-6">
+            <form class="space-y-6" id="loginForm">
                 <!-- Email/CPF Field -->
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text font-medium">Email ou CPF</span>
+                        <span class="label-text font-medium">Email ou CRM</span>
                     </label>
                     <div class="relative">
                         <input type="text" 
-                               placeholder="Digite seu email ou CPF" 
+                               placeholder="Digite seu email ou CRM" 
                                class="input input-bordered w-full pl-12" 
+                               id="emailField"
                                required />
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i data-lucide="user" class="w-5 h-5 text-base-content/50"></i>
@@ -101,41 +137,17 @@
                 </div>
 
                 <!-- Login Button -->
-                <button type="submit" class="btn btn-primary w-full">
+                <button type="submit" class="btn btn-primary w-full" disabled id="loginBtn">
                     <i data-lucide="log-in" class="w-5 h-5"></i>
                     Entrar
                 </button>
 
-                <!-- Divider -->
-                <div class="divider">ou</div>
-
-                <!-- Quick Access Buttons -->
-                <div class="space-y-3">
-                    <a href="manager-dashboard.html" class="btn btn-outline w-full">
-                        <i data-lucide="user-check" class="w-5 h-5 text-primary"></i>
-                        Acesso Profissional
-                    </a>
-                    <a href="manager-dashboard.html" class="btn btn-outline btn-secondary w-full">
-                        <i data-lucide="users" class="w-5 h-5"></i>
-                        Acesso Familiar
-                    </a>
-                </div>
-
-                <!-- Register Link -->
-                <div class="text-center pt-4">
-                    <p class="text-base-content/70">
-                        Não tem uma conta? 
-                        <a href="signup.html" class="text-primary font-medium hover:underline">
-                            Cadastre-se aqui
-                        </a>
-                    </p>
-                </div>
             </form>
         </div>
 
         <!-- Back to Home -->
         <div class="text-center mt-6">
-            <a href="index.html" class="text-white/80 hover:text-white transition-colors text-sm">
+            <a href="../index.html" class="text-white/80 hover:text-white transition-colors text-sm">
                 <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
                 Voltar ao início
             </a>
@@ -143,12 +155,41 @@
     </div>
 
     <script>
+        let selectedUserType = null;
+
         // Inicializar ícones
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
         });
+
+        // Selecionar tipo de usuário
+        function selectUserType(type) {
+            selectedUserType = type;
+            
+            // Remove seleção anterior
+            document.querySelectorAll('.user-type-btn').forEach(btn => {
+                btn.classList.remove('user-type-selected');
+                btn.classList.add('btn-outline');
+            });
+            
+            // Adiciona seleção atual
+            const selectedBtn = document.querySelector(`[data-type="${type}"]`);
+            selectedBtn.classList.add('user-type-selected');
+            selectedBtn.classList.remove('btn-outline');
+            
+            // Habilita botão de login
+            document.getElementById('loginBtn').disabled = false;
+            
+            // Atualiza placeholder do campo email
+            const emailField = document.getElementById('emailField');
+            if (type === 'gestor') {
+                emailField.placeholder = 'Digite seu email institucional';
+            } else if (type === 'profissional') {
+                emailField.placeholder = 'Digite seu email ou CRM';
+            }
+        }
 
         // Toggle password visibility
         function togglePassword() {
@@ -169,12 +210,18 @@
             }
         }
 
+
         // Form validation and redirect
-        document.querySelector('form').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const email = document.querySelector('input[type="text"]').value;
-            const password = document.querySelector('input[type="password"]').value;
+            if (!selectedUserType) {
+                alert('Por favor, selecione o tipo de usuário.');
+                return;
+            }
+            
+            const email = document.getElementById('emailField').value;
+            const password = document.getElementById('password').value;
             
             if (!email || !password) {
                 alert('Por favor, preencha todos os campos.');
@@ -182,25 +229,21 @@
             }
             
             // Simulate login process
-            const submitBtn = document.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('loginBtn');
             const originalText = submitBtn.innerHTML;
             
             submitBtn.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Entrando...';
             submitBtn.disabled = true;
             
             setTimeout(() => {
-                // Simulate login validation
-                // In a real app, this would be an API call
-                
-                // Determine user type based on email pattern (demo purposes)
-                // You can modify this logic based on your needs
-                if (email.includes('admin') || email.includes('gestor') || email.includes('medico')) {
+                // Redirect based on selected user type
+                if (selectedUserType === 'gestor') {
                     window.location.href = 'manager-dashboard.html';
-                } else {
-                    window.location.href = 'manager-dashboard.html';
+                } else if (selectedUserType === 'profissional') {
+                    window.location.href = 'search-rn.html';
                 }
                 
-                // Reset button (this won't execute due to redirect, but good practice)
+                // Reset button (this won't execute due to redirect)
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }, 2000);
