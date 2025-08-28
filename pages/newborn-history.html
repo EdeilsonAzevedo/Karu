@@ -12,39 +12,69 @@
 </head>
 <body class="min-h-screen bg-base-100">
     <!-- Header -->
-    <div class="navbar bg-base-100 shadow-lg">
-        <div class="flex-1">
-            <div class="flex items-center space-x-3">
-                <button onclick="window.location.href='gestor-saude.html'" class="btn btn-ghost btn-sm">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </button>
-                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+<div class="drawer">
+    <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+
+    <div class="drawer-content flex flex-col  bg-gray-50">
+
+        <div class="navbar bg-white border-b border-gray-200 px-4">
+            <div class="navbar-start">
+                <label for="main-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </label>
+                
+                <a href="/" class="flex items-center space-x-3 ml-2">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <i data-lucide="heart" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900 leading-tight">Karu</h1>
+                        <p class="text-xs text-gray-500 leading-tight">Monitoramento Neonatal</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="navbar-end">
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                        
+                    </div>
+                    
                 </div>
-                <span class="text-2xl font-bold text-primary">Karu</span>
-                <div class="badge badge-primary">Prontuário</div>
             </div>
         </div>
-        <div class="flex-none flex items-center gap-4">
-            <button class="btn btn-outline btn-sm">
-                <i data-lucide="printer" class="w-4 h-4"></i>
-                Imprimir
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="window.location.href='new-routine-consultation.html'">
-                <i data-lucide="edit" class="w-4 h-4"></i>
-                Nova Consulta
-            </button>
-        </div>
+
     </div>
 
-    <!-- Breadcrumb -->
-    <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
-        <ul>
-            <li><a href="index.html">Início</a></li>
-            <li><a href="manager-dashboard.html">Dashboard Gestor</a></li>
-            <li>Prontuário - Maria Clara</li>
-        </ul>
+    <div class="drawer-side z-50">
+        <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+        
+        <div class="p-4 h-full w-80 bg-base-100 text-base-content">
+<div class="flex justify-between items-center mb-4 p-2">
+  <a href="manager-dashboard.html" class="text-lg font-semibold hover:text-primary transition-colors">
+    Menu Principal
+  </a>
+  <label for="main-drawer" class="btn btn-ghost btn-sm btn-circle">
+    <i data-lucide="x" class="w-4 h-4"></i>
+  </label>
+</div>
+
+
+            <ul class="menu text-base">
+                <li><a href="search-rn.html"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a></li>
+                <li><a href="adicionar-crianca.html"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova Criança</a></li>
+                <li><a href="gerenciar-usuarios.html"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
+                <li><a href="relatorio.html"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
+                <li><a href="historico.html"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
+                <li><a href="logs.html"><i data-lucide="activity" class="w-5 h-5"></i> Logs do Sistema</a></li>
+                <li class="menu-title"><span>Perfil</span></li>
+                <li><a href="perfil.html"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
+                <li><a href="configuracoes.html"><i data-lucide="settings" class="w-5 h-5"></i> Configurações</a></li>
+                <li><a href="../index.html"><i data-lucide="log-out" class="w-4 h-4"></i>Sair</a></li>
+            </ul>
+        </div>
     </div>
+</div>
 
     <!-- Patient Header -->
     <div class="px-6 py-6">
@@ -89,11 +119,15 @@
                             </div>
                             <div class="stat">
                                 <div class="stat-title">Idade Corrigida</div>
-                                <div class="stat-value text-secondary text-lg">35s + 2d</div>
-                                <div class="stat-desc">35 semanas e 2 dias</div>
-                            </div>
+                                <div class="stat-value text-secondary text-lg">32d</div>
+                                <div class="stat-desc">32dias</div>
+                            </div>  
                         </div>
                     </div>
+                    <button class="btn btn-primary mt-2" onclick="window.location.href='new-routine-consultation.html'">
+                         <i data-lucide="edit" class="w-4 h-4"></i>
+                         Registrar Nova Consulta
+                    </button>
                 </div>
             </div>
 

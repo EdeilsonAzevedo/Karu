@@ -66,14 +66,16 @@
         <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
         
         <div class="p-4 h-full w-80 bg-base-100 text-base-content">
-            <div class="flex justify-between items-center mb-4 p-2">
-                <h3 class="text-lg font-semibold">Menu Principal</h3>
-                <label for="main-drawer" class="btn btn-ghost btn-sm btn-circle">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </label>
-            </div>
+<div class="flex justify-between items-center mb-4 p-2">
+  <a href="manager-dashboard.html" class="text-lg font-semibold hover:text-primary transition-colors">
+    Menu Principal
+  </a>
+  <label for="main-drawer" class="btn btn-ghost btn-sm btn-circle">
+    <i data-lucide="x" class="w-4 h-4"></i>
+  </label>
+</div>
             <ul class="menu text-base">
-                <li><a href="buscar-rn.html"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a></li>
+                <li><a href="search-rn.html"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a></li>
                 <li><a href="adicionar-crianca.html"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova Criança</a></li>
                 <li><a href="gerenciar-usuarios.html"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
                 <li><a href="relatorio.html"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
@@ -582,7 +584,7 @@
                 'adicionar-crianca': '/adicionar-crianca',
                 'historico': '/historico',
                 'listagem-criancas': '/criancas',
-                'buscar-rn': '/buscar-rn',
+                'search-rn': '/search-rn',
                 'gerenciar-usuarios': '/usuarios',
                 'logs': '/logs',
                 'configuracoes': '/configuracoes',
