@@ -1,0 +1,24 @@
+repos:
+  #checagem de tipos
+  - repo: local
+    hooks:
+    - id: pyright
+      name: Pyright type check
+      entry: poetry run pyright
+      language: system
+      types: [python]
+  
+  # formatação
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # tipo de commit
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.28.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
