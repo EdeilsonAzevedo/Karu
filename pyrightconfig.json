@@ -1,0 +1,22 @@
+{
+  "include": ["apps", "config"],
+
+  "exclude": [
+    "**/migrations",
+    "**/__pycache__",
+    ".venv",
+    "static",
+    "templates"
+  ],
+
+  "pythonVersion": "3.12",
+
+  "typeCheckingMode": "basic",
+
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "reportOptionalMemberAccess": "warning",
+  "reportUnusedImport": "warning",
+  "reportUnusedVariable": "none",
+  "reportUntypedFunctionDecorator": "none"
+}
