@@ -1,0 +1,63 @@
+# =======================================
+# Python
+# =======================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# =======================================
+# Poetry
+# =======================================
+poetry.lock
+
+# =======================================
+# Django
+# =======================================
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# =======================================
+# Migrations 
+# */migrations/*
+# !*/migrations/__init__.py
+
+# =======================================
+# Pytest / Coverage
+# =======================================
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.cache/
+
+# =======================================
+# Ruff / lint
+# =======================================
+.ruff_cache/
+
+# =======================================
+# VS Code / IDEs
+# =======================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/
+*.iml
+
+# =======================================
+# System
+# =======================================
+.DS_Store
+Thumbs.db
