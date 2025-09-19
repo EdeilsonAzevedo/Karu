@@ -22,7 +22,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 100
-target--version = "py310"
+target-version = "py312"
 extend-select = ["I"]       # abilita isort 
 fix = true                  # corrigi de forma automática
 
@@ -35,6 +35,6 @@ warn_return_any = true           # alerta quando funções retornarem qualquer c
 disallow_untyped_defs = true     # funções novas tipadas
 files = ["."]
 [tool.poetry.group.dev.dependencies]
-pyright = "^1.1.405"
 pre-commit = "^4.3.0"
+
 
