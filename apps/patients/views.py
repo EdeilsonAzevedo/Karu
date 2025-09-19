@@ -66,7 +66,7 @@ def patient_create(request):
 
     return render(
         request,
-        "patients/create.html",
+        "patients/newborn-registration.html",
         {
             "patient_form": patient_form,
             "record_form": record_form,
