@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.db.models import Q
-from .models import Patient, Record, DischargeRecord
-from .forms import PatientForm, RecordForm, DischargeRecordForm
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import DischargeRecordForm, PatientForm, RecordForm
+from .models import DischargeRecord, Patient, Record
 
 
 def patient_list(request):
@@ -85,9 +86,7 @@ def patient_edit(request, pk):
 
     # tenta achar o record de alta existente
     record = (
-        Record.objects.filter(patient=patient, record_type="discharge")
-        .order_by("date")
-        .first()
+        Record.objects.filter(patient=patient, record_type="discharge").order_by("date").first()
     )
     discharge = None
     if record:
