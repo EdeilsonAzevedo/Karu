@@ -1,11 +1,9 @@
-from django.db import models
-from ..core.models import BaseModel
 from django.core.validators import RegexValidator
+from django.db import models
 
-cpf_validator = RegexValidator(
-    regex=r'^\d{11}$',
-    message="CPF deve ter 11 dígitos numéricos."
-)
+from ..core.models import BaseModel
+
+cpf_validator = RegexValidator(regex=r"^\d{11}$", message="CPF deve ter 11 dígitos numéricos.")
 
 
 class Patient(BaseModel):
@@ -19,14 +17,14 @@ class Patient(BaseModel):
         blank=True,
         null=True,
         unique=True,
-        help_text="Somente números, sem pontos ou traços."
+        help_text="Somente números, sem pontos ou traços.",
     )
     birth_certificate_number = models.CharField(
         max_length=50,
         blank=True,
         null=True,
         unique=True,
-        help_text="Número da certidão de nascimento (se disponível)."
+        help_text="Número da certidão de nascimento (se disponível).",
     )
     # dados básicos de nascimento
     gestational_age_weeks = models.PositiveSmallIntegerField()
@@ -40,7 +38,7 @@ class Record(BaseModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="records")
     record_type = models.CharField(
         max_length=20,
-        choices=[("discharge", "Alta"), ("consultation", "Consulta"), ("followup", "Seguimento")]
+        choices=[("discharge", "Alta"), ("consultation", "Consulta"), ("followup", "Seguimento")],
     )
     date = models.DateField()
     notes = models.TextField(blank=True, null=True)
@@ -53,31 +51,44 @@ class DischargeRecord(BaseModel):
     weight = models.DecimalField(max_digits=6, decimal_places=2)
     length = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    feeding_type = models.CharField(max_length=20, choices=[("breastfeeding", "SME"), ("mixed", "SM+Fórmula"), ("formula", "Fórmula")])
+    feeding_type = models.CharField(
+        max_length=20,
+        choices=[("breastfeeding", "SME"), ("mixed", "SM+Fórmula"), ("formula", "Fórmula")],
+    )
 
 
 class ClinicalEvaluation(BaseModel):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="clinical_evaluations")
-    type = models.CharField(max_length=20, choices=[
-        ("pediatric", "Pediátrica"),
-        ("neurologic", "Neurológica"),
-        ("cardiac", "Cardiológica"),
-        ("visual", "Visual"),
-        ("auditory", "Auditiva"),
-    ])
-    status = models.CharField(max_length=10, choices=[("normal", "Normal"), ("altered", "Alterada")])
+    record = models.ForeignKey(
+        Record, on_delete=models.CASCADE, related_name="clinical_evaluations"
+    )
+    type = models.CharField(
+        max_length=20,
+        choices=[
+            ("pediatric", "Pediátrica"),
+            ("neurologic", "Neurológica"),
+            ("cardiac", "Cardiológica"),
+            ("visual", "Visual"),
+            ("auditory", "Auditiva"),
+        ],
+    )
+    status = models.CharField(
+        max_length=10, choices=[("normal", "Normal"), ("altered", "Alterada")]
+    )
 
 
 class InterdisciplinaryEvaluation(BaseModel):
     record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="team_evaluations")
-    area = models.CharField(max_length=30, choices=[
-        ("nursing", "Enfermagem"),
-        ("physiotherapy", "Fisioterapia"),
-        ("speech", "Fonoaudiologia"),
-        ("psychology", "Psicologia"),
-        ("social_work", "Serviço Social"),
-        ("occupational_therapy", "Terapia Ocupacional"),
-    ])
+    area = models.CharField(
+        max_length=30,
+        choices=[
+            ("nursing", "Enfermagem"),
+            ("physiotherapy", "Fisioterapia"),
+            ("speech", "Fonoaudiologia"),
+            ("psychology", "Psicologia"),
+            ("social_work", "Serviço Social"),
+            ("occupational_therapy", "Terapia Ocupacional"),
+        ],
+    )
     notes = models.TextField(blank=True, null=True)
 
 
