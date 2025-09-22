@@ -1,9 +1,13 @@
 from django import forms
-from .models import Patient, Record, DischargeRecord
+
+from .models import DischargeRecord, Patient, Record
+
 
 class PatientForm(forms.ModelForm):
     # Aceita CPF com pontuação e normaliza para 11 dígitos
-    cpf = forms.CharField(required=False, max_length=14, help_text="Pode digitar com pontos e traço.")
+    cpf = forms.CharField(
+        required=False, max_length=14, help_text="Pode digitar com pontos e traço."
+    )
 
     class Meta:
         model = Patient
@@ -36,6 +40,7 @@ class PatientForm(forms.ModelForm):
 
 class RecordForm(forms.ModelForm):
     """Usado apenas para (data, notas). O tipo será forçado para 'discharge' na view."""
+
     class Meta:
         model = Record
         fields = ["date", "notes"]
