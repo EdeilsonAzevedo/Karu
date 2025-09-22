@@ -74,13 +74,21 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# config/settings.py
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        # 1. O "Motor" da Conexão
+        'ENGINE': 'django.db.backends.postgresql',
+
+        # 2. As Credenciais e o Endereço
+        'NAME': 'karu',         # O nome do seu banco de dados no PostgreSQL
+        'USER': 'postgres',        # O usuário que tem permissão para acessar o banco
+        'PASSWORD': 'postgres',   # A senha deste usuário
+        'HOST': 'localhost',       # O endereço do servidor (localhost = sua própria máquina)
+        'PORT': '5432',            # A porta padrão do PostgreSQL
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
