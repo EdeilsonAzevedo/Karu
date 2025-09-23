@@ -26,11 +26,11 @@ poetry install
 poetry env activate
 
 # 4. CRÍTICO: Instalar hooks
-pre-commit install
-pre-commit install --hook-type commit-msg
+poetry run pre-commit install
+poetry run pre-commit install --hook-type commit-msg
 
 # 5. Testar
-pre-commit run --all-files
+poetry run pre-commit run --all-files
 ```
 
 ---
