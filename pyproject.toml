@@ -13,6 +13,9 @@ dependencies = [
     "pytest-django (>=4.11.1,<5.0.0)",
     "ruff (>=0.13.0,<0.14.0)",
     "psycopg2-binary (>=2.9.9)",
+    "psycopg (>=3.2.10,<4.0.0)",
+    "pre-commit (>=4.3.0,<5.0.0)",
+
 ]
 
 
@@ -26,16 +29,5 @@ line-length = 100
 target-version = "py312"
 extend-select = ["I"]       # abilita isort 
 fix = true                  # corrigi de forma automática
-
-[tool.mypy]
-python_version = "3.12"
-ignore_missing_imports = true    # não reclama de libs não tipadas
-strict_optional = true           # força checagem de None
-warn_unused_ignores = true    # avisa "ignore" inútil
-warn_return_any = true           # alerta quando funções retornarem qualquer coisa
-disallow_untyped_defs = true     # funções novas tipadas
-files = ["."]
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.3.0"
 
 

@@ -77,16 +77,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 # config/settings.py
 
 DATABASES = {
-    'default': {
+    "default": {
         # 1. O "Motor" da Conexão
-        'ENGINE': 'django.db.backends.postgresql',
-
+        "ENGINE": "django.db.backends.postgresql",
         # 2. As Credenciais e o Endereço
-        'NAME': 'karu',         # O nome do seu banco de dados no PostgreSQL
-        'USER': 'postgres',        # O usuário que tem permissão para acessar o banco
-        'PASSWORD': 'postgres',   # A senha deste usuário
-        'HOST': 'localhost',       # O endereço do servidor (localhost = sua própria máquina)
-        'PORT': '5432',            # A porta padrão do PostgreSQL
+        "NAME": "karu",  # O nome do seu banco de dados no PostgreSQL
+        "USER": "postgres",  # O usuário que tem permissão para acessar o banco
+        "PASSWORD": "postgres",  # A senha deste usuário
+        "HOST": "localhost",  # O endereço do servidor (localhost = sua própria máquina)
+        "PORT": "5432",  # A porta padrão do PostgreSQL
     }
 }
 
