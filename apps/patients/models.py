@@ -63,38 +63,31 @@ class DischargeRecord(BaseModel):
     )
 
 
+class ClinicalEvaluationType(models.TextChoices):
+    PEDIATRIC = "pediatric", "Pediátrica"
+    NEUROLOGIC = "neurologic", "Neurológica"
+    CARDIAC = "cardiac", "Cardiológica"
+    VISUAL = "visual", "Visual"
+    AUDITORY = "auditory", "Auditiva"
+
+class InterdisciplinaryEvaluationArea(models.TextChoices):
+    NURSING = "nursing", "Enfermagem"
+    PHYSIOTHERAPY = "physiotherapy", "Fisioterapia"
+    SPEECH = "speech", "Fonoaudiologia"
+    PSYCHOLOGY = "psychology", "Psicologia"
+    SOCIAL_WORK = "social_work", "Serviço Social"
+    OCCUPATIONAL_THERAPY = "occupational_therapy", "Terapia Ocupacional"
+
+
 class ClinicalEvaluation(BaseModel):
-    record = models.ForeignKey(
-        Record, on_delete=models.CASCADE, related_name="clinical_evaluations"
-    )
-    type = models.CharField(
-        max_length=20,
-        choices=[
-            ("pediatric", "Pediátrica"),
-            ("neurologic", "Neurológica"),
-            ("cardiac", "Cardiológica"),
-            ("visual", "Visual"),
-            ("auditory", "Auditiva"),
-        ],
-    )
-    status = models.CharField(
-        max_length=10, choices=[("normal", "Normal"), ("altered", "Alterada")]
-    )
+    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="clinical_evaluations")
+    type = models.CharField(max_length=20, choices=ClinicalEvaluationType.choices)
+    status = models.CharField(max_length=10, choices=[("normal", "Normal"), ("altered", "Alterada")])
 
 
 class InterdisciplinaryEvaluation(BaseModel):
     record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="team_evaluations")
-    area = models.CharField(
-        max_length=30,
-        choices=[
-            ("nursing", "Enfermagem"),
-            ("physiotherapy", "Fisioterapia"),
-            ("speech", "Fonoaudiologia"),
-            ("psychology", "Psicologia"),
-            ("social_work", "Serviço Social"),
-            ("occupational_therapy", "Terapia Ocupacional"),
-        ],
-    )
+    area = models.CharField(max_length=30, choices=InterdisciplinaryEvaluationArea.choices)
     notes = models.TextField(blank=True, null=True)
 
 

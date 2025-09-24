@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nova Consulta para {{ patient.first_name }} - Karu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="min-h-screen bg-base-100">
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <a href="{% url 'patients:list' %}" class="btn btn-ghost">Karu</a>
+            <div class="badge badge-outline ml-2">Nova Consulta</div>
+        </div>
+    </div>
+
+    <main class="px-6 py-6">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold">Registrar Consulta</h1>
+            <p class="text-base-content/70">Paciente: {{ patient.first_name }} {{ patient.last_name }}</p>
+
+            <form method="POST" class="grid grid-cols-1 gap-6 mt-6">
+                {% csrf_token %}
+
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title">Dados Gerais</h2>
+                        {{ record_form.as_p }}
+                    </div>
+                </section>
+
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title">Avaliações Clínicas</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for type, form in clinical_forms.items %}
+                                <div class="form-control">
+                                    {{ form.type }} <label class="label"><span class="label-text">{{ form.instance.get_type_display }}</span></label>
+                                    {{ form.status }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title">Avaliações da Equipe</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for area, form in team_forms.items %}
+                                <div class="form-control">
+                                    {{ form.area }} <label class="label"><span class="label-text">{{ form.instance.get_area_display }}</span></label>
+                                    {{ form.notes }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <div class="flex justify-end gap-2">
+                    <a href="{% url 'patients:list' %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Salvar Consulta</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { 
+            if (typeof lucide !== 'undefined') lucide.createIcons(); 
+        });
+    </script>
+</body>
+</html>
