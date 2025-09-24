@@ -1,15 +1,6 @@
 from django import forms
 
-from .models import (
-    ClinicalEvaluation,
-    ClinicalWarningSign,
-    ConsultationRecord,
-    DischargeRecord,
-    InterdisciplinaryEvaluation,
-    Patient,
-    Record,
-)
-
+from .models import Patient, Record, DischargeRecord, ClinicalEvaluation, InterdisciplinaryEvaluation
 
 class PatientForm(forms.ModelForm):
     class Meta:
@@ -137,36 +128,16 @@ class DischargeRecordForm(forms.ModelForm):
             "feeding_type": forms.Select(),
         }
 
-    def __init__(self, *args, **kwargs):
-        super(DischargeRecordForm, self).__init__(*args, **kwargs)
-        input_classes = "input input-bordered w-full transition-all duration-300 focus:input-primary"
-        select_classes = "select select-bordered w-full transition-all duration-300 focus:select-primary"
-        for field_name, field in self.fields.items():
-            if isinstance(field.widget, forms.Select):
-                field.widget.attrs.update({"class": select_classes})
-            else:
-                field.widget.attrs.update({"class": input_classes})
-
-
 # formulário para as avaliações clínicas
-# --- formulário para as avaliações clínicas ---
 class ClinicalEvaluationForm(forms.ModelForm):
     class Meta:
         model = ClinicalEvaluation
         fields = ["type", "status"]
+        # Usamos um widget escondido para o tipo, pois vamos criá-los separadamente
         widgets = {
             "type": forms.HiddenInput(),
         }
-        labels = {
-            "status": ""
-        }
 
-    def __init__(self, *args, **kwargs):
-        super(ClinicalEvaluationForm, self).__init__(*args, **kwargs)
-        self.fields['status'].required = False
-        status_choices = self.fields['status'].choices[1:]  # type: ignore
-        self.fields['status'].choices = [('', 'Não informado')] + status_choices
-        self.fields['status'].widget.attrs.update({'class': 'select select-bordered w-full'})
 
 # formulário para as avaliações da equipe
 class InterdisciplinaryEvaluationForm(forms.ModelForm):
@@ -175,74 +146,5 @@ class InterdisciplinaryEvaluationForm(forms.ModelForm):
         fields = ["area", "notes"]
         widgets = {
             "area": forms.HiddenInput(),
-            "notes": forms.Textarea(
-                attrs={"rows": 2, "class": "textarea textarea-bordered w-full"}
-            ),
+            "notes": forms.Textarea(attrs={"rows": 2, "class": "textarea textarea-bordered w-full"}),
         }
-        labels = {
-            "notes": ""
-        }
-
-class ConsultationRecordForm(forms.ModelForm):
-    class Meta:
-        model = ConsultationRecord
-        exclude = ["record"]
-
-        labels = {
-            "weight": "Peso atual (gramas)",
-            "weighed_without_diaper": "Pesado sem fralda",
-            "length": "Comprimento (cm)",
-            "head_circumference": "Perímetro cefálico (cm)",
-            "feeding_type": "Tipo alimentar",
-            "feeding_interval": "Intervalo entre mamadas",
-            "diapers_in_24h": "Número de fraldas em 24h",
-            "breastfeeding_observation": "Observação da mamada",
-            "uses_pacifier": "Uso de mamadeira/chupeta",
-            "kangaroo_hours_per_day": "Horas em contato pele a pele no dia",
-            "kangaroo_difficulties": "Dificuldades ou interrupções",
-            "warning_signs_observations": "Observações adicionais sobre sinais de alerta",
-            "family_arrival_notes": "Como foi a chegada em casa?",
-            "family_support_notes": "Quem está ajudando e de que forma?",
-            "guidance_given": "Orientações dadas",
-            "return_plan": "Plano de retorno agendado",
-            "next_appointment_date": "Data do próximo retorno",
-        }
-
-        widgets = {
-            "next_appointment_date": forms.DateInput(attrs={"type": "date"}),
-            "uses_pacifier": forms.RadioSelect(choices=[(True, "Sim"), (False, "Não")]),
-            "breastfeeding_observation": forms.RadioSelect,
-            "warning_signs_observations": forms.Textarea(
-                attrs={"rows": 3, "placeholder": "Descreva qualquer sinal observado..."}
-            ),
-            "kangaroo_difficulties": forms.Textarea(
-                attrs={"rows": 3, "placeholder": "Comentários sobre dificuldades"}
-            ),
-            "family_arrival_notes": forms.Textarea(
-                attrs={"rows": 3, "placeholder": "Dificuldades ou intercorrências"}
-            ),
-            "family_support_notes": forms.Textarea(
-                attrs={"rows": 3, "placeholder": "Rede de apoio familiar e comunitária"}
-            ),
-            "guidance_given": forms.Textarea(
-                attrs={
-                    "rows": 3,
-                    "placeholder": "Resumo das orientações: posição canguru, mamadas, etc.",
-                }
-            ),
-        }
-
-
-class ClinicalWarningSignForm(forms.ModelForm):
-    class Meta:
-        model = ClinicalWarningSign
-        fields = ["type", "is_present"]
-        widgets = {
-            "type": forms.HiddenInput(),
-            "is_present": forms.CheckboxInput(attrs={"class": "checkbox checkbox-error"}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Remove o label do lado do checkbox, pois o texto já está no HTML
-        self.fields["is_present"].label = ""

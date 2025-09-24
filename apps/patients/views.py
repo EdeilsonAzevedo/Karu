@@ -4,23 +4,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-
-from .forms import (
-    ClinicalWarningSignForm,
-    ConsultationRecordForm,
-    DischargeRecordForm,
-    PatientForm,
-    RecordForm,
-    ClinicalEvaluationForm, InterdisciplinaryEvaluationForm
-)
-from .models import (
-    ClinicalWarningSign,
-    Patient,
-    Record,
-    ClinicalEvaluation, InterdisciplinaryEvaluation,
-    ClinicalEvaluationType, InterdisciplinaryEvaluationArea
-)
-
+from .forms import DischargeRecordForm, PatientForm, RecordForm, ClinicalEvaluationForm, InterdisciplinaryEvaluationForm
+from .models import DischargeRecord, Patient, Record, ClinicalEvaluationType, InterdisciplinaryEvaluationArea
 
 def patient_list(request):
     """Lista + busca por nome, CPF e certidão (q geral ou campos específicos name/cpf/sal)."""
@@ -207,116 +192,94 @@ def patient_detail(request, pk):
     age_timedelta = today - patient.date_of_birth
     age_in_days = age_timedelta.days
 
-    # 2. Idade Corrigida
-
-    full_term_weeks = 40
-    prematurity_in_weeks = full_term_weeks - patient.gestational_age_weeks
-    corrected_age_in_days = age_in_days
+    # 2. Idade Gestacional Corrigida (formato semanas + dias)
     total_days_corrected = (patient.gestational_age_weeks * 7) + age_in_days
     corrected_age_weeks = total_days_corrected // 7
     corrected_age_remaining_days = total_days_corrected % 7
+    
+    # --- PREPARAÇÃO DOS DADOS PARA O GRÁFICO ---
+    # (Supondo que as funções auxiliares _get_growth_chart_data e get_weight_gain_analysis_data existem)
+    chart_context = _get_growth_chart_data(patient)
+    weight_gain_context = get_weight_gain_analysis_data(patient)
 
-    if prematurity_in_weeks > 0:
-        prematurity_in_days = prematurity_in_weeks * 7
-        corrected_age_timedelta = age_timedelta - timedelta(days=prematurity_in_days)
-        corrected_age_in_days = max(0, corrected_age_timedelta.days)
-
-    # Dados para o gráfico de peso ao longo do tempo
-    # Por enquanto busca apenas por 'discharge records' que têm peso
-    # Quando as consultas tiverem peso, a lógica aqui será expandida
-    records_for_chart = (
-        Record.objects.filter(patient=patient, discharge__isnull=False)
-        .order_by("date")
-        .select_related("discharge")
-    )
-
-    chart_labels = [rec.date.strftime("%d/%m/%Y") for rec in records_for_chart]
-    chart_data = [float(rec.discharge.weight) for rec in records_for_chart]
-
-    # MONTAGEM DO CONTEXTO FINAL
+    # --- MONTAGEM DO CONTEXTO FINAL ---
     context = {
         "patient": patient,
         "consultation_records": consultation_records,
         "age_in_days": age_in_days,
-        "corrected_age_in_days": corrected_age_in_days,
-        "chart_labels": chart_labels,
-        "chart_data": chart_data,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
     }
-
+    
+    # Adiciona os dados dos gráficos ao contexto
+    context.update(chart_context)
+    context.update(weight_gain_context)
+    
     return render(request, "patients/patient_detail.html", context)
 
-
 @transaction.atomic
-def consultation_create(request, pk):
-    patient = get_object_or_404(Patient, pk=pk)
-    # Não vamos mais usar 'warning_sign_types' aqui
-
+def consultation_create(request, patient_pk):
+    patient = get_object_or_404(Patient, pk=patient_pk)
+    
+    clinical_types = ClinicalEvaluationType.values
+    team_areas = InterdisciplinaryEvaluationArea.values
+    
     if request.method == "POST":
-        # A lógica de POST precisa ser ajustada para recriar os forms da mesma forma
+        # Instancia o formulário do registro principal
         record_form = RecordForm(request.POST, prefix="record")
-        consultation_form = ConsultationRecordForm(request.POST, prefix="consultation")
+        
+        # Instancia um formulário para cada tipo de avaliação
+        clinical_forms = {
+            ctype: ClinicalEvaluationForm(request.POST, prefix=f"clinical_{ctype}")
+            for ctype in clinical_types
+        }
+        team_forms = {
+            area: InterdisciplinaryEvaluationForm(request.POST, prefix=f"team_{area}")
+            for area in team_areas
+        }
 
-        # Recria os forms de sinais de alerta para validação
-        warning_sign_forms = []
-        for value, label in ClinicalWarningSign.WarningSignType.choices:
-            form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
-            warning_sign_forms.append({"form": form, "value": value})
-
-        # Validação
-        all_forms_valid = all(
-            [
-                record_form.is_valid(),
-                consultation_form.is_valid(),
-                all(item["form"].is_valid() for item in warning_sign_forms),
-            ]
-        )
-
-        if all_forms_valid:
+        # Valida todos os formulários
+        if record_form.is_valid() and all(f.is_valid() for f in clinical_forms.values()) and all(f.is_valid() for f in team_forms.values()):
+            # Salva o registro principal
             record = record_form.save(commit=False)
             record.patient = patient
             record.record_type = "consultation"
             record.save()
 
-            consultation_details = consultation_form.save(commit=False)
-            consultation_details.record = record
-            consultation_details.save()
+            # Salva cada avaliação clínica, ligando ao registro principal
+            for ctype, form in clinical_forms.items():
+                if form.cleaned_data.get("status"): # Salva apenas se um status foi selecionado
+                    evaluation = form.save(commit=False)
+                    evaluation.record = record
+                    evaluation.type = ctype
+                    evaluation.save()
 
-            for item in warning_sign_forms:
-                if item["form"].cleaned_data.get("is_present"):
-                    ClinicalWarningSign.objects.create(
-                        record=record, type=item["value"], is_present=True
-                    )
+            # Salva cada avaliação da equipe, ligando ao registro principal
+            for area, form in team_forms.items():
+                if form.cleaned_data.get("notes"): # Salva apenas se houver anotações
+                    evaluation = form.save(commit=False)
+                    evaluation.record = record
+                    evaluation.area = area
+                    evaluation.save()
 
-            return redirect("patients:detail", pk=patient.pk)
-
-    else:  # GET Request
+            return redirect("patients:list") # Ou para uma página de detalhes do paciente
+    else:
+        # Cria formulários vazios para a página
         record_form = RecordForm(prefix="record")
-        consultation_form = ConsultationRecordForm(prefix="consultation")
-
-        # --- LÓGICA CORRIGIDA ---
-        # Criamos uma lista, onde cada item tem o form e o seu label
-        clinical_forms_with_labels = []
-        for value, label in ClinicalWarningSign.WarningSignType.choices:
-            form = ClinicalWarningSignForm(prefix=f"warning_{value}", initial={"type": value})
-            clinical_forms_with_labels.append({"form": form, "label": label})
-        # --- FIM DA LÓGICA CORRIGIDA ---
-
-    # Lógica de idade corrigida
-    today = timezone.now().date()
-    total_days_corrected = (patient.gestational_age_weeks * 7) + (
-        today - patient.date_of_birth
-    ).days
-    corrected_age_weeks = total_days_corrected // 7
-    corrected_age_remaining_days = total_days_corrected % 7
+        clinical_forms = {
+            ctype: ClinicalEvaluationForm(prefix=f"clinical_{ctype}", initial={'type': ctype})
+            for ctype in clinical_types
+        }
+        team_forms = {
+            area: InterdisciplinaryEvaluationForm(prefix=f"team_{area}", initial={'area': area})
+            for area in team_areas
+        }
 
     context = {
         "patient": patient,
         "record_form": record_form,
-        "consultation_form": consultation_form,
-        "clinical_forms": clinical_forms_with_labels,  # Enviando a nova lista para o template
-        "corrected_age_weeks": corrected_age_weeks,
-        "corrected_age_remaining_days": corrected_age_remaining_days,
+        "clinical_forms": clinical_forms,
+        "team_forms": team_forms,
     }
     return render(request, "patients/consultation_form.html", context)
+
