@@ -1,7 +1,6 @@
 from django import forms
 
-from .models import DischargeRecord, Patient, Record
-
+from .models import Patient, Record, DischargeRecord, ClinicalEvaluation, InterdisciplinaryEvaluation
 
 class PatientForm(forms.ModelForm):
     # Aceita CPF com pontuação e normaliza para 11 dígitos
@@ -63,4 +62,25 @@ class DischargeRecordForm(forms.ModelForm):
         ]
         widgets = {
             "feeding_type": forms.Select(),
+        }
+
+# formulário para as avaliações clínicas
+class ClinicalEvaluationForm(forms.ModelForm):
+    class Meta:
+        model = ClinicalEvaluation
+        fields = ["type", "status"]
+        # Usamos um widget escondido para o tipo, pois vamos criá-los separadamente
+        widgets = {
+            "type": forms.HiddenInput(),
+        }
+
+
+# formulário para as avaliações da equipe
+class InterdisciplinaryEvaluationForm(forms.ModelForm):
+    class Meta:
+        model = InterdisciplinaryEvaluation
+        fields = ["area", "notes"]
+        widgets = {
+            "area": forms.HiddenInput(),
+            "notes": forms.Textarea(attrs={"rows": 2, "class": "textarea textarea-bordered w-full"}),
         }
