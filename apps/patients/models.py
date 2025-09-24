@@ -83,7 +83,6 @@ class ClinicalEvaluationType(models.TextChoices):
     VISUAL = "visual", "Visual"
     AUDITORY = "auditory", "Auditiva"
 
-
 class InterdisciplinaryEvaluationArea(models.TextChoices):
     NURSING = "nursing", "Enfermagem"
     PHYSIOTHERAPY = "physiotherapy", "Fisioterapia"
@@ -94,13 +93,9 @@ class InterdisciplinaryEvaluationArea(models.TextChoices):
 
 
 class ClinicalEvaluation(BaseModel):
-    record = models.ForeignKey(
-        Record, on_delete=models.CASCADE, related_name="clinical_evaluations"
-    )
+    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="clinical_evaluations")
     type = models.CharField(max_length=20, choices=ClinicalEvaluationType.choices)
-    status = models.CharField(
-        max_length=10, choices=[("normal", "Normal"), ("altered", "Alterada")]
-    )
+    status = models.CharField(max_length=10, choices=[("normal", "Normal"), ("altered", "Alterada")])
 
 
 class InterdisciplinaryEvaluation(BaseModel):
