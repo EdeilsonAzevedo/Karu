@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+# IMPORTS ATUALIZADOS (VERSÃO DO SEU PARCEIRO)
 from .forms import (
     ClinicalEvaluationForm,
     ClinicalWarningSignForm,
@@ -232,7 +233,6 @@ def patient_edit(request, pk):
 
             return redirect("patients:detail", pk=patient.pk)
     else:
-        # Popula o formulário com os dados existentes do paciente
         form = PatientForm(instance=patient)
 
         clinical_forms = {
@@ -295,6 +295,8 @@ def patient_detail(request, pk):
         "age_in_days": age_in_days,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
+        "chart_labels": chart_labels,
+        "chart_data": chart_data,
     }
     
     # Adiciona os dados dos gráficos ao contexto
@@ -306,20 +308,16 @@ def patient_detail(request, pk):
 @transaction.atomic
 def consultation_create(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
-    # Não vamos mais usar 'warning_sign_types' aqui
 
     if request.method == "POST":
-        # A lógica de POST precisa ser ajustada para recriar os forms da mesma forma
         record_form = RecordForm(request.POST, prefix="record")
         consultation_form = ConsultationRecordForm(request.POST, prefix="consultation")
 
-        # Recria os forms de sinais de alerta para validação
         warning_sign_forms = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
             warning_sign_forms.append({"form": form, "value": value})
 
-        # Validação
         all_forms_valid = all(
             [
                 record_form.is_valid(),
@@ -350,15 +348,11 @@ def consultation_create(request, pk):
         record_form = RecordForm(prefix="record")
         consultation_form = ConsultationRecordForm(prefix="consultation")
 
-        # --- LÓGICA CORRIGIDA ---
-        # Criamos uma lista, onde cada item tem o form e o seu label
         clinical_forms_with_labels = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(prefix=f"warning_{value}", initial={"type": value})
             clinical_forms_with_labels.append({"form": form, "label": label})
-        # --- FIM DA LÓGICA CORRIGIDA ---
 
-    # Lógica de idade corrigida
     today = timezone.now().date()
     total_days_corrected = (patient.gestational_age_weeks * 7) + (
         today - patient.date_of_birth
@@ -370,7 +364,7 @@ def consultation_create(request, pk):
         "patient": patient,
         "record_form": record_form,
         "consultation_form": consultation_form,
-        "clinical_forms": clinical_forms_with_labels,  # Enviando a nova lista para o template
+        "clinical_forms": clinical_forms_with_labels,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
     }
