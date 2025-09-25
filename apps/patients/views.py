@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+# IMPORTS ATUALIZADOS (VERSÃO DO SEU PARCEIRO)
 from .forms import (
     ClinicalWarningSignForm,
     ConsultationRecordForm,
@@ -50,10 +51,6 @@ def patient_list(request):
 def patient_create(request):
     """
     Cria Paciente + Record(discharge) + DischargeRecord.
-    Campos mínimos exigidos:
-      - Patient: básicos (modelo)
-      - Record: date
-      - DischargeRecord: weight
     """
     if request.method == "POST":
         patient_form = PatientForm(request.POST)
@@ -95,14 +92,11 @@ def patient_edit(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
     if request.method == "POST":
-        # Agora usamos apenas o PatientForm
         form = PatientForm(request.POST, instance=patient)
         if form.is_valid():
             form.save()
-            # Redireciona para a página de detalhes do paciente após salvar
             return redirect("patients:detail", pk=patient.pk)
     else:
-        # Popula o formulário com os dados existentes do paciente
         form = PatientForm(instance=patient)
 
     return render(
@@ -125,23 +119,13 @@ def patient_detail(request, pk):
     age_timedelta = today - patient.date_of_birth
     age_in_days = age_timedelta.days
 
-    # 2. Idade Corrigida
-
-    full_term_weeks = 40
-    prematurity_in_weeks = full_term_weeks - patient.gestational_age_weeks
-    corrected_age_in_days = age_in_days
+    # 2. Idade Gestacional Corrigida (formato semanas + dias)
     total_days_corrected = (patient.gestational_age_weeks * 7) + age_in_days
     corrected_age_weeks = total_days_corrected // 7
     corrected_age_remaining_days = total_days_corrected % 7
-
-    if prematurity_in_weeks > 0:
-        prematurity_in_days = prematurity_in_weeks * 7
-        corrected_age_timedelta = age_timedelta - timedelta(days=prematurity_in_days)
-        corrected_age_in_days = max(0, corrected_age_timedelta.days)
-
-    # Dados para o gráfico de peso ao longo do tempo
-    # Por enquanto busca apenas por 'discharge records' que têm peso
-    # Quando as consultas tiverem peso, a lógica aqui será expandida
+    
+    # --- PREPARAÇÃO DOS DADOS PARA O GRÁFICO DE PESO ---
+    # A lógica aqui será expandida quando o modelo de consulta tiver o campo 'weight'
     records_for_chart = (
         Record.objects.filter(patient=patient, discharge__isnull=False)
         .order_by("date")
@@ -151,16 +135,15 @@ def patient_detail(request, pk):
     chart_labels = [rec.date.strftime("%d/%m/%Y") for rec in records_for_chart]
     chart_data = [float(rec.discharge.weight) for rec in records_for_chart]
 
-    # MONTAGEM DO CONTEXTO FINAL
+    # --- MONTAGEM DO CONTEXTO FINAL ---
     context = {
         "patient": patient,
         "consultation_records": consultation_records,
         "age_in_days": age_in_days,
-        "corrected_age_in_days": corrected_age_in_days,
-        "chart_labels": chart_labels,
-        "chart_data": chart_data,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
+        "chart_labels": chart_labels,
+        "chart_data": chart_data,
     }
 
     return render(request, "patients/patient_detail.html", context)
@@ -169,20 +152,16 @@ def patient_detail(request, pk):
 @transaction.atomic
 def consultation_create(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
-    # Não vamos mais usar 'warning_sign_types' aqui
 
     if request.method == "POST":
-        # A lógica de POST precisa ser ajustada para recriar os forms da mesma forma
         record_form = RecordForm(request.POST, prefix="record")
         consultation_form = ConsultationRecordForm(request.POST, prefix="consultation")
 
-        # Recria os forms de sinais de alerta para validação
         warning_sign_forms = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
             warning_sign_forms.append({"form": form, "value": value})
 
-        # Validação
         all_forms_valid = all(
             [
                 record_form.is_valid(),
@@ -213,15 +192,11 @@ def consultation_create(request, pk):
         record_form = RecordForm(prefix="record")
         consultation_form = ConsultationRecordForm(prefix="consultation")
 
-        # --- LÓGICA CORRIGIDA ---
-        # Criamos uma lista, onde cada item tem o form e o seu label
         clinical_forms_with_labels = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(prefix=f"warning_{value}", initial={"type": value})
             clinical_forms_with_labels.append({"form": form, "label": label})
-        # --- FIM DA LÓGICA CORRIGIDA ---
 
-    # Lógica de idade corrigida
     today = timezone.now().date()
     total_days_corrected = (patient.gestational_age_weeks * 7) + (
         today - patient.date_of_birth
@@ -233,7 +208,7 @@ def consultation_create(request, pk):
         "patient": patient,
         "record_form": record_form,
         "consultation_form": consultation_form,
-        "clinical_forms": clinical_forms_with_labels,  # Enviando a nova lista para o template
+        "clinical_forms": clinical_forms_with_labels,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
     }
