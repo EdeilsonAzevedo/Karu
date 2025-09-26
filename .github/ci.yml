@@ -1,0 +1,165 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: karu_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Cache Poetry dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-${{ matrix.python-version }}-
+
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+
+    - name: Run migrations
+      run: |
+        poetry run python manage.py migrate
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/karu_test
+        DJANGO_SETTINGS_MODULE: karu.settings
+
+    - name: Run linting
+      run: |
+        poetry run ruff check apps --output-format=github
+      continue-on-error: true
+
+    - name: Run formatting check
+      run: |
+        poetry run black --check apps
+      continue-on-error: true
+
+    - name: Run tests
+      run: |
+        poetry run pytest --cov=apps --cov-report=xml --cov-report=term-missing --junitxml=junit.xml
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/karu_test
+        DJANGO_SETTINGS_MODULE: karu.settings
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Upload test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: pytest-results-${{ matrix.python-version }}
+        path: junit.xml
+        reporter: java-junit
+
+  quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install dependencies
+      run: |
+        poetry install --with dev
+
+    - name: Run security check
+      run: |
+        poetry run safety check
+      continue-on-error: true
+
+    - name: Run type checking
+      run: |
+        poetry run mypy apps --ignore-missing-imports
+      continue-on-error: true
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, quality]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+
+    - name: Build project
+      run: |
+        poetry build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
