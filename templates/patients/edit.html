@@ -1,158 +1,84 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Editando {{ patient_form.instance.first_name }} - Karu</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
-    <style>
-        .required:after{ content:' *'; color:hsl(var(--er)); }
-    </style>
-</head>
-<body class="min-h-screen bg-base-100">
-    <div class="navbar bg-base-100 shadow-lg">
-        <div class="flex-1">
-            <a href="{% url 'patients:list' %}" class="btn btn-ghost btn-sm" title="Voltar para a lista">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            </a>
-            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center ml-2">
-                <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
-            </div>
-            <span class="text-2xl font-bold text-primary ml-2">Karu</span>
-            <div class="badge badge-outline">Editando Alta de RN</div>
+{% extends 'core/base.html' %}
+
+{% block title %}Editando {{ patient.first_name }} - Karu{% endblock title %}
+
+{% block content %}
+<main class="px-4 py-8 md:px-6 bg-violet-50">
+    <div class="max-w-4xl mx-auto">
+        
+        <div class="mb-8 p-6 bg-base-200 rounded-lg shadow">
+            <h1 class="text-3xl md:text-4xl font-bold text-violet-600 flex items-center gap-3">
+                <i data-lucide="user-cog" class="w-8 h-8"></i>
+                Editar Cadastro de {{ patient.first_name }} {{ patient.last_name }}
+            </h1>
+            <p class="text-lg text-base-content/70 mt-2">Atualize todas as informações do paciente.</p>
         </div>
+
+        <form method="POST" action="{% url 'patients:edit' patient.pk %}" class="space-y-8">
+            {% csrf_token %}
+
+            <section class="card bg-base-100/70 backdrop-blur-sm shadow-xl border border-violet-200/50">
+                <div class="card-body">
+                    <h2 class="text-2xl font-semibold text-violet-600 mb-4 pb-2 border-b border-violet-200 flex items-center gap-3">
+                        <i data-lucide="user-round" class="w-6 h-6"></i>
+                        Dados Pessoais e de Nascimento
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        {% for field in patient_form %}
+                            {% if field.name not in 'guardian_name,contact_phone,address_street,address_number,address_complement,address_neighborhood,address_city,address_state,address_zip_code' %}
+                                <label class="form-control w-full">
+                                    <div class="label"><span class="label-text">{{ field.label }}</span></div>
+                                    {{ field }}
+                                </label>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            
+            <section class="card bg-base-100/70 backdrop-blur-sm shadow-xl border border-violet-200/50">
+                <div class="card-body">
+                    <h2 class="text-2xl font-semibold text-violet-600 mb-4 pb-2 border-b border-violet-200 flex items-center gap-3">
+                        <i data-lucide="phone" class="w-6 h-6"></i>
+                        Contato e Responsável
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.guardian_name.label }}</span></div>{{ patient_form.guardian_name }}</label>
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.contact_phone.label }}</span></div>{{ patient_form.contact_phone }}</label>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="card bg-base-100/70 backdrop-blur-sm shadow-xl border border-violet-200/50">
+                <div class="card-body">
+                    <h2 class="text-2xl font-semibold text-violet-600 mb-4 pb-2 border-b border-violet-200 flex items-center gap-3">
+                        <i data-lucide="map-pin" class="w-6 h-6"></i>
+                        Endereço
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                        <label class="form-control w-full md:col-span-2"><div class="label"><span class="label-text">{{ patient_form.address_street.label }}</span></div>{{ patient_form.address_street }}</label>
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.address_number.label }}</span></div>{{ patient_form.address_number }}</label>
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.address_complement.label }}</span></div>{{ patient_form.address_complement }}</label>
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.address_neighborhood.label }}</span></div>{{ patient_form.address_neighborhood }}</label>
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.address_city.label }}</span></div>{{ patient_form.address_city }}</label>
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.address_state.label }}</span></div>{{ patient_form.address_state }}</label>
+                        <label class="form-control w-full"><div class="label"><span class="label-text">{{ patient_form.address_zip_code.label }}</span></div>{{ patient_form.address_zip_code }}</label>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flex justify-end items-center gap-4 mt-8 pt-4 border-t border-base-300">
+                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-ghost">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary bg-violet-600 hover:bg-violet-700 text-white border-violet-600">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    Salvar Alterações
+                </button>
+            </div>
+        </form>
     </div>
-
-    <main class="px-6 py-6">
-        <div class="max-w-6xl mx-auto">
-            <div class="mb-6">
-                <h1 class="text-3xl font-bold">Editando Alta de {{ patient_form.instance.first_name }} {{ patient_form.instance.last_name }}</h1>
-                <p class="text-base-content/70">Altere os dados necessários e salve as informações.</p>
-            </div>
-
-            <form method="POST" action="" class="grid grid-cols-1 gap-6">
-                {% csrf_token %}
-
-                <section class="card bg-base-200 shadow">
-                    <div class="card-body">
-                        <h2 class="card-title"><i data-lucide="user" class="w-5 h-5"></i>Dados do Paciente</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ patient_form.first_name.label }}</span></label>
-                                {{ patient_form.first_name }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">{{ patient_form.last_name.label }}</span></label>
-                                {{ patient_form.last_name }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ patient_form.date_of_birth.label }}</span></label>
-                                {{ patient_form.date_of_birth }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ patient_form.sex.label }}</span></label>
-                                {{ patient_form.sex }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">{{ patient_form.cpf.label }}</span></label>
-                                {{ patient_form.cpf }}
-                                <label class="label"><span class="label-text-alt">{{ patient_form.cpf.help_text }}</span></label>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">{{ patient_form.birth_certificate_number.label }}</span></label>
-                                {{ patient_form.birth_certificate_number }}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="card bg-base-200 shadow">
-                    <div class="card-body">
-                        <h2 class="card-title"><i data-lucide="stethoscope" class="w-5 h-5"></i>Dados do Nascimento</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ patient_form.gestational_age_weeks.label }}</span></label>
-                                {{ patient_form.gestational_age_weeks }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">{{ patient_form.gestational_age_days.label }}</span></label>
-                                {{ patient_form.gestational_age_days }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ patient_form.birth_weight.label }}</span></label>
-                                {{ patient_form.birth_weight }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">{{ patient_form.birth_length.label }}</span></label>
-                                {{ patient_form.birth_length }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">{{ patient_form.head_circumference.label }} (Nascimento)</span></label>
-                                {{ patient_form.head_circumference }}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="card bg-base-200 shadow">
-                    <div class="card-body">
-                        <h2 class="card-title"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Dados da Alta</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ record_form.date.label }}</span></label>
-                                {{ record_form.date }}
-                            </div>
-                             <div class="form-control">
-                                <label class="label"><span class="label-text">{{ discharge_form.chronological_age_days.label }}</span></label>
-                                {{ discharge_form.chronological_age_days }}
-                            </div>
-                             <div class="form-control">
-                                <label class="label"><span class="label-text">{{ discharge_form.corrected_age_weeks.label }}</span></label>
-                                {{ discharge_form.corrected_age_weeks }}
-                            </div>
-                             <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ discharge_form.weight.label }}</span></label>
-                                {{ discharge_form.weight }}
-                            </div>
-                             <div class="form-control">
-                                <label class="label"><span class="label-text">{{ discharge_form.length.label }}</span></label>
-                                {{ discharge_form.length }}
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">{{ discharge_form.head_circumference.label }} (Alta)</span></label>
-                                {{ discharge_form.head_circumference }}
-                            </div>
-                             <div class="form-control">
-                                <label class="label required"><span class="label-text">{{ discharge_form.feeding_type.label }}</span></label>
-                                {{ discharge_form.feeding_type }}
-                            </div>
-                             <div class="form-control md:col-span-4">
-                                <label class="label"><span class="label-text">{{ record_form.notes.label }}</span></label>
-                                {{ record_form.notes }}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="card bg-base-200 shadow">
-                    <div class="card-body">
-                        <div class="flex justify-end gap-2">
-                            <a href="{% url 'patients:list' %}" class="btn btn-ghost">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-                        </div>
-                    </div>
-                </section>
-            </form>
-        </div>
-    </main>
-
-    <script>
-        // Inicializa os ícones
-        document.addEventListener('DOMContentLoaded', () => { 
-            if (typeof lucide !== 'undefined') lucide.createIcons(); 
-        });
-    </script>
-</body>
-</html>
+</main>
+{% endblock content %}

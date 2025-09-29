@@ -1,22 +1,15 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+{% extends 'core/base.html' %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lista de Pacientes - Karu</title>
+{% block title %}Lista de Pacientes - Karu{% endblock title %}
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
-</head>
-
-<body class="min-h-screen bg-base-200">
-
-    <div class="navbar bg-base-100 shadow-lg">
-        <div class="flex-1">
-            <a href="/" class="btn btn-ghost text-xl font-bold text-primary">Karu</a>
-            <div class="badge badge-outline ml-2">Pacientes</div>
+{% block content %}
+<main class="p-4 md:p-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold">Pacientes Cadastrados</h1>
+                <p class="text-base-content/70">Busque ou navegue pela lista de pacientes em acompanhamento.</p>
+            </div>
         </div>
 
         <div class="card bg-base-100 shadow-md mb-6">
@@ -24,7 +17,8 @@
                 <form method="get" action="{% url 'patients:list' %}" class="flex flex-col md:flex-row gap-4 items-end">
                     <div class="form-control flex-grow w-full">
                         <label class="label"><span class="label-text">Buscar por Nome, CPF ou Certidão</span></label>
-                        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="input input-bordered" placeholder="Digite sua busca...">
+                        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="input input-bordered"
+                            placeholder="Digite sua busca...">
                     </div>
                     <div class="flex gap-2 w-full md:w-auto">
                         <button type="submit" class="btn btn-primary flex-grow">
@@ -40,7 +34,7 @@
         <div class="overflow-x-auto bg-base-100 rounded-lg shadow-lg">
             <table class="table table-zebra w-full">
                 <thead>
-                    <tr>
+                    <tr class="text-center">
                         <th>Nome do Paciente</th>
                         <th>Data de Nascimento</th>
                         <th>Idade Gestacional</th>
@@ -49,7 +43,7 @@
                 </thead>
                 <tbody>
                     {% for patient in patients %}
-                    <tr>
+                    <tr class="text-center">
                         <td>
                             <div class="font-bold">{{ patient.first_name }} {{ patient.last_name }}</div>
                             <div class="text-sm opacity-60">{{ patient.get_sex_display }}</div>
@@ -60,11 +54,16 @@
                         <td>
                             {{ patient.gestational_age_weeks }} semanas
                             {% if patient.gestational_age_days %}
-                                e {{ patient.gestational_age_days }} dias
+                            e {{ patient.gestational_age_days }} dias
                             {% endif %}
                         </td>
-                        <td class="text-right">
-                            <a href="{% url 'patients:edit' patient.pk %}" class="btn btn-xs btn-outline btn-info">
+                        <td>
+                            <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-xs btn-outline btn-primary">
+                                <i data-lucide="file-text" class="w-3 h-3"></i>
+                                Ver Prontuário
+                            </a>
+
+                            <a href="{% url 'patients:edit' patient.pk %}" class="btn btn-xs btn-outline btn-info ml-2">
                                 <i data-lucide="edit" class="w-3 h-3"></i>
                                 Editar
                             </a>
@@ -74,7 +73,8 @@
                     <tr>
                         <td colspan="4" class="text-center py-8">
                             <p class="text-lg text-base-content/60">Nenhum paciente encontrado.</p>
-                            <a href="{% url 'patients:create' %}" class="btn btn-sm btn-primary mt-4">Cadastrar o primeiro paciente</a>
+                            <a href="{% url 'patients:create' %}" class="btn btn-sm btn-primary mt-4">Cadastrar o
+                                primeiro paciente</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -82,95 +82,5 @@
             </table>
         </div>
     </div>
-
-    <main class="p-4 md:p-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold">Pacientes Cadastrados</h1>
-                    <p class="text-base-content/70">Busque ou navegue pela lista de pacientes em acompanhamento.</p>
-                </div>
-            </div>
-
-            <div class="card bg-base-100 shadow-md mb-6">
-                <div class="card-body">
-                    <form method="get" action="{% url 'patients:list' %}"
-                        class="flex flex-col md:flex-row gap-4 items-end">
-                        <div class="form-control flex-grow w-full">
-                            <label class="label"><span class="label-text">Buscar por Nome, CPF ou
-                                    Certidão</span></label>
-                            <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
-                                class="input input-bordered" placeholder="Digite sua busca...">
-                        </div>
-                        <div class="flex gap-2 w-full md:w-auto">
-                            <button type="submit" class="btn btn-primary flex-grow">
-                                <i data-lucide="search" class="w-4 h-4"></i>
-                                Buscar
-                            </button>
-                            <a href="{% url 'patients:list' %}" class="btn btn-ghost">Limpar</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto bg-base-100 rounded-lg shadow-lg">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th>Nome do Paciente</th>
-                            <th>Data de Nascimento</th>
-                            <th>Idade Gestacional</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for patient in patients %}
-                        <tr>
-                            <td>
-                                <div class="font-bold">{{ patient.first_name }} {{ patient.last_name }}</div>
-                                <div class="text-sm opacity-60">{{ patient.get_sex_display }}</div>
-                            </td>
-                            <td>
-                                {{ patient.date_of_birth|date:"d/m/Y" }}
-                            </td>
-                            <td>
-                                {{ patient.gestational_age_weeks }} semanas
-                                {% if patient.gestational_age_days %}
-                                e {{ patient.gestational_age_days }} dias
-                                {% endif %}
-                            </td>
-                            <td class="text-right">
-                                <a href="{% url 'patients:edit' patient.pk %}"
-                                    class="btn btn-xs btn-outline btn-info">Editar Alta</a>
-                                <a href="{% url 'patients:consultation_create' patient.pk %}"
-                                    class="btn btn-xs btn-outline btn-success ml-2">Nova Consulta</a>
-                                <a href="{% url 'patients:detail' patient.pk %}"
-                                    class="btn btn-xs btn-outline btn-primary">Ver Prontuário</a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center py-8">
-                                <p class="text-lg text-base-content/60">Nenhum paciente encontrado.</p>
-                                <a href="{% url 'patients:create' %}" class="btn btn-sm btn-primary mt-4">Cadastrar o
-                                    primeiro paciente</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        // Ativa os ícones Lucide
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
-    </script>
-</body>
-
-</html>
+</main>
+{% endblock content %}

@@ -68,7 +68,7 @@ def patient_form_data():
         "sex": "F",
         "date_of_birth": "2023-01-15",
         "cpf": "44444444444",
-        "gestational_age_weeks": "39",
+        "gestational_age_weeks": 39,
         "birth_weight": "3.20",
         "date": "2023-02-01",
         "weight": "3.80",
