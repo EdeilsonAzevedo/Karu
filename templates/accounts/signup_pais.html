@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Novo Responsável - Karu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" />
+  <style>.required:after{content:' *';color:hsl(var(--er));}</style>
+</head>
+<body class="min-h-screen bg-base-100">
+  <div class="navbar bg-base-100 shadow">
+    <div class="flex-1">
+      <a href="{% url 'accounts:home' %}" class="btn btn-ghost btn-sm" title="Voltar">←</a>
+      <span class="ml-2 text-2xl font-bold text-primary">Karu</span>
+      <div class="badge badge-outline ml-2">Cadastro de Responsável</div>
+    </div>
+  </div>
+
+  <main class="px-6 py-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-3xl font-bold">Cadastrar Pais/Responsáveis</h1>
+        <button form="formPais" type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}"><span>{{ message }}</span></div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error mb-3">
+          {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+        </div>
+      {% endif %}
+
+      {% if form.errors %}
+        <div class="alert alert-error mb-3"><span>Verifique os campos destacados abaixo.</span></div>
+      {% endif %}
+
+      <form id="formPais" method="post" class="card bg-base-200 shadow">
+        {% csrf_token %}
+        <div class="card-body grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          <div class="form-control md:col-span-2">
+            <label class="label required"><span class="label-text">Nome completo</span></label>
+            <input name="name" class="input input-bordered" required
+                   value="{{ form.name.value|default_if_none:'' }}"
+                   aria-invalid="{{ form.name.errors|yesno:'true,false' }}" />
+            {% if form.name.errors %}<p class="text-error text-sm mt-1">{% for e in form.name.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+          </div>
+
+          <div class="form-control">
+            <label class="label required"><span class="label-text">CPF</span></label>
+            <input name="cpf" class="input input-bordered" required
+                   inputmode="numeric" pattern="^\d{11}$" maxlength="11" placeholder="Somente números"
+                   value="{{ form.cpf.value|default_if_none:'' }}"
+                   aria-invalid="{{ form.cpf.errors|yesno:'true,false' }}" />
+            <span class="text-xs opacity-70 mt-1">Digite exatamente 11 dígitos.</span>
+            {% if form.cpf.errors %}<p class="text-error text-sm mt-1">{% for e in form.cpf.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+          </div>
+
+          <div class="form-control">
+            <label class="label required"><span class="label-text">E-mail</span></label>
+            <input name="email" type="email" class="input input-bordered" required
+                   value="{{ form.email.value|default_if_none:'' }}"
+                   aria-invalid="{{ form.email.errors|yesno:'true,false' }}" />
+            {% if form.email.errors %}<p class="text-error text-sm mt-1">{% for e in form.email.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+          </div>
+
+          <div class="form-control">
+            <label class="label"><span class="label-text">Telefone</span></label>
+            <input name="phone" class="input input-bordered" placeholder="(DDD) 9XXXX-XXXX"
+                   value="{{ form.phone.value|default_if_none:'' }}"
+                   aria-invalid="{{ form.phone.errors|yesno:'true,false' }}" />
+            {% if form.phone.errors %}<p class="text-error text-sm mt-1">{% for e in form.phone.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+          </div>
+
+          <div class="form-control">
+            <label class="label"><span class="label-text">Senha temporária</span></label>
+            <div class="relative">
+              <input id="pais_temp_password" name="temp_password" type="password" class="input input-bordered w-full pr-12"
+                     placeholder="Gerada automaticamente se vazio"
+                     aria-invalid="{{ form.temp_password.errors|yesno:'true,false' }}" />
+              <button id="pais_toggle_pw" type="button" class="btn btn-ghost btn-xs absolute right-1 top-1/2 -translate-y-1/2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            {% if form.temp_password.errors %}<p class="text-error text-sm mt-1">{% for e in form.temp_password.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+          </div>
+
+          <div class="form-control">
+            <label class="label"><span class="label-text">Status</span></label>
+            <select name="status" class="select select-bordered">
+              <option {% if form.status.value == "Ativo" %}selected{% endif %}>Ativo</option>
+              <option {% if form.status.value == "Inativo" %}selected{% endif %}>Inativo</option>
+            </select>
+            {% if form.status.errors %}<p class="text-error text-sm mt-1">{% for e in form.status.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+          </div>
+
+          <div class="md:col-span-3 flex justify-end gap-2 mt-2">
+            <button type="reset" class="btn btn-ghost">Limpar</button>
+            <button type="submit" class="btn btn-primary">Cadastrar Responsável</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="alert alert-info mt-4">
+        <span>Após salvar, o responsável aparecerá na lista de <a class="link" href="{% url 'accounts:home' %}">Usuários</a>.</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function attachPasswordToggle(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      const btn   = document.getElementById(btnId);
+      if (!input || !btn) return;
+      const eye   = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+      const eyeOff= '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 5c7 0 11 7 11 7a21.8 21.8 0 0 1-4.21 5.64"/><path d="M1 1l22 22"/><circle cx="12" cy="12" r="3"/></svg>';
+      btn.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        btn.innerHTML = show ? eyeOff : eye;
+      });
+    }
+    attachPasswordToggle('pais_temp_password', 'pais_toggle_pw');
+  </script>
+</body>
+</html>
