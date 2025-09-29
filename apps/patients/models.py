@@ -33,6 +33,12 @@ class Patient(BaseModel):
     birth_length = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
+    def __str__(self):
+        """Retorna nome completo do paciente"""
+        if self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.first_name
+
 
 class Record(BaseModel):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="records")
