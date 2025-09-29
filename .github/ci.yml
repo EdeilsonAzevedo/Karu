@@ -57,6 +57,8 @@ jobs:
       run: poetry run ruff check apps
       continue-on-error: true
 
-    - name: Format check
-      run: poetry run black --check apps
+    - name: Lint & Format check
+      run: |
+        poetry run ruff check apps
+        poetry run ruff format --check apps
       continue-on-error: true
