@@ -1,9 +1,163 @@
-<!doctype html><html><head>
-  <meta charset="utf-8"><script src="https://cdn.tailwindcss.com"></script><title>Login</title>
-</head><body class="min-h-screen grid place-items-center bg-gray-50">
-  <form method="post" class="bg-white p-6 rounded-xl shadow w-full max-w-sm">
-    <h1 class="text-xl font-semibold mb-4">Entrar</h1>
-    {% csrf_token %} {{ form.as_p }}
-    <button class="w-full py-2 mt-2 rounded-lg bg-black text-white">Login</button>
-  </form>
-</body></html>
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Karu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+    .glass-card{backdrop-filter:blur(10px);background:rgba(255,255,255,.95);border:1px solid rgba(255,255,255,.2)}
+    .floating-animation{animation:float 6s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+    .user-type-selected{background:rgba(59,130,246,.1);border-color:#3b82f6;color:#3b82f6}
+  </style>
+</head>
+<body class="min-h-screen gradient-bg flex items-center justify-center relative overflow-hidden">
+  <div class="absolute inset-0 overflow-hidden">
+    <div class="floating-animation absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+    <div class="floating-animation absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" style="animation-delay:-3s;"></div>
+  </div>
+
+  <div class="relative z-10 w-full max-w-md mx-auto px-6">
+    <div class="glass-card rounded-3xl shadow-2xl p-8">
+      <div class="text-center mb-6">
+        <div class="flex items-center justify-center space-x-3 mb-4">
+          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+            <i data-lucide="heart" class="w-7 h-7 text-primary-content"></i>
+          </div>
+          <span class="text-3xl font-bold text-primary">Karu</span>
+        </div>
+        <h1 class="text-2xl font-bold text-base-content mb-2">Acesso ao Sistema</h1>
+        <p class="text-base-content/70">Selecione seu perfil (opcional) e faça login</p>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error mb-4 text-sm">
+          {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- seleção de tipo (opcional) -->
+      <div class="mb-6">
+        <label class="label"><span class="label-text font-medium">Tipo de Usuário</span></label>
+        <div class="grid grid-cols-1 gap-3">
+          <button type="button" class="btn btn-outline w-full justify-start user-type-btn" data-type="gestor" onclick="selectUserType('gestor')">
+            <i data-lucide="user-cog" class="w-5 h-5"></i>
+            <div class="text-left flex-1">
+              <div class="font-semibold">Gestor</div>
+              <div class="text-xs opacity-70">Administração e relatórios</div>
+            </div>
+          </button>
+          <button type="button" class="btn btn-outline w-full justify-start user-type-btn" data-type="profissional" onclick="selectUserType('profissional')">
+            <i data-lucide="stethoscope" class="w-5 h-5"></i>
+            <div class="text-left flex-1">
+              <div class="font-semibold">Profissional de Saúde</div>
+              <div class="text-xs opacity-70">Atendimento e consultas</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- formulário do LoginView -->
+      <form method="post" class="space-y-6" novalidate>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <input type="hidden" name="selected_user_type" id="selected_user_type" value="">
+
+        <!-- CPF (username para o Django) -->
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">CPF (login)</span></label>
+          <div class="relative">
+            <input type="text" name="username" autocomplete="username" class="input input-bordered w-full pl-12"
+                  placeholder="Digite seu CPF (apenas números)" required inputmode="numeric"
+                  pattern="^\d{11}$" maxlength="11"
+                  value="{{ form.username.value|default_if_none:'' }}"
+                  aria-invalid="{{ form.username.errors|yesno:'true,false' }}">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="id-card" class="w-5 h-5 text-base-content/50"></i>
+            </div>
+          </div>
+          <p class="text-xs opacity-70 mt-1">Use seu <strong>CPF (11 dígitos)</strong> como login. Ex.: 12345678901.</p>
+          {% if form.username.errors %}
+            <p class="text-error text-sm mt-1">
+              {% for e in form.username.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+            </p>
+          {% endif %}
+        </div>
+
+
+        <!-- senha -->
+        <div class="form-control">
+          <label class="label"><span class="label-text font-medium">Senha</span></label>
+          <div class="relative">
+            <input type="password" name="password" id="password_field"
+                   autocomplete="current-password"
+                   class="input input-bordered w-full pl-12 pr-12"
+                   placeholder="Digite sua senha" required
+                   aria-invalid="{{ form.password.errors|yesno:'true,false' }}" />
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="lock" class="w-5 h-5 text-base-content/50"></i>
+            </div>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button type="button" class="text-base-content/50 hover:text-base-content transition-colors" onclick="togglePassword()">
+                <i data-lucide="eye" class="w-5 h-5" id="toggleIcon"></i>
+              </button>
+            </div>
+          </div>
+          {% if form.password.errors %}
+            <p class="text-error text-sm mt-1">
+              {% for e in form.password.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+            </p>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="label cursor-pointer">
+            <input type="checkbox" class="checkbox checkbox-primary checkbox-sm mr-2" name="remember_me" />
+            <span class="label-text">Lembrar de mim</span>
+          </label>
+          <a href="#" class="text-primary text-sm hover:underline font-medium">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" id="loginBtn">
+          <i data-lucide="log-in" class="w-5 h-5"></i>
+          Entrar
+        </button>
+      </form>
+    </div>
+
+    <div class="text-center mt-6">
+      <a href="{% url 'accounts:login' %}" class="text-white/80 hover:text-white transition-colors text-sm">
+        <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
+        Voltar ao início
+      </a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+
+    function selectUserType(type){
+      document.querySelectorAll('.user-type-btn').forEach(btn => {
+        btn.classList.remove('user-type-selected'); btn.classList.add('btn-outline');
+      });
+      const btn = document.querySelector(`[data-type="${type}"]`);
+      if (btn){ btn.classList.add('user-type-selected'); btn.classList.remove('btn-outline'); }
+      document.getElementById('selected_user_type').value = type;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function togglePassword(){
+      const f = document.getElementById('password_field');
+      const ic = document.getElementById('toggleIcon');
+      if (!f) return;
+      f.type = f.type === 'password' ? 'text' : 'password';
+      ic.setAttribute('data-lucide', f.type === 'password' ? 'eye' : 'eye-off');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

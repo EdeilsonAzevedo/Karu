@@ -1,20 +1,28 @@
 from django.urls import path
 
 from .views import (
-    LogoutView,
     MyLoginView,
-    dashboard_gestor,
-    dashboard_pais,
-    dashboard_profissional,
-    post_login_router,
+    MyLogoutView,
+    area_pais,
+    area_profissional,
+    home,
+    only_authenticated,
+    only_gestores,
+    signup_gestor,
+    signup_pais,
+    signup_profissional,
 )
 
 app_name = "accounts"
 urlpatterns = [
     path("login/", MyLoginView.as_view(), name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
-    path("post-login/", post_login_router, name="post_login_router"),
-    path("dashboard/gestor/", dashboard_gestor, name="dashboard_gestor"),
-    path("dashboard/profissional/", dashboard_profissional, name="dashboard_profissional"),
-    path("dashboard/pais/", dashboard_pais, name="dashboard_pais"),
+    path("logout/", MyLogoutView.as_view(), name="logout"),
+    path("home/", home, name="home"),
+    path("secure/authenticated/", only_authenticated, name="only_authenticated"),
+    path("secure/gestores-only/", only_gestores, name="only_gestores"),
+    path("secure/profissionais/", area_profissional, name="area_profissional"),
+    path("secure/pais/", area_pais, name="area_pais"),
+    path("signup/gestor/", signup_gestor, name="signup_gestor"),
+    path("signup/profissional/", signup_profissional, name="signup_profissional"),
+    path("signup/pais/", signup_pais, name="signup_pais"),
 ]
