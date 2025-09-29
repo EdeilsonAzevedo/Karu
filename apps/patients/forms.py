@@ -1,6 +1,15 @@
 from django import forms
 
-from .models import Patient, Record, DischargeRecord, ClinicalEvaluation, InterdisciplinaryEvaluation
+from .models import (
+    ClinicalEvaluation,
+    ClinicalWarningSign,
+    ConsultationRecord,
+    DischargeRecord,
+    InterdisciplinaryEvaluation,
+    Patient,
+    Record,
+)
+
 
 class PatientForm(forms.ModelForm):
     class Meta:
@@ -180,7 +189,9 @@ class InterdisciplinaryEvaluationForm(forms.ModelForm):
         fields = ["area", "notes"]
         widgets = {
             "area": forms.HiddenInput(),
-            "notes": forms.Textarea(attrs={"rows": 2, "class": "textarea textarea-bordered w-full"}),
+            "notes": forms.Textarea(
+                attrs={"rows": 2, "class": "textarea textarea-bordered w-full"}
+            ),
         }
         labels = {"notes": ""}
 
