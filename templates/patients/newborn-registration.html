@@ -1,416 +1,509 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadastro de Alta de Recém-Nascido - Karu</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
-  <style>
-    .required:after{ content:' *'; color:hsl(var(--er)); }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Alta de Recém-Nascido - Karu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .required:after {
+            content: ' *';
+            color: hsl(var(--er));
+        }
+    </style>
 </head>
+
 <body class="min-h-screen bg-base-100">
-  <!-- Navbar -->
-  <div class="navbar bg-base-100 shadow-lg">
-    <div class="flex-1">
-      <div class="flex items-center space-x-3">
-        <button onclick="history.back()" class="btn btn-ghost btn-sm" title="Voltar">
-          <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        </button>
-        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-          <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+    <!-- Navbar -->
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <div class="flex items-center space-x-3">
+                <button onclick="history.back()" class="btn btn-ghost btn-sm" title="Voltar">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                </button>
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
+                </div>
+                <span class="text-2xl font-bold text-primary">Karu</span>
+                <div class="badge badge-outline">Alta de Recém-Nascido</div>
+            </div>
         </div>
-        <span class="text-2xl font-bold text-primary">Karu</span>
-        <div class="badge badge-outline">Alta de Recém-Nascido</div>
-      </div>
-    </div>
-    <div class="flex-none">
-      <label class="swap swap-rotate mr-2" title="Tema claro/escuro">
-        <input type="checkbox" id="themeToggle" />
-        <i data-lucide="sun" class="swap-on w-5 h-5"></i>
-        <i data-lucide="moon" class="swap-off w-5 h-5"></i>
-      </label>
-    </div>
-  </div>
-
-  <!-- Breadcrumb -->
-  <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
-    <ul>
-      <li><a href="index.html">Início</a></li>
-      <li><a href="manager-dashboard.html">Dashboard</a></li>
-      <li>Nova Alta de RN</li>
-    </ul>
-  </div>
-
-  <main class="px-6 py-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="flex items-start justify-between mb-6">
-        <div>
-          <h1 class="text-3xl font-bold">Cadastrar Alta de Recém-Nascido</h1>
-          <p class="text-base-content/70">Registre os dados do paciente e informações da alta hospitalar. Campos marcados com * são obrigatórios.</p>
+        <div class="flex-none">
+            <label class="swap swap-rotate mr-2" title="Tema claro/escuro">
+                <input type="checkbox" id="themeToggle" />
+                <i data-lucide="sun" class="swap-on w-5 h-5"></i>
+                <i data-lucide="moon" class="swap-off w-5 h-5"></i>
+            </label>
         </div>
-      </div>
+    </div>
 
-      <!-- Steps -->
-      <ul class="steps w-full mb-6">
-        <li class="step step-primary">Paciente</li>
-        <li class="step">Nascimento</li>
-        <li class="step">Alta</li>
-        <li class="step">Registro</li>
-        <li class="step">Confirmar</li>
-      </ul>
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
+        <ul>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="manager-dashboard.html">Dashboard</a></li>
+            <li>Nova Alta de RN</li>
+        </ul>
+    </div>
 
-      <form id="formDischarge" method="POST" class="grid grid-cols-1 gap-6">
-        {% csrf_token %}
-        
-        <!-- SEÇÃO 1: DADOS DO PACIENTE -->
-        <section class="card bg-base-200 shadow">
-          <div class="card-body">
-            <h2 class="card-title"><i data-lucide="user" class="w-5 h-5"></i>Dados do Paciente</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="form-control">
-                <label class="label required"><span class="label-text">Nome</span></label>
-                <input name="first_name" required type="text" class="input input-bordered" placeholder="Ex.: João" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Sobrenome</span></label>
-                <input name="last_name" type="text" class="input input-bordered" placeholder="Ex.: Silva" />
-              </div>
-              <div class="form-control">
-                <label class="label required"><span class="label-text">Data de nascimento</span></label>
-                <input name="date_of_birth" required type="date" class="input input-bordered" />
-                <label class="label"><span class="label-text-alt">Idade: <span id="ageBadge" class="font-semibold"></span></span></label>
-              </div>
-              <div class="form-control">
-                <label class="label required"><span class="label-text">Sexo</span></label>
-                <select name="sex" required class="select select-bordered">
-                  <option value="">Selecione</option>
-                  <option value="M">Masculino</option>
-                  <option value="F">Feminino</option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">CPF</span></label>
-                <input name="cpf" inputmode="numeric" pattern="[0-9]{11}" class="input input-bordered" placeholder="11 dígitos (opcional)" />
-                <label class="label"><span class="label-text-alt">Somente números</span></label>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Certidão de Nascimento</span></label>
-                <input name="birth_certificate_number" class="input input-bordered" placeholder="Número da certidão" />
-              </div>
+    <main class="px-6 py-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold">Cadastrar Alta de Recém-Nascido</h1>
+                    <p class="text-base-content/70">Registre os dados do paciente e informações da alta hospitalar.
+                        Campos marcados com * são obrigatórios.</p>
+                </div>
             </div>
-          </div>
-        </section>
 
-        <!-- SEÇÃO 2: DADOS DO NASCIMENTO -->
-        <section class="card bg-base-200 shadow">
-          <div class="card-body">
-            <h2 class="card-title"><i data-lucide="stethoscope" class="w-5 h-5"></i>Dados do Nascimento</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div class="form-control">
-                <label class="label required"><span class="label-text">IG (semanas)</span></label>
-                <input name="gestational_age_weeks" required inputmode="numeric" min="20" max="44" class="input input-bordered" placeholder="Ex.: 38" />
-                <label class="label"><span class="label-text-alt">Idade gestacional</span></label>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">IG (dias)</span></label>
-                <input name="gestational_age_days" inputmode="numeric" min="0" max="6" class="input input-bordered" placeholder="0-6" />
-              </div>
-              <div class="form-control">
-                <label class="label required"><span class="label-text">Peso ao nascer (g)</span></label>
-                <input name="birth_weight" required inputmode="decimal" step="0.01" class="input input-bordered" placeholder="Ex.: 3200.00" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Comprimento (cm)</span></label>
-                <input name="birth_length" inputmode="decimal" step="0.01" class="input input-bordered" placeholder="Ex.: 49.5" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">PC ao nascer (cm)</span></label>
-                <input name="head_circumference" inputmode="decimal" step="0.01" class="input input-bordered" placeholder="Perímetro cefálico" />
-              </div>
+            <!-- Steps -->
+            <ul class="steps w-full mb-6">
+                <li class="step step-primary">Paciente</li>
+                <li class="step">Responsável</li>
+                <li class="step">Endereço</li>
+                <li class="step">Nascimento</li>
+                <li class="step">Alta</li>
+                <li class="step">Registro</li>
+                <li class="step">Confirmar</li>
+            </ul>
+
+            <form id="formDischarge" method="POST" class="grid grid-cols-1 gap-6">
+                {% csrf_token %}
+
+                <!-- SEÇÃO 1: DADOS DO PACIENTE -->
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="user" class="w-5 h-5"></i>Dados do Paciente</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Nome</span></label>
+                                <input name="first_name" required type="text" class="input input-bordered"
+                                    placeholder="Ex.: João" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Sobrenome</span></label>
+                                <input name="last_name" type="text" class="input input-bordered"
+                                    placeholder="Ex.: Silva" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Data de nascimento</span></label>
+                                <input name="date_of_birth" required type="date" class="input input-bordered" />
+                                <label class="label"><span class="label-text-alt">Idade: <span id="ageBadge"
+                                            class="font-semibold"></span></span></label>
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Sexo</span></label>
+                                <select name="sex" required class="select select-bordered">
+                                    <option value="">Selecione</option>
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Feminino</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">CPF</span></label>
+                                <input name="cpf" inputmode="numeric" pattern="[0-9]{11}" class="input input-bordered"
+                                    placeholder="11 dígitos (opcional)" />
+                                <label class="label required"><span class="label-text-alt">Somente números</span></label>
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Certidão de Nascimento</span></label>
+                                <input name="birth_certificate_number" class="input input-bordered"
+                                    placeholder="Número da certidão" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Dados do Responsável</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Nome do Responsável</span></label>
+                                <input name="guardian_name" type="text" class="input input-bordered"
+                                    placeholder="Ex.: Ana Souza" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Telefone de Contato</span></label>
+                                <input name="contact_phone" type="tel" class="input input-bordered"
+                                    placeholder="(82) 99999-9999" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="map-pin" class="w-5 h-5"></i>Endereço</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="form-control md:col-span-2">
+                                <label class="label required"><span class="label-text">Logradouro</span></label>
+                                <input name="address_street" class="input input-bordered"
+                                    placeholder="Rua, avenida..." />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Número</span></label>
+                                <input name="address_number" class="input input-bordered" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Complemento</span></label>
+                                <input name="address_complement" class="input input-bordered"
+                                    placeholder="Apto, Bloco, etc." />
+                            </div>
+                            <div class="form-control md:col-span-2">
+                                <label class="label required"><span class="label-text">Bairro</span></label>
+                                <input name="address_neighborhood" class="input input-bordered" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Cidade</span></label>
+                                <input name="address_city" class="input input-bordered" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">UF</span></label>
+                                <input name="address_state" maxlength="2" class="input input-bordered" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">CEP</span></label>
+                                <input name="address_zip_code" class="input input-bordered"
+                                    placeholder="Somente números" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 2: DADOS DO NASCIMENTO -->
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="stethoscope" class="w-5 h-5"></i>Dados do Nascimento</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">IG (semanas)</span></label>
+                                <input name="gestational_age_weeks" required inputmode="numeric" min="20" max="44"
+                                    class="input input-bordered" placeholder="Ex.: 38" />
+                                <label class="label"><span class="label-text-alt">Idade gestacional</span></label>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">IG (dias)</span></label>
+                                <input name="gestational_age_days" inputmode="numeric" min="0" max="6"
+                                    class="input input-bordered" placeholder="0-6" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Peso ao nascer (g)</span></label>
+                                <input name="birth_weight" required inputmode="decimal" step="0.01"
+                                    class="input input-bordered" placeholder="Ex.: 3200.00" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Comprimento (cm)</span></label>
+                                <input name="birth_length" inputmode="decimal" step="0.01" class="input input-bordered"
+                                    placeholder="Ex.: 49.5" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">PC ao nascer (cm)</span></label>
+                                <input name="head_circumference" inputmode="decimal" step="0.01"
+                                    class="input input-bordered" placeholder="Perímetro cefálico" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 3: DADOS DA ALTA -->
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Dados da Alta</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Data da alta</span></label>
+                                <input name="date" required type="date" class="input input-bordered" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Idade cronológica (dias)</span></label>
+                                <input name="chronological_age_days" inputmode="numeric" class="input input-bordered"
+                                    placeholder="Dias de vida" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Idade corrigida (semanas)</span></label>
+                                <input name="corrected_age_weeks" inputmode="numeric" class="input input-bordered"
+                                    placeholder="IG corrigida" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Peso na alta (g)</span></label>
+                                <input name="weight" required inputmode="decimal" step="0.01"
+                                    class="input input-bordered" placeholder="Ex.: 2800.00" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Comprimento na alta (cm)</span></label>
+                                <input name="length" inputmode="decimal" step="0.01" class="input input-bordered"
+                                    placeholder="Ex.: 47.5" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">PC na alta (cm)</span></label>
+                                <input name="head_circumference_discharge" inputmode="decimal" step="0.01"
+                                    class="input input-bordered" placeholder="Perímetro cefálico" />
+                            </div>
+                            <div class="form-control">
+                                <label class="label required"><span class="label-text">Tipo de
+                                        alimentação</span></label>
+                                <select name="feeding_type" required class="select select-bordered">
+                                    <option value="">Selecione</option>
+                                    <option value="breastfeeding">SME (Aleitamento Exclusivo)</option>
+                                    <option value="mixed">SM + Fórmula (Misto)</option>
+                                    <option value="formula">Fórmula</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Observações da alta</span></label>
+                                <textarea name="notes" class="textarea textarea-bordered" rows="2"
+                                    placeholder="Observações, orientações..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 4: AVALIAÇÕES CLÍNICAS -->
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="activity" class="w-5 h-5"></i>Avaliações Clínicas</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Avaliação Pediátrica</span></label>
+                                <select name="clinical_pediatric" class="select select-bordered">
+                                    <option value="">Não informado</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="altered">Alterada</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Avaliação Neurológica</span></label>
+                                <select name="clinical_neurologic" class="select select-bordered">
+                                    <option value="">Não informado</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="altered">Alterada</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Avaliação Cardiológica</span></label>
+                                <select name="clinical_cardiac" class="select select-bordered">
+                                    <option value="">Não informado</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="altered">Alterada</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Avaliação Visual</span></label>
+                                <select name="clinical_visual" class="select select-bordered">
+                                    <option value="">Não informado</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="altered">Alterada</option>
+                                </select>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Avaliação Auditiva</span></label>
+                                <select name="clinical_auditory" class="select select-bordered">
+                                    <option value="">Não informado</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="altered">Alterada</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 5: AVALIAÇÕES INTERDISCIPLINARES -->
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Avaliações da Equipe</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Enfermagem</span></label>
+                                <textarea name="team_nursing" class="textarea textarea-bordered" rows="2"
+                                    placeholder="Observações da enfermagem..."></textarea>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Fisioterapia</span></label>
+                                <textarea name="team_physiotherapy" class="textarea textarea-bordered" rows="2"
+                                    placeholder="Observações da fisioterapia..."></textarea>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Fonoaudiologia</span></label>
+                                <textarea name="team_speech" class="textarea textarea-bordered" rows="2"
+                                    placeholder="Observações da fonoaudiologia..."></textarea>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Psicologia</span></label>
+                                <textarea name="team_psychology" class="textarea textarea-bordered" rows="2"
+                                    placeholder="Observações da psicologia..."></textarea>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Serviço Social</span></label>
+                                <textarea name="team_social_work" class="textarea textarea-bordered" rows="2"
+                                    placeholder="Observações do serviço social..."></textarea>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Terapia Ocupacional</span></label>
+                                <textarea name="team_occupational_therapy" class="textarea textarea-bordered" rows="2"
+                                    placeholder="Observações da terapia ocupacional..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEÇÃO 6: CONFIRMAÇÃO -->
+                <section class="card bg-base-200 shadow">
+                    <div class="card-body">
+                        <h2 class="card-title"><i data-lucide="check-square" class="w-5 h-5"></i>Confirmação</h2>
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="form-control">
+                                <label class="cursor-pointer label justify-start gap-3">
+                                    <input type="checkbox" id="confirmData" class="checkbox checkbox-primary" />
+                                    <span class="label-text">Confirmo que as informações foram revisadas e estão
+                                        corretas.</span>
+                                </label>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="reset" class="btn btn-ghost"><i data-lucide="rotate-ccw"
+                                        class="w-4 h-4"></i>Limpar</button>
+                                <button type="submit" class="btn btn-primary" id="submitBtn" disabled><i
+                                        data-lucide="save" class="w-4 h-4"></i>Salvar alta</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </form>
+
+            <!-- Preview rápido -->
+            <div class="card bg-base-200 shadow mt-4">
+                <div class="card-body">
+                    <h2 class="card-title"><i data-lucide="eye" class="w-5 h-5"></i>Pré-visualização</h2>
+                    <div id="preview" class="text-sm text-base-content/80">Preencha os campos para ver a
+                        pré-visualização...</div>
+                </div>
             </div>
-          </div>
-        </section>
-
-        <!-- SEÇÃO 3: DADOS DA ALTA -->
-        <section class="card bg-base-200 shadow">
-          <div class="card-body">
-            <h2 class="card-title"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Dados da Alta</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div class="form-control">
-                <label class="label required"><span class="label-text">Data da alta</span></label>
-                <input name="date" required type="date" class="input input-bordered" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Idade cronológica (dias)</span></label>
-                <input name="chronological_age_days" inputmode="numeric" class="input input-bordered" placeholder="Dias de vida" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Idade corrigida (semanas)</span></label>
-                <input name="corrected_age_weeks" inputmode="numeric" class="input input-bordered" placeholder="IG corrigida" />
-              </div>
-              <div class="form-control">
-                <label class="label required"><span class="label-text">Peso na alta (g)</span></label>
-                <input name="weight" required inputmode="decimal" step="0.01" class="input input-bordered" placeholder="Ex.: 2800.00" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Comprimento na alta (cm)</span></label>
-                <input name="length" inputmode="decimal" step="0.01" class="input input-bordered" placeholder="Ex.: 47.5" />
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">PC na alta (cm)</span></label>
-                <input name="head_circumference_discharge" inputmode="decimal" step="0.01" class="input input-bordered" placeholder="Perímetro cefálico" />
-              </div>
-              <div class="form-control">
-                <label class="label required"><span class="label-text">Tipo de alimentação</span></label>
-                <select name="feeding_type" required class="select select-bordered">
-                  <option value="">Selecione</option>
-                  <option value="breastfeeding">SME (Aleitamento Exclusivo)</option>
-                  <option value="mixed">SM + Fórmula (Misto)</option>
-                  <option value="formula">Fórmula</option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Observações da alta</span></label>
-                <textarea name="notes" class="textarea textarea-bordered" rows="2" placeholder="Observações, orientações..."></textarea>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- SEÇÃO 4: AVALIAÇÕES CLÍNICAS -->
-        <section class="card bg-base-200 shadow">
-          <div class="card-body">
-            <h2 class="card-title"><i data-lucide="activity" class="w-5 h-5"></i>Avaliações Clínicas</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div class="form-control">
-                <label class="label"><span class="label-text">Avaliação Pediátrica</span></label>
-                <select name="clinical_pediatric" class="select select-bordered">
-                  <option value="">Não informado</option>
-                  <option value="normal">Normal</option>
-                  <option value="altered">Alterada</option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Avaliação Neurológica</span></label>
-                <select name="clinical_neurologic" class="select select-bordered">
-                  <option value="">Não informado</option>
-                  <option value="normal">Normal</option>
-                  <option value="altered">Alterada</option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Avaliação Cardiológica</span></label>
-                <select name="clinical_cardiac" class="select select-bordered">
-                  <option value="">Não informado</option>
-                  <option value="normal">Normal</option>
-                  <option value="altered">Alterada</option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Avaliação Visual</span></label>
-                <select name="clinical_visual" class="select select-bordered">
-                  <option value="">Não informado</option>
-                  <option value="normal">Normal</option>
-                  <option value="altered">Alterada</option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Avaliação Auditiva</span></label>
-                <select name="clinical_auditory" class="select select-bordered">
-                  <option value="">Não informado</option>
-                  <option value="normal">Normal</option>
-                  <option value="altered">Alterada</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- SEÇÃO 5: AVALIAÇÕES INTERDISCIPLINARES -->
-        <section class="card bg-base-200 shadow">
-          <div class="card-body">
-            <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Avaliações da Equipe</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="form-control">
-                <label class="label"><span class="label-text">Enfermagem</span></label>
-                <textarea name="team_nursing" class="textarea textarea-bordered" rows="2" placeholder="Observações da enfermagem..."></textarea>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Fisioterapia</span></label>
-                <textarea name="team_physiotherapy" class="textarea textarea-bordered" rows="2" placeholder="Observações da fisioterapia..."></textarea>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Fonoaudiologia</span></label>
-                <textarea name="team_speech" class="textarea textarea-bordered" rows="2" placeholder="Observações da fonoaudiologia..."></textarea>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Psicologia</span></label>
-                <textarea name="team_psychology" class="textarea textarea-bordered" rows="2" placeholder="Observações da psicologia..."></textarea>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Serviço Social</span></label>
-                <textarea name="team_social_work" class="textarea textarea-bordered" rows="2" placeholder="Observações do serviço social..."></textarea>
-              </div>
-              <div class="form-control">
-                <label class="label"><span class="label-text">Terapia Ocupacional</span></label>
-                <textarea name="team_occupational_therapy" class="textarea textarea-bordered" rows="2" placeholder="Observações da terapia ocupacional..."></textarea>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- SEÇÃO 6: CONFIRMAÇÃO -->
-        <section class="card bg-base-200 shadow">
-          <div class="card-body">
-            <h2 class="card-title"><i data-lucide="check-square" class="w-5 h-5"></i>Confirmação</h2>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div class="form-control">
-                <label class="cursor-pointer label justify-start gap-3">
-                  <input type="checkbox" id="confirmData" class="checkbox checkbox-primary" />
-                  <span class="label-text">Confirmo que as informações foram revisadas e estão corretas.</span>
-                </label>
-              </div>
-              <div class="flex gap-2">
-                <button type="reset" class="btn btn-ghost"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>Limpar</button>
-                <button type="submit" class="btn btn-primary" id="submitBtn" disabled><i data-lucide="save" class="w-4 h-4"></i>Salvar alta</button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </form>
-
-      <!-- Preview rápido -->
-      <div class="card bg-base-200 shadow mt-4">
-        <div class="card-body">
-          <h2 class="card-title"><i data-lucide="eye" class="w-5 h-5"></i>Pré-visualização</h2>
-          <div id="preview" class="text-sm text-base-content/80">Preencha os campos para ver a pré-visualização...</div>
         </div>
-      </div>
-    </div>
-  </main>
+    </main>
 
-  <!-- Toasts -->
-  <div class="toast toast-end z-50" id="toast"></div>
+    <!-- Toasts -->
+    <div class="toast toast-end z-50" id="toast"></div>
 
-  <!-- Modal pós-cadastro -->
-  <dialog id="successModal" class="modal">
-    <div class="modal-box">
-      <h3 class="font-bold text-lg flex items-center gap-2">
-        <i data-lucide="check-circle2" class="w-5 h-5 text-success"></i>Alta cadastrada com sucesso
-      </h3>
-      <p id="successMessage" class="py-2">Registro de alta do recém-nascido salvo com sucesso.</p>
-      <div class="modal-action">
-        <a href="/patients/" class="btn btn-primary">Ver lista de pacientes</a>
-        <form method="dialog"><button class="btn">Fechar</button></form>
-      </div>
-    </div>
-    <form method="dialog" class="modal-backdrop"><button>close</button></form>
-  </dialog>
+    <!-- Modal pós-cadastro -->
+    <dialog id="successModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg flex items-center gap-2">
+                <i data-lucide="check-circle2" class="w-5 h-5 text-success"></i>Alta cadastrada com sucesso
+            </h3>
+            <p id="successMessage" class="py-2">Registro de alta do recém-nascido salvo com sucesso.</p>
+            <div class="modal-action">
+                <a href="/patients/" class="btn btn-primary">Ver lista de pacientes</a>
+                <form method="dialog"><button class="btn">Fechar</button></form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
 
-  <script>
-    const el = (id) => document.getElementById(id);
+    <script>
+        const el = (id) => document.getElementById(id);
 
-    function showToast(msg, type = 'info'){
-      const t = el('toast');
-      const div = document.createElement('div');
-      div.className = `alert alert-${type}`;
-      div.innerHTML = `<span>${msg}</span>`;
-      t.appendChild(div);
-      setTimeout(()=> div.remove(), 4000);
-    }
+        function showToast(msg, type = 'info') {
+            const t = el('toast');
+            const div = document.createElement('div');
+            div.className = `alert alert-${type}`;
+            div.innerHTML = `<span>${msg}</span>`;
+            t.appendChild(div);
+            setTimeout(() => div.remove(), 4000);
+        }
 
-    function calcAge(dateStr){
-      if(!dateStr) return '';
-      const dob = new Date(dateStr);
-      const now = new Date();
-      const days = Math.floor((now - dob)/(1000*60*60*24));
-      if(days < 60) return `${days} dia(s)`;
-      const months = Math.floor(days/30.44);
-      return `${months} mês(es)`;
-    }
+        function calcAge(dateStr) {
+            if (!dateStr) return '';
+            const dob = new Date(dateStr);
+            const now = new Date();
+            const days = Math.floor((now - dob) / (1000 * 60 * 60 * 24));
+            if (days < 60) return `${days} dia(s)`;
+            const months = Math.floor(days / 30.44);
+            return `${months} mês(es)`;
+        }
 
-    // Enable submit when checkbox is checked
-    const confirmData = document.querySelector('#confirmData');
-    const submitBtn = document.querySelector('#submitBtn');
-    confirmData.addEventListener('change', () => { 
-      submitBtn.disabled = !confirmData.checked; 
-    });
+        // Enable submit when checkbox is checked
+        const confirmData = document.querySelector('#confirmData');
+        const submitBtn = document.querySelector('#submitBtn');
+        confirmData.addEventListener('change', () => {
+            submitBtn.disabled = !confirmData.checked;
+        });
 
-    // Live preview
-    const form = document.querySelector('#formDischarge');
-    form.addEventListener('input', () => {
-      const fd = new FormData(form);
-      const firstName = fd.get('first_name') || '—';
-      const lastName = fd.get('last_name') || '';
-      const fullName = `${firstName} ${lastName}`.trim();
-      const dob = fd.get('date_of_birth');
-      const sex = fd.get('sex') === 'M' ? 'Masculino' : fd.get('sex') === 'F' ? 'Feminino' : '—';
-      const birthWeight = fd.get('birth_weight') || '—';
-      const dischargeWeight = fd.get('weight') || '—';
-      const dischargeDate = fd.get('date') || '—';
-      const feeding = fd.get('feeding_type') || '—';
-      const feedingLabel = {
-        'breastfeeding': 'SME',
-        'mixed': 'SM + Fórmula', 
-        'formula': 'Fórmula'
-      }[feeding] || feeding;
-      
-      // Update age badge
-      document.querySelector('#ageBadge').textContent = calcAge(dob);
-      
-      // Update preview
-      document.querySelector('#preview').innerHTML = `
+        // Live preview
+        const form = document.querySelector('#formDischarge');
+        form.addEventListener('input', () => {
+            const fd = new FormData(form);
+            const firstName = fd.get('first_name') || '—';
+            const lastName = fd.get('last_name') || '';
+            const fullName = `${firstName} ${lastName}`.trim();
+            const dob = fd.get('date_of_birth');
+            const sex = fd.get('sex') === 'M' ? 'Masculino' : fd.get('sex') === 'F' ? 'Feminino' : '—';
+            const birthWeight = fd.get('birth_weight') || '—';
+            const dischargeWeight = fd.get('weight') || '—';
+            const dischargeDate = fd.get('date') || '—';
+            const feeding = fd.get('feeding_type') || '—';
+            const feedingLabel = {
+                'breastfeeding': 'SME',
+                'mixed': 'SM + Fórmula',
+                'formula': 'Fórmula'
+            }[feeding] || feeding;
+
+            // Update age badge
+            document.querySelector('#ageBadge').textContent = calcAge(dob);
+
+            // Update preview
+            document.querySelector('#preview').innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2">
           <div><b>Paciente:</b> ${fullName}</div>
-          <div><b>Nascimento:</b> ${dob || '—'} (${calcAge(dob)||'—'})</div>
+          <div><b>Nascimento:</b> ${dob || '—'} (${calcAge(dob) || '—'})</div>
           <div><b>Sexo:</b> ${sex}</div>
           <div><b>Peso ao nascer:</b> ${birthWeight} g</div>
           <div><b>Peso na alta:</b> ${dischargeWeight} g</div>
           <div><b>Data da alta:</b> ${dischargeDate}</div>
           <div><b>Alimentação:</b> ${feedingLabel}</div>
         </div>`;
-    });
+        });
 
-    // Submit handler
-    form.addEventListener('submit', (e) => {
-      // Se não for Django/backend real, previne o submit para demo
-      if(window.location.protocol === 'file:') {
-        e.preventDefault();
-        if(!form.reportValidity()) { 
-          showToast('Preencha os campos obrigatórios.', 'error'); 
-          return; 
-        }
-        
-        // Simula sucesso para demo
-        const successModal = document.querySelector('#successModal');
-        const patientName = form.querySelector('[name="first_name"]').value;
-        document.querySelector('#successMessage').textContent = 
-          `Registro de alta de ${patientName} salvo com sucesso.`;
-        successModal.showModal();
-        showToast('Alta cadastrada!', 'success');
-        return;
-      }
-      
-      // Para Django real, deixa o submit normal acontecer
-      if(!form.reportValidity()) { 
-        e.preventDefault();
-        showToast('Preencha os campos obrigatórios.', 'error'); 
-      }
-    });
+        // Submit handler
+        form.addEventListener('submit', (e) => {
+            // Se não for Django/backend real, previne o submit para demo
+            if (window.location.protocol === 'file:') {
+                e.preventDefault();
+                if (!form.reportValidity()) {
+                    showToast('Preencha os campos obrigatórios.', 'error');
+                    return;
+                }
 
-    // Theme toggle
-    const themeToggle = document.querySelector('#themeToggle');
-    themeToggle.addEventListener('change', () => {
-      document.documentElement.setAttribute('data-theme', themeToggle.checked ? 'dark' : 'light');
-    });
+                // Simula sucesso para demo
+                const successModal = document.querySelector('#successModal');
+                const patientName = form.querySelector('[name="first_name"]').value;
+                document.querySelector('#successMessage').textContent =
+                    `Registro de alta de ${patientName} salvo com sucesso.`;
+                successModal.showModal();
+                showToast('Alta cadastrada!', 'success');
+                return;
+            }
 
-    // Initialize icons
-    document.addEventListener('DOMContentLoaded', () => { 
-      if (typeof lucide !== 'undefined') lucide.createIcons(); 
-    });
-  </script>
+            // Para Django real, deixa o submit normal acontecer
+            if (!form.reportValidity()) {
+                e.preventDefault();
+                showToast('Preencha os campos obrigatórios.', 'error');
+            }
+        });
+
+        // Theme toggle
+        const themeToggle = document.querySelector('#themeToggle');
+        themeToggle.addEventListener('change', () => {
+            document.documentElement.setAttribute('data-theme', themeToggle.checked ? 'dark' : 'light');
+        });
+
+        // Initialize icons
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+    </script>
 </body>
+
 </html>
