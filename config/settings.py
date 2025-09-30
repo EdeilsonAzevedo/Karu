@@ -76,6 +76,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # config/settings.py
 
+#DATABASES = {
+#    "default": {
+#        "ENGINE": "django.db.backends.sqlite3",
+#        "NAME": BASE_DIR / "db.sqlite3",
+#    }
+#
+
 DATABASES = {
     "default": {
         # 1. O "Motor" da Conexão
@@ -87,7 +94,7 @@ DATABASES = {
         "HOST": "localhost",  # O endereço do servidor (localhost = sua própria máquina)
         "PORT": "5432",  # A porta padrão do PostgreSQL
     }
-}
+ }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
