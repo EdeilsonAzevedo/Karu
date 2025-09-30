@@ -1,3 +1,5 @@
+{% load auth_extras %}
+
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 
@@ -157,11 +159,24 @@
                     <li><a href="#"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
                     <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
                     <li><a href="#"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
+                    
+                    {% block sidebar_extra %}{% endblock %}
 
                     <li class="menu-title mt-4"><span>Conta</span></li>
                     <li><a href="#"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
                     <li><a href="#"><i data-lucide="settings" class="w-5 h-5"></i> Configurações</a></li>
-                    <li><a href="#" class="text-error"><i data-lucide="log-out" class="w-5 h-5"></i> Sair</a></li>
+
+                    <form id="logout-form" method="post" action="{% url 'accounts:logout' %}" class="hidden">
+                    {% csrf_token %}
+                    </form>
+
+                    <li>
+                    <button type="submit" form="logout-form"
+                            class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-base-200 focus:outline-none">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <span>Sair</span>
+                    </button>
+                    </li>
                 </ul>
             </div>
         </div>
