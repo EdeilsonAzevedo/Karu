@@ -74,3 +74,13 @@ def patient_form_data():
         "weight": "3.80",
         "feeding_type": "breastfeeding",
     }
+
+
+@pytest.fixture
+def patient_with_complete_data():
+    """Fixture para testes frontend com dados completos"""
+    patient = PatientFactory(
+        first_name="Test", last_name="Patient", date_of_birth="2023-01-01", gestational_age_weeks=38
+    )
+    # Adicione outros dados conforme necessário
+    return patient
