@@ -8,11 +8,18 @@
         scroll-behavior: smooth;
     }
 </style>
+<<<<<<< HEAD
 
 <body class="min-h-screen bg-gray-50">
     <div class="px-6 py-6">
         <div class="max-w-7xl mx-auto">
 
+=======
+<body class="min-h-screen bg-gray-50">
+    <div class="px-6 py-6">
+        <div class="max-w-7xl mx-auto">
+            
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
             <div class="card bg-gradient-to-r from-primary/10 to-secondary/10 shadow-xl mb-8">
                 <div class="card-body">
                     <div class="flex flex-col lg:flex-row justify-between items-start gap-6">
@@ -23,6 +30,7 @@
                                 </div>
                             </div>
                             <div class="space-y-2">
+<<<<<<< HEAD
                                 <div class="flex items-center gap-4">
                                     <h1 class="text-3xl font-bold text-base-content">{{ patient.first_name }} {{ patient.last_name }}</h1>
 
@@ -33,6 +41,9 @@
                                     </a>
                                 </div>
 
+=======
+                                <h1 class="text-3xl font-bold text-base-content">{{ patient.first_name }} {{ patient.last_name }}</h1>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                                 <div class="flex flex-wrap gap-4 text-sm">
                                     <div class="flex items-center gap-2">
                                         <i data-lucide="calendar" class="w-4 h-4 text-primary"></i>
@@ -40,8 +51,12 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <i data-lucide="clock" class="w-4 h-4 text-secondary"></i>
+<<<<<<< HEAD
                                         <span><strong>IG Nascimento:</strong> {{ patient.gestational_age_weeks }}
                                             semanas</span>
+=======
+                                        <span><strong>IG Nascimento:</strong> {{ patient.gestational_age_weeks }} semanas</span>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <i data-lucide="file-text" class="w-4 h-4 text-accent"></i>
@@ -83,8 +98,12 @@
                         <label tabindex="0" class="btn btn-ghost lg:hidden">
                             <i data-lucide="menu"></i>
                         </label>
+<<<<<<< HEAD
                         <ul tabindex="0"
                             class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+=======
+                        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                             <li><a href="#dados-gerais">Dados Gerais</a></li>
                             <li><a href="#curvas-crescimento">Curvas de Crescimento</a></li>
                             <li><a href="#alertas-medicacoes">Alertas e Medicações</a></li>
@@ -108,6 +127,7 @@
             <div id="dados-gerais" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
+<<<<<<< HEAD
                         <h3 class="card-title text-primary mb-4"><i data-lucide="activity" class="w-5 h-5"></i> Dados
                             Atuais</h3>
                         <div class="space-y-3">
@@ -122,6 +142,20 @@
                             {% else %}
                             <p class="text-base-content/60">Nenhuma consulta registrada.</p>
                             {% endif %}
+=======
+                        <h3 class="card-title text-primary mb-4"><i data-lucide="activity" class="w-5 h-5"></i> Dados Atuais</h3>
+                        <div class="space-y-3">
+                            {% with latest_record=patient.records.first %}
+                                {% if latest_record %}
+                                    <div class="flex justify-between"><span>Peso:</span><span class="font-semibold">{{ latest_record.discharge.weight }}g</span></div>
+                                    <div class="flex justify-between"><span>Comprimento:</span><span class="font-semibold">{{ latest_record.discharge.length }}cm</span></div>
+                                    <div class="flex justify-between"><span>PC:</span><span class="font-semibold">{{ latest_record.discharge.head_circumference }}cm</span></div>
+                                    <div class="divider my-2"></div>
+                                    <div class="flex justify-between"><span>Última consulta:</span><span class="font-semibold">{{ latest_record.date|date:"d/m/Y" }}</span></div>
+                                {% else %}
+                                    <p class="text-base-content/60">Nenhuma consulta registrada.</p>
+                                {% endif %}
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                             {% endwith %}
                         </div>
                     </div>
@@ -129,8 +163,12 @@
 
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
+<<<<<<< HEAD
                         <h3 class="card-title text-secondary mb-4"><i data-lucide="users" class="w-5 h-5"></i>
                             Responsáveis</h3>
+=======
+                        <h3 class="card-title text-secondary mb-4"><i data-lucide="users" class="w-5 h-5"></i> Responsáveis</h3>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                         <div class="space-y-3">
                             <p class="text-base-content/60">Dados dos responsáveis ainda não implementados.</p>
                         </div>
@@ -139,8 +177,12 @@
 
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
+<<<<<<< HEAD
                         <h3 class="card-title text-accent mb-4"><i data-lucide="stethoscope" class="w-5 h-5"></i> Equipe
                             Responsável</h3>
+=======
+                        <h3 class="card-title text-accent mb-4"><i data-lucide="stethoscope" class="w-5 h-5"></i> Equipe Responsável</h3>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                         <div class="space-y-3">
                             <p class="text-base-content/60">Dados da equipe ainda não implementados.</p>
                         </div>
@@ -150,8 +192,12 @@
 
             <div id="curvas-crescimento" class="card bg-base-200 shadow-xl mb-8">
                 <div class="card-body">
+<<<<<<< HEAD
                     <h3 class="card-title text-primary mb-6"><i data-lucide="trending-up" class="w-6 h-6"></i> Curvas de
                         Crescimento - Intergrowth-21</h3>
+=======
+                    <h3 class="card-title text-primary mb-6"><i data-lucide="trending-up" class="w-6 h-6"></i> Curvas de Crescimento - Intergrowth-21</h3>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                     <div class="tabs tabs-boxed mb-6">
                         <button class="tab tab-active">Peso</button>
                         <button class="tab">Comprimento</button>
@@ -159,6 +205,7 @@
                     </div>
                     <div class="bg-base-100 p-4 rounded-lg">
                         <canvas id="growthChart" height="400"></canvas>
+<<<<<<< HEAD
                     </div>
                 </div>
             </div>
@@ -179,6 +226,27 @@
                             </div>
                             {% empty %}
                             <p class="text-base-content/60">Nenhuma medicação registrada.</p>
+=======
+                        </div>
+                </div>
+            </div>
+            
+            <div id="alertas-medicacoes" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h3 class="card-title text-warning mb-4"><i data-lucide="pill" class="w-5 h-5"></i> Medicações Atuais</h3>
+                        <div class="space-y-3">
+                            {% for vaccine in patient_vaccines %}
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="font-semibold">{{ vaccine.name }}</div>
+                                        <div class="text-sm text-base-content/70">{{ vaccine.lot|default:"Lote não informado" }} - {{ vaccine.date|date:"d/m/Y" }}</div>
+                                    </div>
+                                    <div class="badge badge-success badge-sm">Ativo</div>
+                                </div>
+                            {% empty %}
+                                <p class="text-base-content/60">Nenhuma medicação registrada.</p>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                             {% endfor %}
                         </div>
                     </div>
@@ -186,6 +254,7 @@
 
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
+<<<<<<< HEAD
                         <h3 class="card-title text-error mb-4"><i data-lucide="alert-triangle" class="w-5 h-5"></i>
                             Alertas e Observações</h3>
                         <div class="space-y-3">
@@ -199,6 +268,20 @@
                             </div>
                             {% empty %}
                             <p class="text-base-content/60">Nenhum alerta ou exame pendente.</p>
+=======
+                        <h3 class="card-title text-error mb-4"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Alertas e Observações</h3>
+                        <div class="space-y-3">
+                            {% for exam in patient_exams %}
+                                <div class="alert alert-warning">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    <div>
+                                        <div class="font-semibold">{{ exam.type }}</div>
+                                        <div class="text-xs">{{ exam.date|date:"d/m/Y" }} - {{ exam.result|default:"Aguardando" }}</div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p class="text-base-content/60">Nenhum alerta ou exame pendente.</p>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                             {% endfor %}
                         </div>
                     </div>
@@ -208,8 +291,12 @@
             <div id="historico-consultas" class="card bg-base-200 shadow-xl">
                 <div class="card-body">
                     <div class="flex justify-between items-center mb-6">
+<<<<<<< HEAD
                         <h3 class="card-title text-primary"><i data-lucide="history" class="w-6 h-6"></i> Histórico de
                             Consultas</h3>
+=======
+                        <h3 class="card-title text-primary"><i data-lucide="history" class="w-6 h-6"></i> Histórico de Consultas</h3>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                     </div>
                     <div class="space-y-4">
                         {% for record in patient.records.all %}
@@ -227,6 +314,7 @@
                                     <div class="collapse-content">
                                         <div class="space-y-2 text-sm pt-2">
                                             {% if record.notes %}<p><strong>Observações Gerais:</strong> {{ record.notes }}</p>{% endif %}
+<<<<<<< HEAD
 
                                             <h4 class="font-semibold mt-2">Avaliações Clínicas:</h4>
                                             <ul>
@@ -244,6 +332,25 @@
                                                 {% empty %}
                                                 <li>Nenhuma avaliação da equipe registrada.</li>
                                                 {% endfor %}
+=======
+                                            
+                                            <h4 class="font-semibold mt-2">Avaliações Clínicas:</h4>
+                                            <ul>
+                                            {% for eval in record.clinical_evaluations.all %}
+                                                <li><strong>{{ eval.get_type_display }}:</strong> {{ eval.get_status_display }}</li>
+                                            {% empty %}
+                                                <li>Nenhuma avaliação clínica registrada.</li>
+                                            {% endfor %}
+                                            </ul>
+                                            
+                                            <h4 class="font-semibold mt-2">Avaliações da Equipe:</h4>
+                                            <ul>
+                                            {% for eval in record.team_evaluations.all %}
+                                                <li><strong>{{ eval.get_area_display }}:</strong> {{ eval.notes|default:"Sem anotações." }}</li>
+                                            {% empty %}
+                                                <li>Nenhuma avaliação da equipe registrada.</li>
+                                            {% endfor %}
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                                             </ul>
                                         </div>
                                     </div>
@@ -252,8 +359,12 @@
                         </div>
                         {% empty %}
                         <div class="text-center py-8">
+<<<<<<< HEAD
                             <p class="text-lg text-base-content/60">Nenhum registro de consulta encontrado para este
                                 paciente.</p>
+=======
+                            <p class="text-lg text-base-content/60">Nenhum registro de consulta encontrado para este paciente.</p>
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
                         </div>
                         {% endfor %}
                     </div>
@@ -265,11 +376,20 @@
 
     <script>
         // Inicializa os ícones do Lucide assim que a página carregar
+<<<<<<< HEAD
         document.addEventListener('DOMContentLoaded', function () {
+=======
+        document.addEventListener('DOMContentLoaded', function() {
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
             lucide.createIcons();
         });
     </script>
 </body>
+<<<<<<< HEAD
 
 </html>
 {% endblock %}
+=======
+</html>
+{% endblock %}
+>>>>>>> 9e1dee9 (chore: Adicionado templates prontos)
