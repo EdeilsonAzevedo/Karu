@@ -1,4 +1,4 @@
-# apps/patients/tests/test_list_frontend.py
+
 import pytest
 from django.urls import reverse
 
@@ -53,3 +53,54 @@ class TestPatientListTemplate:
         # Verifica botão de novo paciente
         assert "Nova Alta de RN" in content
         assert 'href="/patients/create/"' in content
+
+@pytest.mark.django_db
+class TestPatientListAdditional:
+    """Testes adicionais para o template list.html"""
+    
+    @pytest.fixture
+    def patients_with_various_data(self):
+        return [
+            PatientFactory(first_name="Ana", last_name="Silva", gestational_age_weeks=38),
+            PatientFactory(first_name="Paulo", last_name="", gestational_age_weeks=32, gestational_age_days=3),
+            PatientFactory(first_name="Maria", last_name="Costa", gestational_age_weeks=40),
+        ]
+
+    def test_list_displays_gestational_age_correctly(self, client, patients_with_various_data):
+        """Testa se a idade gestacional é exibida corretamente em todos os formatos"""
+        url = reverse('patients:list')
+        response = client.get(url)
+        
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        
+        # Verifica diferentes formatos de idade gestacional
+        assert '38 semanas' in content
+        assert '32 semanas e 3 dias' in content or '32 semanas' in content
+        assert '40 semanas' in content
+        
+        # Verifica pacientes sem sobrenome
+        assert 'Paulo' in content  # Nome sem sobrenome deve aparecer
+
+    def test_list_empty_state_and_pagination_elements(self, client):
+        """Testa estados vazios e elementos de paginação/controle"""
+        url = reverse('patients:list')
+        response = client.get(url)
+        
+        assert response.status_code == 200
+        content = response.content.decode('utf-8')
+        
+        # Verifica elementos de controle da tabela
+        assert 'table' in content
+        assert 'thead' in content
+        assert 'tbody' in content
+        assert 'Nenhum paciente encontrado' in content
+        
+        # Verifica botões de ação
+        assert 'Editar' in content
+        assert 'btn' in content
+        assert 'btn-info' in content or 'btn-outline' in content
+        
+        # Verifica estrutura responsiva
+        assert 'overflow-x-auto' in content
+        assert 'table-zebra' in content or 'table' in content
