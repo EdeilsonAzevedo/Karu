@@ -1,9 +1,16 @@
+# apps/patients/views.py
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import DischargeRecordForm, PatientForm, RecordForm
-from .models import DischargeRecord, Patient, Record
+from .models import (
+    DischargeRecord,
+    Exam,  # ADICIONAR ESTES IMPORTS
+    Patient,
+    Record,
+    Vaccine,
+)
 
 
 def patient_list(request):
@@ -129,3 +136,44 @@ def patient_edit(request, pk):
             "discharge_form": discharge_form,
         },
     )
+
+
+def patient_detail(request, pk):
+    """
+    View para exibir detalhes completos do paciente
+    """
+    patient = get_object_or_404(Patient, pk=pk)
+
+    # Calcular idades
+    from datetime import date
+
+    today = date.today()
+    age_in_days = (today - patient.date_of_birth).days
+
+    # Calcular idade corrigida (exemplo básico)
+    corrected_age_weeks = patient.gestational_age_weeks + (age_in_days // 7)
+    corrected_age_remaining_days = age_in_days % 7
+
+    # Buscar dados relacionados
+    patient_vaccines = Vaccine.objects.filter(record__patient=patient)
+    patient_exams = Exam.objects.filter(record__patient=patient)
+
+    context = {
+        "patient": patient,
+        "age_in_days": age_in_days,
+        "corrected_age_weeks": corrected_age_weeks,
+        "corrected_age_remaining_days": corrected_age_remaining_days,
+        "patient_vaccines": patient_vaccines,
+        "patient_exams": patient_exams,
+    }
+
+    return render(request, "patients/patient_detail.html", context)
+
+
+def consultation_create(request, pk):
+    """View para criar uma nova consulta para o paciente"""
+    patient = get_object_or_404(Patient, pk=pk)
+
+    # TODO: Implementar lógica de criação de consulta
+    # Por enquanto, vamos apenas redirecionar para a lista
+    return redirect("patients:list")
