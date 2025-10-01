@@ -2,6 +2,15 @@
 
 {% block title %}{{ patient.first_name }} {{ patient.last_name }} - Prontuário Karu {% endblock %}
 
+{% block extra_head %}
+    {# Bloco para CSS específico desta página, se necessário #}
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <style>
     html {
