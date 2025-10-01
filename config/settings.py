@@ -77,8 +77,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 # config/settings.py
 
 DATABASES = {
-    "default": {
-        # 1. O "Motor" da Conexão
+   "default": {
+       # 1. O "Motor" da Conexão
         "ENGINE": "django.db.backends.postgresql",
         # 2. As Credenciais e o Endereço
         "NAME": "karu",  # O nome do seu banco de dados no PostgreSQL
