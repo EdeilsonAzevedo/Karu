@@ -364,21 +364,32 @@ def get_weight_gain_analysis_data(patient):
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
-    # --- DADOS PARA O HISTÓRICO ---
-    # Usamos prefetch_related para otimizar a busca de dados relacionados
-    consultation_records = (
-        patient.records.filter(record_type="consultation")
-        .order_by("-date")
-        .prefetch_related("consultation_details", "warning_signs")
+    # --- LÓGICA DE FILTRO DO HISTÓRICO ---
+    # Começa com todos os registros do paciente
+    records_queryset = patient.records.all().order_by("-date")
+
+    # Pega o parâmetro de busca da URL (enviado pelo formulário)
+    query_text = request.GET.get("q")
+
+    # Aplica o filtro de texto, se algo foi digitado
+    if query_text:
+        records_queryset = records_queryset.filter(
+            Q(notes__icontains=query_text) | Q(professional__icontains=query_text)
+        )
+
+    # A variável final que vai para o template agora é a queryset filtrada
+    # (Usamos prefetch_related para otimizar as buscas futuras no template)
+    consultation_records = records_queryset.prefetch_related(
+        "consultation_details", "warning_signs"
     )
 
+    # --- O RESTO DA SUA VIEW CONTINUA IGUAL ---
+
     # --- DADOS PARA OS CARDS DE ALERTAS E MEDICAÇÕES ---
-    # Busca todos os exames e vacinas de todos os registros do paciente
     patient_exams = Exam.objects.filter(record__patient=patient).order_by("-date")
     patient_vaccines = Vaccine.objects.filter(record__patient=patient).order_by("-date")
 
     # --- DADOS PARA A EQUIPE RESPONSÁVEL ---
-    # Pega os nomes únicos de todos os profissionais que já atenderam o paciente
     team_professionals = (
         patient.records.exclude(professional__isnull=True)
         .exclude(professional__exact="")
@@ -387,6 +398,7 @@ def patient_detail(request, pk):
     )
 
     # --- CÁLCULOS DE IDADE E GRÁFICOS ---
+    # (Supondo que as funções auxiliares _get_growth_chart_data e get_weight_gain_analysis_data existem)
     chart_context = _get_growth_chart_data(patient)
     weight_gain_context = get_weight_gain_analysis_data(patient)
 
@@ -405,7 +417,7 @@ def patient_detail(request, pk):
     # --- MONTAGEM DO CONTEXTO FINAL ---
     context = {
         "patient": patient,
-        "consultation_records": consultation_records,
+        "consultation_records": consultation_records,  # <- Agora contém os resultados filtrados
         "age_in_days": age_in_days,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
