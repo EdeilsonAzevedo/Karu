@@ -120,7 +120,16 @@
                     <div class="card-body">
                         <h3 class="card-title text-secondary mb-4"><i data-lucide="users" class="w-5 h-5"></i> Responsáveis</h3>
                         <div class="space-y-3">
-                            <p class="text-base-content/60">Dados dos responsáveis ainda não implementados.</p>
+                            <div>
+                                <div class="font-semibold">{{ patient.guardian_name|default:"Não informado" }}</div>
+                                <div class="text-sm text-base-content/70">Responsável - Tel: {{ patient.contact_phone|default:"Não informado" }}</div>
+                            </div>
+                            <div class="text-sm mt-2">
+                                <strong>Endereço:</strong><br>
+                                {{ patient.address_street|default:"" }}{% if patient.address_number %}, {{ patient.address_number }}{% endif %}<br>
+                                {{ patient.address_neighborhood|default:"" }}<br>
+                                {{ patient.address_city|default:"" }} - {{ patient.address_state|default:"" }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -129,7 +138,14 @@
                     <div class="card-body">
                         <h3 class="card-title text-accent mb-4"><i data-lucide="stethoscope" class="w-5 h-5"></i> Equipe Responsável</h3>
                         <div class="space-y-3">
-                            <p class="text-base-content/60">Dados da equipe ainda não implementados.</p>
+                            {% for professional in team_professionals %}
+                                <div>
+                                    <div class="font-semibold">{{ professional }}</div>
+                                    {# <div class="text-sm text-base-content/70">Especialidade</div> #}
+                                </div>
+                            {% empty %}
+                                <p class="text-base-content/60">Nenhum profissional registrado nos atendimentos.</p>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -204,18 +220,18 @@
             <div id="alertas-medicacoes" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
-                        <h3 class="card-title text-warning mb-4"><i data-lucide="pill" class="w-5 h-5"></i> Medicações Atuais</h3>
+                        <h3 class="card-title text-warning mb-4"><i data-lucide="pill" class="w-5 h-5"></i> Medicações e Vacinas</h3>
                         <div class="space-y-3">
                             {% for vaccine in patient_vaccines %}
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <div class="font-semibold">{{ vaccine.name }}</div>
-                                        <div class="text-sm text-base-content/70">{{ vaccine.lot|default:"Lote não informado" }} - {{ vaccine.date|date:"d/m/Y" }}</div>
+                                        <div class="text-sm text-base-content/70">Aplicada em: {{ vaccine.date|date:"d/m/Y" }}</div>
                                     </div>
                                     <div class="badge badge-success badge-sm">Ativo</div>
                                 </div>
                             {% empty %}
-                                <p class="text-base-content/60">Nenhuma medicação registrada.</p>
+                                <p class="text-base-content/60">Nenhuma medicação ou vacina registrada.</p>
                             {% endfor %}
                         </div>
                     </div>
@@ -223,18 +239,18 @@
 
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
-                        <h3 class="card-title text-error mb-4"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Alertas e Observações</h3>
+                        <h3 class="card-title text-error mb-4"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Alertas e Exames</h3>
                         <div class="space-y-3">
                             {% for exam in patient_exams %}
                                 <div class="alert alert-warning">
-                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    <i data-lucide="flask-conical" class="w-4 h-4"></i>
                                     <div>
                                         <div class="font-semibold">{{ exam.type }}</div>
-                                        <div class="text-xs">{{ exam.date|date:"d/m/Y" }} - {{ exam.result|default:"Aguardando" }}</div>
+                                        <div class="text-xs">Data: {{ exam.date|date:"d/m/Y"|default:"N/A" }} - Resultado: {{ exam.result|default:"Aguardando" }}</div>
                                     </div>
                                 </div>
                             {% empty %}
-                                <p class="text-base-content/60">Nenhum alerta ou exame pendente.</p>
+                                <p class="text-base-content/60">Nenhum alerta ou exame registrado.</p>
                             {% endfor %}
                         </div>
                     </div>
@@ -381,7 +397,7 @@
         }
         // Inicializa o gráfico de peso pela primeira vez
         // Não precisa do DOMContentLoaded aqui, pois o script já está no final da página
-         initWeightGainChart();
+        initWeightGainChart();
         drawChart('weight');
         
     </script>
