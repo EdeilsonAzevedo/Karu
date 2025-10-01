@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Karu - Monitoramento Neonatal{% endblock %}</title>
-    
+
     <!-- TailwindCSS + DaisyUI -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
-    
+
     <!-- Lucide Icons -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
-    
+
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    
+
     <style>
         .navbar-blur {
             backdrop-filter: blur(10px);
@@ -45,18 +46,19 @@
             transition: all 0.3s ease;
         }
     </style>
-    
+
     {% block extra_head %}{% endblock %}
 </head>
+
 <body class="min-h-screen bg-base-200">
-    
+
     <!-- Drawer Layout -->
     <div class="drawer">
         <input id="main-drawer" type="checkbox" class="drawer-toggle" />
-        
+
         <!-- Main Content -->
         <div class="drawer-content flex flex-col min-h-screen bg-base-200">
-            
+
             <!-- Navbar -->
             <div class="navbar bg-base-100 border-b border-base-300 px-4 shadow-sm">
                 <div class="navbar-start">
@@ -64,7 +66,7 @@
                     <label for="main-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
                         <i data-lucide="menu" class="w-5 h-5"></i>
                     </label>
-                    
+
                     <!-- Logo -->
                     <a href="{}" class="flex items-center space-x-3 ml-2">
                         <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg">
@@ -85,7 +87,7 @@
                             <i data-lucide="moon" class="w-5 h-5 moon-icon hidden"></i>
                         </button>
                     </div>
-                   
+
                 </div>
             </div>
 
@@ -93,27 +95,27 @@
             <main class="flex-grow">
                 <!-- Breadcrumb -->
                 {% block breadcrumb %}{% endblock %}
-                
+
                 <!-- Messages/Alerts -->
                 {% if messages %}
-                    <div class="px-4 py-2">
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} mb-2 shadow-sm">
-                                {% if message.tags == 'success' %}
-                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                {% elif message.tags == 'error' %}
-                                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                                {% elif message.tags == 'warning' %}
-                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                                {% else %}
-                                    <i data-lucide="info" class="w-4 h-4"></i>
-                                {% endif %}
-                                <span>{{ message }}</span>
-                            </div>
-                        {% endfor %}
+                <div class="px-4 py-2">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} mb-2 shadow-sm">
+                        {% if message.tags == 'success' %}
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        {% elif message.tags == 'error' %}
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        {% elif message.tags == 'warning' %}
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                        {% else %}
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        {% endif %}
+                        <span>{{ message }}</span>
                     </div>
+                    {% endfor %}
+                </div>
                 {% endif %}
-                
+
                 <!-- Main Content Block -->
                 {% block content %}{% endblock %}
             </main>
@@ -129,7 +131,7 @@
         <!-- Sidebar -->
         <div class="drawer-side z-50">
             <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-            
+
             <div class="p-4 h-full w-80 bg-base-100 text-base-content shadow-xl sidebar-transition">
                 <!-- Sidebar Header -->
                 <div class="flex justify-between items-center mb-6 p-2">
@@ -148,12 +150,14 @@
                 <ul class="menu text-base space-y-1">
                     <!-- Menu items podem ser adicionados conforme necessário -->
                     <li><a href="#"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a></li>
-                    <li><a href="#"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a></li>
-                    <li><a href="#"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova Criança</a></li>
+                    <li><a href="{% url 'patients:list' %}"><i data-lucide="search" class="w-5 h-5"></i> Buscar
+                            Recém-Nascidos</a></li>
+                    <li><a href="{% url 'patients:create' %}"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova
+                            Criança</a></li>
                     <li><a href="#"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
                     <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
                     <li><a href="#"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
-                    
+
                     <li class="menu-title mt-4"><span>Conta</span></li>
                     <li><a href="#"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
                     <li><a href="#"><i data-lucide="settings" class="w-5 h-5"></i> Configurações</a></li>
@@ -182,11 +186,11 @@
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
-            
+
             // Alternar ícones
             const sunIcon = document.querySelector('.sun-icon');
             const moonIcon = document.querySelector('.moon-icon');
-            
+
             if (theme === 'dark') {
                 sunIcon.classList.add('hidden');
                 moonIcon.classList.remove('hidden');
@@ -197,16 +201,16 @@
         }
 
         // Inicializar quando o DOM estiver carregado
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Inicializar ícones Lucide
             lucide.createIcons();
-            
+
             // Inicializar tema
             initTheme();
-            
+
             // Configurar toggle de tema
             document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-            
+
             // Auto-close drawer on mobile when clicking menu item
             document.querySelectorAll('.drawer-side .menu a').forEach(link => {
                 link.addEventListener('click', () => {
@@ -217,7 +221,8 @@
             });
         });
     </script>
-    
+
     {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>
