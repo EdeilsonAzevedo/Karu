@@ -11,11 +11,14 @@ from .forms import (
     DischargeRecordForm,
     PatientForm,
     RecordForm,
+    ClinicalEvaluationForm, InterdisciplinaryEvaluationForm
 )
 from .models import (
     ClinicalWarningSign,
     Patient,
     Record,
+    ClinicalEvaluation, InterdisciplinaryEvaluation,
+    ClinicalEvaluationType, InterdisciplinaryEvaluationArea
 )
 
 
@@ -91,10 +94,7 @@ def patient_create(request):
 
 @transaction.atomic
 def patient_edit(request, pk):
-    """Edita dados do paciente e cria/atualiza seus registros de alta."""
     patient = get_object_or_404(Patient, pk=pk)
-
-    # Tenta buscar o record e discharge existentes. Pode não haver nenhum.
     try:
         record = Record.objects.get(patient=patient, record_type="discharge")
         discharge = record.discharge
@@ -102,45 +102,96 @@ def patient_edit(request, pk):
         record = None
         discharge = None
 
+    existing_clinical_evals = {e.type: e for e in record.clinical_evaluations.all()} if record else {}
+    existing_team_evals = {e.area: e for e in record.team_evaluations.all()} if record else {}
+
     if request.method == "POST":
-        # Passamos 'instance=...' para os forms para que eles saibam se devem
-        # atualizar um objeto existente (UPDATE) ou criar um novo (INSERT).
         patient_form = PatientForm(request.POST, instance=patient)
         record_form = RecordForm(request.POST, instance=record)
         discharge_form = DischargeRecordForm(request.POST, instance=discharge)
 
-        if patient_form.is_valid() and record_form.is_valid() and discharge_form.is_valid():
-            # Salva as alterações do paciente
-            patient = patient_form.save()
+        clinical_forms = {
+            ctype.value: ClinicalEvaluationForm(
+                request.POST,
+                instance=existing_clinical_evals.get(ctype.value),
+                prefix=f'clinic-{ctype.value}'
+            ) for ctype in ClinicalEvaluationType
+        }
+        team_forms = {
+            area.value: InterdisciplinaryEvaluationForm(
+                request.POST,
+                instance=existing_team_evals.get(area.value),
+                prefix=f'team-{area.value}'
+            ) for area in InterdisciplinaryEvaluationArea
+        }
 
-            # Cria ou atualiza o Record
+        all_forms_valid = all([
+            patient_form.is_valid(),
+            record_form.is_valid(),
+            discharge_form.is_valid(),
+            all(f.is_valid() for f in clinical_forms.values()),
+            all(f.is_valid() for f in team_forms.values())
+        ])
+
+        if all_forms_valid:
+            patient = patient_form.save()
             record_instance = record_form.save(commit=False)
             record_instance.patient = patient
             record_instance.record_type = "discharge"
             record_instance.save()
 
-            # Cria ou atualiza o DischargeRecord
             discharge_instance = discharge_form.save(commit=False)
             discharge_instance.record = record_instance
             discharge_instance.save()
 
+            for ctype_enum, form in clinical_forms.items():
+                if form.cleaned_data.get('status'):
+                    eval_obj, created = ClinicalEvaluation.objects.get_or_create(
+                        record=record_instance, type=ctype_enum
+                    )
+                    eval_obj.status = form.cleaned_data['status']
+                    eval_obj.save()
+
+            for area_enum, form in team_forms.items():
+                if form.cleaned_data.get('notes'):
+                    eval_obj, created = InterdisciplinaryEvaluation.objects.get_or_create(
+                        record=record_instance, area=area_enum
+                    )
+                    eval_obj.notes = form.cleaned_data['notes']
+                    eval_obj.save()
+
             return redirect("patients:detail", pk=patient.pk)
     else:
-        # Popula os formulários com os dados existentes
         patient_form = PatientForm(instance=patient)
         record_form = RecordForm(instance=record)
         discharge_form = DischargeRecordForm(instance=discharge)
 
-    return render(
-        request,
-        "patients/edit.html",
-        {
-            "patient_form": patient_form,
-            "record_form": record_form,
-            "discharge_form": discharge_form,
-            "patient": patient,
-        },
-    )
+        clinical_forms = {
+            ctype.value: ClinicalEvaluationForm(
+                instance=existing_clinical_evals.get(ctype.value),
+                prefix=f'clinic-{ctype.value}',
+                initial={'type': ctype.value}
+            ) for ctype in ClinicalEvaluationType
+        }
+        team_forms = {
+            area.value: InterdisciplinaryEvaluationForm(
+                instance=existing_team_evals.get(area.value),
+                prefix=f'team-{area.value}',
+                initial={'area': area.value}
+            ) for area in InterdisciplinaryEvaluationArea
+        }
+
+    context = {
+        "patient": patient,
+        "patient_form": patient_form,
+        "record_form": record_form,
+        "discharge_form": discharge_form,
+        "clinical_forms": clinical_forms,
+        "team_forms": team_forms,
+        "ClinicalEvaluationType": ClinicalEvaluationType,
+        "InterdisciplinaryEvaluationArea": InterdisciplinaryEvaluationArea,
+    }
+    return render(request, "patients/edit.html", context)
 
 
 def patient_detail(request, pk):

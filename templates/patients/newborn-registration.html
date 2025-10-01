@@ -1,45 +1,9 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+{% extends 'core/base.html' %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cadastro de Alta de Recém-Nascido - Karu</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
-    <style>
-        .required:after {
-            content: ' *';
-            color: hsl(var(--er));
-        }
-    </style>
-</head>
+{% block title %}Lista de Pacientes - Karu{% endblock title %}
 
-<body class="min-h-screen bg-base-100">
-    <!-- Navbar -->
-    <div class="navbar bg-base-100 shadow-lg">
-        <div class="flex-1">
-            <div class="flex items-center space-x-3">
-                <button onclick="history.back()" class="btn btn-ghost btn-sm" title="Voltar">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </button>
-                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                    <i data-lucide="baby" class="w-6 h-6 text-primary-content"></i>
-                </div>
-                <span class="text-2xl font-bold text-primary">Karu</span>
-                <div class="badge badge-outline">Alta de Recém-Nascido</div>
-            </div>
-        </div>
-        <div class="flex-none">
-            <label class="swap swap-rotate mr-2" title="Tema claro/escuro">
-                <input type="checkbox" id="themeToggle" />
-                <i data-lucide="sun" class="swap-on w-5 h-5"></i>
-                <i data-lucide="moon" class="swap-off w-5 h-5"></i>
-            </label>
-        </div>
-    </div>
-
+{% block content %}
+<main class="min-h-screen bg-base-100">
     <!-- Breadcrumb -->
     <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
         <ul>
@@ -504,6 +468,5 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         });
     </script>
-</body>
-
-</html>
+</main>
+{% endblock content %}
