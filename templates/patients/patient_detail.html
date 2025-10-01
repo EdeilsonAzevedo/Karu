@@ -395,10 +395,23 @@
                 }
             });
         }
-        // Inicializa o gráfico de peso pela primeira vez
-        // Não precisa do DOMContentLoaded aqui, pois o script já está no final da página
-        initWeightGainChart();
-        drawChart('weight');
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                lucide.createIcons();
+            } catch (e) {
+                console.error("Erro ao inicializar ícones Lucide:", e);
+            }
+            try {
+                drawChart('weight'); 
+            } catch (e) {
+                console.error("Erro ao desenhar o gráfico de crescimento:", e);
+            }
+            try {
+                initWeightGainChart();
+            } catch (e) {
+                console.error("Erro ao desenhar o gráfico de ganho de peso:", e);
+            }
+        });
         
     </script>
 {% endblock content %}
