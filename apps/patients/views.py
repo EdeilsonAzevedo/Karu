@@ -20,10 +20,12 @@ from .models import (
     ClinicalEvaluation,
     ClinicalEvaluationType,
     ClinicalWarningSign,
+    Exam,
     InterdisciplinaryEvaluation,
     InterdisciplinaryEvaluationArea,
     Patient,
     Record,
+    Vaccine,
 )
 
 
@@ -433,13 +435,32 @@ def get_weight_gain_analysis_data(patient):
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
-    # Busca o histórico para a lista de consultas
-    consultation_records = patient.records.filter(record_type="consultation").order_by("-date")
+    # --- DADOS PARA O HISTÓRICO ---
+    # Usamos prefetch_related para otimizar a busca de dados relacionados
+    consultation_records = (
+        patient.records.filter(record_type="consultation")
+        .order_by("-date")
+        .prefetch_related("consultation_details", "warning_signs")
+    )
 
-    # Chama a função auxiliar para fazer os cálculos complexos
-    chart_data_dict = _get_growth_chart_data(patient)
+    # --- DADOS PARA OS CARDS DE ALERTAS E MEDICAÇÕES ---
+    # Busca todos os exames e vacinas de todos os registros do paciente
+    patient_exams = Exam.objects.filter(record__patient=patient).order_by("-date")
+    patient_vaccines = Vaccine.objects.filter(record__patient=patient).order_by("-date")
 
-    # Lógica de cálculo de idade
+    # --- DADOS PARA A EQUIPE RESPONSÁVEL ---
+    # Pega os nomes únicos de todos os profissionais que já atenderam o paciente
+    team_professionals = (
+        patient.records.exclude(professional__isnull=True)
+        .exclude(professional__exact="")
+        .values_list("professional", flat=True)
+        .distinct()
+    )
+
+    # --- CÁLCULOS DE IDADE E GRÁFICOS ---
+    chart_context = _get_growth_chart_data(patient)
+    weight_gain_context = get_weight_gain_analysis_data(patient)
+
     today = timezone.now().date()
     age_timedelta = today - patient.date_of_birth
     age_in_days = age_timedelta.days
@@ -459,10 +480,11 @@ def patient_detail(request, pk):
         "age_in_days": age_in_days,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
-        "chart_context": chart_data_dict,
+        "patient_exams": patient_exams,
+        "patient_vaccines": patient_vaccines,
+        "team_professionals": team_professionals,
     }
-    
-    # Adiciona os dados dos gráficos ao contexto
+
     context.update(chart_context)
     context.update(weight_gain_context)
     
