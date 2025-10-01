@@ -1,178 +1,160 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Novo Profissional de Saúde - Karu</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" />
-  <style>.required:after{content:' *';color:hsl(var(--er));}</style>
-</head>
-<body class="min-h-screen bg-base-100">
-  <div class="navbar bg-base-100 shadow">
-    <div class="flex-1">
-      <a href="{% url 'accounts:home' %}" class="btn btn-ghost btn-sm" title="Voltar">←</a>
-      <span class="ml-2 text-2xl font-bold text-primary">Karu</span>
-      <div class="badge badge-outline ml-2">Cadastro de Profissional</div>
-    </div>
+{% extends "core/base.html" %}
+{% load auth_extras %}
+
+{% block title %}Novo Profissional · Karu{% endblock %}
+
+{% block breadcrumb %}
+  <div class="px-4 py-2 bg-base-200 text-sm">
+    <span class="opacity-70">Início</span> / <span>Usuários</span> / <span>Cadastro de Profissional</span>
   </div>
+{% endblock %}
 
-  <main class="px-6 py-6">
-    <div class="max-w-5xl mx-auto">
-      <div class="flex items-center justify-between mb-4">
-        <h1 class="text-3xl font-bold">Cadastrar Profissional de Saúde</h1>
-        <button form="formProf" type="submit" class="btn btn-primary">Salvar</button>
+{% block sidebar_extra %}
+  {% if request.user.is_superuser or request.user|has_group:'gestores' %}
+    <li class="menu-title mt-4"><span>Administração</span></li>
+    <li><a href="{% url 'accounts:signup_profissional' %}"><i data-lucide="user-plus" class="w-5 h-5"></i> Novo Profissional</a></li>
+    <li><a href="{% url 'accounts:signup_pais' %}"><i data-lucide="users" class="w-5 h-5"></i> Novo Responsável</a></li>
+  {% endif %}
+  {% if request.user.is_superuser %}
+    <li><a href="{% url 'accounts:signup_gestor' %}"><i data-lucide="shield-plus" class="w-5 h-5"></i> Novo Gestor</a></li>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="max-w-5xl mx-auto p-4">
+    {% if form.non_field_errors %}
+      <div class="alert alert-error mb-3">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>
+    {% endif %}
+    {% if form.errors %}
+      <div class="alert alert-error mb-3"><span>Verifique os campos destacados abaixo.</span></div>
+    {% endif %}
+
+    <form id="formProf" method="post" class="card bg-base-200 shadow">
+      {% csrf_token %}
+      <div class="card-body grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="form-control md:col-span-2">
+          <label class="label required"><span class="label-text">Nome completo</span></label>
+          <input name="name" class="input input-bordered" required
+                 value="{{ form.name.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.name.errors|yesno:'true,false' }}" />
+          {% if form.name.errors %}<p class="text-error text-sm mt-1">{% for e in form.name.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label required"><span class="label-text">CPF</span></label>
+          <input name="cpf" class="input input-bordered" required inputmode="numeric" pattern="^\d{11}$" maxlength="11"
+                 placeholder="Somente números" value="{{ form.cpf.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.cpf.errors|yesno:'true,false' }}" />
+          <span class="text-xs opacity-70 mt-1">Digite exatamente 11 dígitos.</span>
+          {% if form.cpf.errors %}<p class="text-error text-sm mt-1">{% for e in form.cpf.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label required"><span class="label-text">Categoria</span></label>
+          <select name="category" class="select select-bordered" required
+                  aria-invalid="{{ form.category.errors|yesno:'true,false' }}">
+            <option value="">Selecione</option>
+            {% for val,label in form.fields.category.choices %}
+              <option value="{{ val }}" {% if form.category.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if form.category.errors %}<p class="text-error text-sm mt-1">{% for e in form.category.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Especialidade</span></label>
+          <input name="specialty" class="input input-bordered"
+                 value="{{ form.specialty.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.specialty.errors|yesno:'true,false' }}" />
+          {% if form.specialty.errors %}<p class="text-error text-sm mt-1">{% for e in form.specialty.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Conselho (CRM/COREN/CRP...)</span></label>
+          <input name="council" class="input input-bordered" placeholder="Ex.: CRM"
+                 value="{{ form.council.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.council.errors|yesno:'true,false' }}" />
+          {% if form.council.errors %}<p class="text-error text-sm mt-1">{% for e in form.council.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Nº de registro</span></label>
+          <input name="reg_number" class="input input-bordered" placeholder="Ex.: 123456"
+                 value="{{ form.reg_number.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.reg_number.errors|yesno:'true,false' }}" />
+          {% if form.reg_number.errors %}<p class="text-error text-sm mt-1">{% for e in form.reg_number.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label required"><span class="label-text">Unidade (UBS)</span></label>
+          <input name="unit" class="input input-bordered" required placeholder="UBS Centro"
+                 value="{{ form.unit.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.unit.errors|yesno:'true,false' }}" />
+          {% if form.unit.errors %}<p class="text-error text-sm mt-1">{% for e in form.unit.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label required"><span class="label-text">E-mail</span></label>
+          <input name="email" type="email" class="input input-bordered" required
+                 value="{{ form.email.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.email.errors|yesno:'true,false' }}" />
+          {% if form.email.errors %}<p class="text-error text-sm mt-1">{% for e in form.email.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Telefone</span></label>
+          <input name="phone" class="input input-bordered" placeholder="(DDD) 9XXXX-XXXX"
+                 value="{{ form.phone.value|default_if_none:'' }}"
+                 aria-invalid="{{ form.phone.errors|yesno:'true,false' }}" />
+          {% if form.phone.errors %}<p class="text-error text-sm mt-1">{% for e in form.phone.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Senha temporária</span></label>
+          <div class="relative">
+            <input id="prof_temp_password" name="temp_password" type="password"
+                   class="input input-bordered w-full pr-12" placeholder="Gerada automaticamente se vazio"
+                   aria-invalid="{{ form.temp_password.errors|yesno:'true,false' }}" />
+            <button id="prof_toggle_pw" type="button"
+                    class="btn btn-ghost btn-xs absolute right-1 top-1/2 -translate-y-1/2">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          {% if form.temp_password.errors %}<p class="text-error text-sm mt-1">{% for e in form.temp_password.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Status</span></label>
+          <select name="status" class="select select-bordered">
+            <option {% if form.status.value == "Ativo" %}selected{% endif %}>Ativo</option>
+            <option {% if form.status.value == "Inativo" %}selected{% endif %}>Inativo</option>
+          </select>
+          {% if form.status.errors %}<p class="text-error text-sm mt-1">{% for e in form.status.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        </div>
+
+        <div class="md:col-span-4 flex justify-end gap-2 mt-2">
+          <button type="reset" class="btn btn-ghost">Limpar</button>
+          <button type="submit" class="btn btn-primary">Cadastrar Profissional</button>
+        </div>
       </div>
+    </form>
+  </div>
+{% endblock %}
 
-      {% if messages %}
-        <div class="space-y-2 mb-4">
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }}"><span>{{ message }}</span></div>
-          {% endfor %}
-        </div>
-      {% endif %}
-
-      {% if form.non_field_errors %}
-        <div class="alert alert-error mb-3">
-          {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
-        </div>
-      {% endif %}
-
-      {% if form.errors %}
-        <div class="alert alert-error mb-3"><span>Verifique os campos destacados abaixo.</span></div>
-      {% endif %}
-
-      <form id="formProf" method="post" class="card bg-base-200 shadow">
-        {% csrf_token %}
-        <div class="card-body grid grid-cols-1 md:grid-cols-4 gap-4">
-
-          <div class="form-control md:col-span-2">
-            <label class="label required"><span class="label-text">Nome completo</span></label>
-            <input name="name" class="input input-bordered" required
-                   value="{{ form.name.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.name.errors|yesno:'true,false' }}" />
-            {% if form.name.errors %}<p class="text-error text-sm mt-1">{% for e in form.name.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label required"><span class="label-text">CPF</span></label>
-            <input name="cpf" class="input input-bordered" required
-                   inputmode="numeric" pattern="^\d{11}$" maxlength="11" placeholder="Somente números"
-                   value="{{ form.cpf.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.cpf.errors|yesno:'true,false' }}" />
-            <span class="text-xs opacity-70 mt-1">Digite exatamente 11 dígitos.</span>
-            {% if form.cpf.errors %}<p class="text-error text-sm mt-1">{% for e in form.cpf.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label required"><span class="label-text">Categoria</span></label>
-            <select name="category" class="select select-bordered" required
-                    aria-invalid="{{ form.category.errors|yesno:'true,false' }}">
-              <option value="">Selecione</option>
-              {% for val,label in form.fields.category.choices %}
-                <option value="{{ val }}" {% if form.category.value == val %}selected{% endif %}>{{ label }}</option>
-              {% endfor %}
-            </select>
-            {% if form.category.errors %}<p class="text-error text-sm mt-1">{% for e in form.category.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label"><span class="label-text">Especialidade</span></label>
-            <input name="specialty" class="input input-bordered"
-                   value="{{ form.specialty.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.specialty.errors|yesno:'true,false' }}" />
-            {% if form.specialty.errors %}<p class="text-error text-sm mt-1">{% for e in form.specialty.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label"><span class="label-text">Conselho (CRM/COREN/CRP...)</span></label>
-            <input name="council" class="input input-bordered" placeholder="Ex.: CRM"
-                   value="{{ form.council.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.council.errors|yesno:'true,false' }}" />
-            {% if form.council.errors %}<p class="text-error text-sm mt-1">{% for e in form.council.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label"><span class="label-text">Nº de registro</span></label>
-            <input name="reg_number" class="input input-bordered" placeholder="Ex.: 123456"
-                   value="{{ form.reg_number.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.reg_number.errors|yesno:'true,false' }}" />
-            {% if form.reg_number.errors %}<p class="text-error text-sm mt-1">{% for e in form.reg_number.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label required"><span class="label-text">Unidade (UBS)</span></label>
-            <input name="unit" class="input input-bordered" required placeholder="UBS Centro"
-                   value="{{ form.unit.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.unit.errors|yesno:'true,false' }}" />
-            {% if form.unit.errors %}<p class="text-error text-sm mt-1">{% for e in form.unit.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label required"><span class="label-text">E-mail</span></label>
-            <input name="email" type="email" class="input input-bordered" required
-                   value="{{ form.email.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.email.errors|yesno:'true,false' }}" />
-            {% if form.email.errors %}<p class="text-error text-sm mt-1">{% for e in form.email.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label"><span class="label-text">Telefone</span></label>
-            <input name="phone" class="input input-bordered" placeholder="(DDD) 9XXXX-XXXX"
-                   value="{{ form.phone.value|default_if_none:'' }}"
-                   aria-invalid="{{ form.phone.errors|yesno:'true,false' }}" />
-            {% if form.phone.errors %}<p class="text-error text-sm mt-1">{% for e in form.phone.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label"><span class="label-text">Senha temporária</span></label>
-            <div class="relative">
-              <input id="prof_temp_password" name="temp_password" type="password" class="input input-bordered w-full pr-12"
-                     placeholder="Gerada automaticamente se vazio"
-                     aria-invalid="{{ form.temp_password.errors|yesno:'true,false' }}" />
-              <button id="prof_toggle_pw" type="button" class="btn btn-ghost btn-xs absolute right-1 top-1/2 -translate-y-1/2">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-            {% if form.temp_password.errors %}<p class="text-error text-sm mt-1">{% for e in form.temp_password.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="form-control">
-            <label class="label"><span class="label-text">Status</span></label>
-            <select name="status" class="select select-bordered">
-              <option {% if form.status.value == "Ativo" %}selected{% endif %}>Ativo</option>
-              <option {% if form.status.value == "Inativo" %}selected{% endif %}>Inativo</option>
-            </select>
-            {% if form.status.errors %}<p class="text-error text-sm mt-1">{% for e in form.status.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-          </div>
-
-          <div class="md:col-span-4 flex justify-end gap-2 mt-2">
-            <button type="reset" class="btn btn-ghost">Limpar</button>
-            <button type="submit" class="btn btn-primary">Cadastrar Profissional</button>
-          </div>
-        </div>
-      </form>
-
-      <div class="alert alert-info mt-4">
-        <span>Após salvar, o profissional aparecerá na lista de <a class="link" href="{% url 'accounts:home' %}">Usuários</a>.</span>
-      </div>
-    </div>
-  </main>
-
-  <script>
-    function attachPasswordToggle(inputId, btnId) {
-      const input = document.getElementById(inputId);
-      const btn   = document.getElementById(btnId);
-      if (!input || !btn) return;
-      const eye   = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
-      const eyeOff= '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 5c7 0 11 7 11 7a21.8 21.8 0 0 1-4.21 5.64"/><path d="M1 1l22 22"/><circle cx="12" cy="12" r="3"/></svg>';
-      btn.addEventListener('click', () => {
-        const show = input.type === 'password';
-        input.type = show ? 'text' : 'password';
-        btn.innerHTML = show ? eyeOff : eye;
-      });
-    }
-    attachPasswordToggle('prof_temp_password', 'prof_toggle_pw');
-  </script>
-</body>
-</html>
+{% block extra_scripts %}
+<script>
+  function attachPasswordToggle(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    const btn   = document.getElementById(btnId);
+    if (!input || !btn) return;
+    const eye   = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const eyeOff= '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-6.94"/><path d="M1 1l22 22"/><circle cx="12" cy="12" r="3"/></svg>';
+    btn.addEventListener('click', () => {
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.innerHTML = show ? eyeOff : eye;
+    });
+  }
+  attachPasswordToggle('prof_temp_password', 'prof_toggle_pw');
+</script>
+{% endblock %}
