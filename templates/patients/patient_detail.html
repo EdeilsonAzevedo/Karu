@@ -262,8 +262,24 @@
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="card-title text-primary"><i data-lucide="history" class="w-6 h-6"></i> Histórico de Consultas</h3>
                     </div>
+                    <form method="GET" action="#historico-consultas" class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+
+                            <div class="form-control col-span-1 md:col-span-2">
+                                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Buscar por profissional, notas..." class="input input-bordered w-full" />
+                            </div>
+
+                            <div class="form-control">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-lucide="filter" class="w-4 h-4"></i>
+                                    Filtrar Histórico
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
                     <div class="space-y-4">
-                        {% for record in patient.records.all %}
+                        {% for record in consultation_records %}
                         <div class="card bg-base-100 shadow">
                             <div class="card-body">
                                 <div class="flex justify-between items-start mb-3">
