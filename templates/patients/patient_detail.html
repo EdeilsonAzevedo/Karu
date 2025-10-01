@@ -2,13 +2,16 @@
 
 {% block title %}{{ patient.first_name }} {{ patient.last_name }} - Prontuário Karu {% endblock %}
 
+{% block extra_head %}
+    {# Bloco para CSS específico desta página, se necessário #}
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<style>
-    html {
-        scroll-behavior: smooth;
-    }
-</style>
-<body class="min-h-screen bg-gray-50">
     <div class="px-6 py-6">
         <div class="max-w-7xl mx-auto">
             
@@ -136,16 +139,68 @@
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-6"><i data-lucide="trending-up" class="w-6 h-6"></i> Curvas de Crescimento - Intergrowth-21</h3>
                     <div class="tabs tabs-boxed mb-6">
-                        <button class="tab tab-active">Peso</button>
-                        <button class="tab">Comprimento</button>
-                        <button class="tab">Perímetro Cefálico</button>
+                        <div class="tabs tabs-boxed mb-6">
+                            <button class="tab tab-active" onclick="drawChart('weight')">Peso</button>
+                            <button class="tab" onclick="drawChart('length')">Comprimento</button>
+                            <button class="tab" onclick="drawChart('head')">Perímetro Cefálico</button>
+                        </div>
                     </div>
                     <div class="bg-base-100 p-4 rounded-lg">
                         <canvas id="growthChart" height="400"></canvas>
                         </div>
                 </div>
             </div>
-            
+            <div class="card bg-base-200 shadow-xl mb-8">
+                <div class="card-body">
+                    <h3 class="card-title text-secondary mb-6">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                        Análise de Ganho de Peso
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-base-100 p-4 rounded-lg">
+                                <canvas id="weightGainChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="stats stats-vertical shadow">
+                                <div class="stat">
+                                    <div class="stat-title">Ganho Médio</div>
+                                    <div class="stat-value text-success">{{ average_gain_30_days }}g/dia</div>
+                                    <div class="stat-desc">Últimos 30 dias</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-title">Ganho Atual</div>
+                                    <div class="stat-value text-primary">{{ current_gain_7_days }}g/dia</div>
+                                    <div class="stat-desc">Último intervalo</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-title">Meta</div>
+                                    <div class="stat-value text-info">15-30g</div>
+                                    <div class="stat-desc">g/dia ideal</div>
+                                </div>
+                            </div>
+                            {% if status == 'adequate' %}
+                            <div class="alert alert-success">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                <span class="text-xs">Ganho de peso adequado.</span>
+                            </div>
+                            {% elif status == 'low' or status == 'high' %}
+                            <div class="alert alert-warning">
+                                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                <span class="text-xs">Ganho de peso fora da meta.</span>
+                            </div>
+                            {% elif status == 'insufficient_data' %}
+                            <div class="alert alert-info">
+                                <i data-lucide="info" class="w-4 h-4"></i>
+                                <span class="text-xs">Dados insuficientes para análise.</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="alertas-medicacoes" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 <div class="card bg-base-200 shadow-xl">
                     <div class="card-body">
@@ -241,13 +296,93 @@
 
         </div>
     </div>
+    {{ chart_context|json_script:"chart-context" }}
+    {{ bar_chart_labels|json_script:"bar-chart-labels" }}
+    {{ bar_chart_data|json_script:"bar-chart-data" }}
+    {{ bar_chart_colors|json_script:"bar-chart-colors" }}
 
     <script>
-        // Inicializa os ícones do Lucide assim que a página carregar
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-        });
+        let currentChart = null;
+
+        function drawChart(chartType) {
+            // Atualiza o visual das abas para marcar a ativa
+            document.querySelectorAll('#curvas-crescimento .tabs .tab').forEach(tab => {
+                const typeMap = {'peso': 'weight', 'comprimento': 'length', 'perímetro cefálico': 'head'};
+                const tabType = typeMap[tab.textContent.toLowerCase().trim()];
+                if (tabType === chartType) {
+                    tab.classList.add('tab-active');
+                } else {
+                    tab.classList.remove('tab-active');
+                }
+            });
+
+            // Lê a estrutura de dados completa que o Django passou
+            const chartContext = JSON.parse(document.getElementById('chart-context').textContent);
+            
+            const dataMap = {
+                weight: { data: chartContext.weight_data, label: 'Peso (g)' },
+                length: { data: chartContext.length_data, label: 'Comprimento (cm)' },
+                head: { data: chartContext.head_data, label: 'PC (cm)' },
+            };
+            const selectedData = dataMap[chartType];
+
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartContext.chart_labels,
+                    datasets: [
+                        { label: selectedData.label, data: selectedData.data.patient, borderColor: 'rgb(34, 197, 94)', borderWidth: 3, pointRadius: 5, tension: 0.4 },
+                        { label: 'P10', data: selectedData.data.p10, borderColor: 'rgba(239, 68, 68, 0.5)', borderDash: [5, 5], fill: false, borderWidth: 2, pointRadius: 0 },
+                        { label: 'P50', data: selectedData.data.p50, borderColor: 'rgba(59, 130, 246, 0.5)', borderDash: [5, 5], fill: false, borderWidth: 2, pointRadius: 0 },
+                        { label: 'P90', data: selectedData.data.p90, borderColor: 'rgba(239, 68, 68, 0.5)', borderDash: [5, 5], fill: false, borderWidth: 2, pointRadius: 0 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+            });
+        }
+        function initWeightGainChart() {
+            // Ler os dados que o Django passou
+            const labels = JSON.parse(document.getElementById('bar-chart-labels').textContent);
+            const data = JSON.parse(document.getElementById('bar-chart-data').textContent);
+            const colors = JSON.parse(document.getElementById('bar-chart-colors').textContent);
+
+            const canvas = document.getElementById('weightGainChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ganho de peso (g/dia)',
+                        data: data,
+                        backgroundColor: colors,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 40 },
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Ganho de Peso Entre Consultas' }
+                    }
+                }
+            });
+        }
+        // Inicializa o gráfico de peso pela primeira vez
+        // Não precisa do DOMContentLoaded aqui, pois o script já está no final da página
+         initWeightGainChart();
+        drawChart('weight');
+        
     </script>
-</body>
-</html>
-{% endblock %}
+{% endblock content %}

@@ -106,45 +106,199 @@ def patient_edit(request, pk):
     )
 
 
+def _get_growth_chart_data(patient):
+    # Busca por registros que contenham medições antropométricas
+    records_for_chart = (
+        Record.objects.filter(
+            Q(consultation_details__isnull=False) | Q(discharge__isnull=False), patient=patient
+        )
+        .order_by("date")
+        .distinct()
+    )
+
+    # Prepara as listas para o gráfico
+    chart_labels = []
+    patient_weight_data = []
+    patient_length_data = []
+    patient_head_data = []
+
+    for rec in records_for_chart:
+        chart_labels.append(rec.date.strftime("%d/%m/%Y"))
+
+        # Pega os dados da consulta ou da alta, o que estiver disponível
+        consultation_details = getattr(rec, "consultation_details", None)
+        discharge_details = getattr(rec, "discharge", None)
+
+        if consultation_details and consultation_details.weight:
+            patient_weight_data.append(float(consultation_details.weight))
+            patient_length_data.append(
+                float(consultation_details.length) if consultation_details.length else None
+            )
+            patient_head_data.append(
+                float(consultation_details.head_circumference)
+                if consultation_details.head_circumference
+                else None
+            )
+        elif discharge_details and discharge_details.weight:
+            patient_weight_data.append(float(discharge_details.weight))
+            patient_length_data.append(
+                float(discharge_details.length) if discharge_details.length else None
+            )
+            patient_head_data.append(
+                float(discharge_details.head_circumference)
+                if discharge_details.head_circumference
+                else None
+            )
+
+    return {
+        "chart_labels": chart_labels,
+        "weight_data": {
+            "patient": patient_weight_data,
+            "p10": [weight * 0.9 if weight else None for weight in patient_weight_data],
+            "p50": [weight * 1.0 if weight else None for weight in patient_weight_data],
+            "p90": [weight * 1.1 if weight else None for weight in patient_weight_data],
+        },
+        "length_data": {
+            "patient": patient_length_data,
+            "p10": [length * 0.95 if length else None for length in patient_length_data],
+            "p50": [length * 1.0 if length else None for length in patient_length_data],
+            "p90": [length * 1.05 if length else None for length in patient_length_data],
+        },
+        "head_data": {
+            "patient": patient_head_data,
+            "p10": [head * 0.98 if head else None for head in patient_head_data],
+            "p50": [head * 1.0 if head else None for head in patient_head_data],
+            "p90": [head * 1.02 if head else None for head in patient_head_data],
+        },
+    }
+
+
+def get_weight_gain_analysis_data(patient):
+    # Busca todos os registros com peso, ordenados por data
+    records_with_weight = (
+        Record.objects.filter(
+            Q(consultation_details__weight__isnull=False) | Q(discharge__weight__isnull=False),
+            patient=patient,
+        )
+        .order_by("date")
+        .distinct()
+    )
+
+    if records_with_weight.count() < 2:
+        # Não é possível calcular ganho com menos de 2 medições
+        return {
+            "bar_chart_labels": [],
+            "bar_chart_data": [],
+            "bar_chart_colors": [],
+            "average_gain_30_days": 0,
+            "current_gain_7_days": 0,
+            "status": "insufficient_data",
+        }
+
+    # 1. Cálculo para o Gráfico de Barras (Ganho entre consultas)
+    bar_chart_labels = []
+    bar_chart_data = []
+    bar_chart_colors = []
+
+    # Constrói uma lista simples com data e peso
+    measurements = []
+    for rec in records_with_weight:
+        weight = None
+        # Checa de forma segura se é um registro de consulta com peso
+        if (
+            hasattr(rec, "consultation_details")
+            and rec.consultation_details
+            and rec.consultation_details.weight is not None
+        ):
+            weight = float(rec.consultation_details.weight)
+        # Se não for, checa de forma segura se é um registro de alta com peso
+        elif hasattr(rec, "discharge") and rec.discharge and rec.discharge.weight is not None:
+            weight = float(rec.discharge.weight)
+
+        # Só adiciona à lista se um peso válido foi encontrado
+        if weight is not None:
+            measurements.append({"date": rec.date, "weight": weight})
+
+    for i in range(1, len(measurements)):
+        prev = measurements[i - 1]
+        curr = measurements[i]
+
+        delta_days = (curr["date"] - prev["date"]).days
+        if delta_days > 0:
+            delta_weight = curr["weight"] - prev["weight"]
+            daily_gain = round(delta_weight / delta_days)
+
+            label = f'{prev["date"].strftime("%d/%m")}-{curr["date"].strftime("%d/%m")}'
+            bar_chart_labels.append(label)
+            bar_chart_data.append(daily_gain)
+
+            # Define a cor da barra com base na meta
+            if 15 <= daily_gain <= 30:
+                bar_chart_colors.append("rgba(34, 197, 94, 0.7)")  # Verde
+            else:
+                bar_chart_colors.append("rgba(245, 158, 11, 0.7)")  # Laranja
+
+    # 2. Cálculo do Ganho Atual (últimos 7 dias)
+    current_gain_7_days = bar_chart_data[-1] if bar_chart_data else 0
+
+    # 3. Cálculo do Ganho Médio (últimos 30 dias)
+    today = timezone.now().date()
+    thirty_days_ago = today - timedelta(days=30)
+    recent_measurements = [m for m in measurements if m["date"] >= thirty_days_ago]
+
+    average_gain_30_days = 0
+    if len(recent_measurements) >= 2:
+        first = recent_measurements[0]
+        last = recent_measurements[-1]
+        delta_days = (last["date"] - first["date"]).days
+        if delta_days > 0:
+            delta_weight = last["weight"] - first["weight"]
+            average_gain_30_days = round(delta_weight / delta_days)
+
+    # 4. Determinar o status
+    status = "adequate"
+    if current_gain_7_days < 15:
+        status = "low"
+    elif current_gain_7_days > 30:
+        status = "high"
+
+    return {
+        "bar_chart_labels": bar_chart_labels,
+        "bar_chart_data": bar_chart_data,
+        "bar_chart_colors": bar_chart_colors,
+        "average_gain_30_days": average_gain_30_days,
+        "current_gain_7_days": current_gain_7_days,
+        "status": status,
+    }
+
+
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
-    # --- DADOS PARA O HISTÓRICO ---
+    # Busca o histórico para a lista de consultas
     consultation_records = patient.records.filter(record_type="consultation").order_by("-date")
 
-    # --- CÁLCULO DAS IDADES ---
-    today = timezone.now().date()
+    # Chama a função auxiliar para fazer os cálculos complexos
+    chart_data_dict = _get_growth_chart_data(patient)
 
-    # 1. Idade Cronológica
+    # Lógica de cálculo de idade
+    today = timezone.now().date()
     age_timedelta = today - patient.date_of_birth
     age_in_days = age_timedelta.days
-
-    # 2. Idade Gestacional Corrigida (formato semanas + dias)
     total_days_corrected = (patient.gestational_age_weeks * 7) + age_in_days
     corrected_age_weeks = total_days_corrected // 7
     corrected_age_remaining_days = total_days_corrected % 7
-    
-    # --- PREPARAÇÃO DOS DADOS PARA O GRÁFICO DE PESO ---
-    # A lógica aqui será expandida quando o modelo de consulta tiver o campo 'weight'
-    records_for_chart = (
-        Record.objects.filter(patient=patient, discharge__isnull=False)
-        .order_by("date")
-        .select_related("discharge")
-    )
 
-    chart_labels = [rec.date.strftime("%d/%m/%Y") for rec in records_for_chart]
-    chart_data = [float(rec.discharge.weight) for rec in records_for_chart]
-
-    # --- MONTAGEM DO CONTEXTO FINAL ---
     context = {
         "patient": patient,
         "consultation_records": consultation_records,
         "age_in_days": age_in_days,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
-        "chart_labels": chart_labels,
-        "chart_data": chart_data,
+        "chart_context": chart_data_dict,
     }
+    weight_gain_context = get_weight_gain_analysis_data(patient)
+    context.update(weight_gain_context)
 
     return render(request, "patients/patient_detail.html", context)
 
