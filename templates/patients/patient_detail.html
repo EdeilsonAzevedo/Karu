@@ -218,31 +218,46 @@
             </div>
         </div>
 
-        <div id="historico-consultas" class="card bg-base-200 shadow-xl">
-            <div class="card-body">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="card-title text-primary"><i data-lucide="history" class="w-6 h-6"></i> Histórico de
-                        Consultas</h3>
-                </div>
-                <div class="space-y-4">
-                    {% for record in patient.records.all %}
-                    <div class="card bg-base-100 shadow">
-                        <div class="card-body">
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="font-semibold">{{ record.get_record_type_display }}</div>
-                                <div class="text-right">
-                                    <div class="font-semibold">{{ record.date|date:"d/m/Y" }}</div>
-                                </div>
-                            </div>
-                            <div class="collapse collapse-arrow -m-4">
-                                <input type="checkbox">
-                                <div class="collapse-title text-sm font-medium">Ver detalhes</div>
-                                <div class="collapse-content">
-                                    <div class="space-y-2 text-sm pt-2">
-                                        {% if record.notes %}<p><strong>Observações Gerais:</strong> {{ record.notes }}</p>{% endif %}
+            <div id="historico-consultas" class="card bg-base-200 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="card-title text-primary"><i data-lucide="history" class="w-6 h-6"></i> Histórico de Consultas</h3>
+                    </div>
+                    <form method="GET" action="#historico-consultas" class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
 
-                                        <h4 class="font-semibold mt-2">Avaliações Clínicas:</h4>
-                                        <ul>
+                            <div class="form-control col-span-1 md:col-span-2">
+                                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Buscar por profissional, notas..." class="input input-bordered w-full" />
+                            </div>
+
+                            <div class="form-control">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-lucide="filter" class="w-4 h-4"></i>
+                                    Filtrar Histórico
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+                    <div class="space-y-4">
+                        {% for record in consultation_records %}
+                        <div class="card bg-base-100 shadow">
+                            <div class="card-body">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="font-semibold">{{ record.get_record_type_display }}</div>
+                                    <div class="text-right">
+                                        <div class="font-semibold">{{ record.date|date:"d/m/Y" }}</div>
+                                    </div>
+                                </div>
+                                <div class="collapse collapse-arrow -m-4">
+                                    <input type="checkbox">
+                                    <div class="collapse-title text-sm font-medium">Ver detalhes</div>
+                                    <div class="collapse-content">
+                                        <div class="space-y-2 text-sm pt-2">
+                                            {% if record.notes %}<p><strong>Observações Gerais:</strong> {{ record.notes }}</p>{% endif %}
+                                            
+                                            <h4 class="font-semibold mt-2">Avaliações Clínicas:</h4>
+                                            <ul>
                                             {% for eval in record.clinical_evaluations.all %}
                                             <li><strong>{{ eval.get_type_display }}:</strong> {{ eval.get_status_display }}</li>
                                             {% empty %}
