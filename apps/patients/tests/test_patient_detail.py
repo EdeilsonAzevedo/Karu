@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-
 from datetime import date
 
 import pytest
