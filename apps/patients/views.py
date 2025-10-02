@@ -1,4 +1,3 @@
-# apps/patients/views.py
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -6,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import DischargeRecordForm, PatientForm, RecordForm
 from .models import (
     DischargeRecord,
-    Exam,  # ADICIONAR ESTES IMPORTS
+    Exam,
     Patient,
     Record,
     Vaccine,
