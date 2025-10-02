@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-
 import pytest
 from django.urls import reverse
 from apps.patients.tests.factories import PatientFactory, RecordFactory, DischargeRecordFactory
