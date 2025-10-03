@@ -19,6 +19,7 @@ dependencies = [
     "faker (>=37.8.0,<38.0.0)",
     "pytest-factoryboy (>=2.8.1,<3.0.0)",
     "pytest-cov (>=7.0.0,<8.0.0)",
+    "django-auditlog (>=3.3.0,<4.0.0)",
 
 ]
 

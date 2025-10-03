@@ -1,0 +1,169 @@
+{% extends 'core/base.html' %}
+{% load audit_helpers %}
+
+{% block title %}Logs do Sistema - Karu{% endblock title %}
+
+{% block content %}
+<div class="px-6 py-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-base-content mb-2">Logs de Atividade</h1>
+                <p class="text-base-content/70">Histórico de todas as ações realizadas no sistema.</p>
+            </div>
+        </div>
+
+        <div class="card bg-base-200 shadow-xl mb-8">
+            <div class="card-body">
+                <h3 class="card-title mb-4">
+                    <i data-lucide="filter" class="w-5 h-5"></i>
+                    Filtrar Logs
+                </h3>
+                <form method="get" action="{% url 'manager:audit_log' %}">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Buscar</span></label>
+                            <input type="text" name="search_query" placeholder="Usuário, objeto, detalhes..."
+                                class="input input-bordered input-sm"
+                                value="{{ request.GET.search_query|default:'' }}" />
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Tipo de Ação</span></label>
+                            <select name="action_type" class="select select-bordered select-sm">
+                                <option value="">Todas</option>
+                                <option value="create" {% if request.GET.action_type == 'create' %}selected{% endif %}>
+                                    Criação</option>
+                                <option value="update" {% if request.GET.action_type == 'update' %}selected{% endif %}>
+                                    Atualização</option>
+                                <option value="delete" {% if request.GET.action_type == 'delete' %}selected{% endif %}>
+                                    Exclusão</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">De</span></label>
+                            <input type="date" name="start_date" class="input input-bordered input-sm"
+                                value="{{ request.GET.start_date|default:'' }}">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Até</span></label>
+                            <input type="date" name="end_date" class="input input-bordered input-sm"
+                                value="{{ request.GET.end_date|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                            Aplicar Filtros
+                        </button>
+                        <a href="{% url 'manager:audit_log' %}" class="btn btn-ghost btn-sm">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                            Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Usuário</th>
+                                <th>Ação</th>
+                                <th>Detalhes da Alteração</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in page_obj %}
+                            <tr>
+                                <td>
+                                    <div class="font-bold">{{ log.timestamp|date:"d/m/Y" }}</div>
+                                    <div class="text-sm opacity-60">{{ log.timestamp|time:"H:i:s" }}</div>
+                                </td>
+                                <td>
+                                    {% if log.actor %}
+                                    <div class="flex items-center gap-3">
+                                        <div class="avatar placeholder">
+                                            <div class="bg-primary text-primary-content rounded-full w-8">
+                                                <span class="text-xs">{{ log.actor.first_name|first }}{{
+                                                    log.actor.last_name|first }}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold">{{ log.actor.get_full_name|default:log.actor.username
+                                                }}</div>
+                                            <div class="text-sm opacity-50">Usuário</div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-base-content/70 font-semibold">Sistema</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="badge 
+                                        {% if log.action == 0 %}badge-info{% endif %}
+                                        {% if log.action == 1 %}badge-warning{% endif %}
+                                        {% if log.action == 2 %}badge-error{% endif %}
+                                        gap-2 capitalize">
+                                        {{ log.get_action_display }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="font-bold text-base-content/90">{{ log.object_repr }}</div>
+
+                                    <div x-data="{ expanded: false }" class="text-sm opacity-70">
+
+                                        <div class="whitespace-pre-wrap" :class="expanded ? '' : 'line-clamp-4'">
+                                            {{ log|format_changes|linebreaksbr }}
+                                        </div>
+
+                                        <button @click="expanded = !expanded"
+                                            class="text-primary font-semibold mt-1 text-xs">
+                                            <span x-text="expanded ? 'Mostrar Menos' : 'Mostrar Mais'"></span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-8">
+                                    <p class="text-lg text-base-content/60">Nenhum log encontrado para os filtros
+                                        aplicados.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-between items-center mt-6">
+                    <div class="text-sm text-base-content/70">
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count
+                        }} registros.
+                    </div>
+                    {% if page_obj.paginator.num_pages > 1 %}
+                    <div class="join">
+                        {% if page_obj.has_previous %}
+                        <a href="?page=1&{{ query_params }}" class="join-item btn btn-sm">«</a>
+                        <a href="?page={{ page_obj.previous_page_number }}&{{ query_params }}"
+                            class="join-item btn btn-sm">‹</a>
+                        {% endif %}
+                        <button class="join-item btn btn-sm btn-active">Página {{ page_obj.number }} de {{
+                            page_obj.paginator.num_pages }}</button>
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}&{{ query_params }}"
+                            class="join-item btn btn-sm">›</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}&{{ query_params }}"
+                            class="join-item btn btn-sm">»</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
