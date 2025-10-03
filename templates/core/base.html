@@ -157,6 +157,7 @@
                     <li><a href="#"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
                     <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
                     <li><a href="#"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
+                    <li><a href="{% url 'manager:audit_log' %}"><i data-lucide="file-text" class="w-5 h-5"></i> Logs de Atividade</a></li>
 
                     <li class="menu-title mt-4"><span>Conta</span></li>
                     <li><a href="#"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
@@ -166,6 +167,8 @@
             </div>
         </div>
     </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- JavaScript -->
     <script>
