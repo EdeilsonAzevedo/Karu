@@ -45,7 +45,7 @@ jobs:
         key: poetry-${{ hashFiles('**/poetry.lock') }}
 
     - name: Install dependencies
-      run: poetry install
+      run: poetry install --no-root
 
     - name: Run tests
       env:
