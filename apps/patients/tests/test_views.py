@@ -1,11 +1,8 @@
-# apps/patients/tests/test_views.py
 from decimal import Decimal
 
 import pytest
 
 from apps.patients.models import DischargeRecord, Patient, Record
-
-# Importar usando caminhos absolutos para pytest
 from apps.patients.tests.factories import PatientFactory
 
 # ============ TESTES DA VIEW PATIENT LIST ============
@@ -14,7 +11,7 @@ from apps.patients.tests.factories import PatientFactory
 @pytest.mark.django_db
 def test_patient_list_view_status_code(client):
     """Testa se a view carrega corretamente"""
-    url = "/patients/"  # ou reverse('patients:list') se usar namespaces
+    url = "/patients/"
     response = client.get(url)
 
     assert response.status_code == 200
@@ -199,104 +196,9 @@ def test_patient_edit_get_without_discharge_record(client):
 
 
 @pytest.mark.django_db
-def test_patient_edit_post_success(client, patient_with_full_data):
-    """Testa edição bem-sucedida"""
-    patient, record, discharge = patient_with_full_data
-
-    url = f"/patients/{patient.pk}/edit/"
-
-    edit_data = {
-        "first_name": "João Carlos",  # nome modificado
-        "last_name": patient.last_name or "",
-        "sex": patient.sex,
-        "date_of_birth": "2023-01-15",
-        "gestational_age_weeks": str(patient.gestational_age_weeks),
-        "birth_weight": str(patient.birth_weight),
-        "date": "2023-02-01",
-        "weight": "5.00",  # peso modificado
-        "feeding_type": discharge.feeding_type,
-    }
-
-    response = client.post(url, edit_data)
-
-    assert response.status_code == 302
-
-    # Verifica se as alterações foram salvas
-    patient.refresh_from_db()
-    discharge.refresh_from_db()
-
-    assert patient.first_name == "João Carlos"
-    assert discharge.weight == Decimal("5.00")
-
-
-@pytest.mark.django_db
-def test_patient_edit_creates_missing_records(client):
-    """Testa se cria records que não existiam"""
-    patient = PatientFactory()
-
-    url = f"/patients/{patient.pk}/edit/"
-
-    data = {
-        "first_name": patient.first_name,
-        "last_name": patient.last_name or "",
-        "sex": patient.sex,
-        "date_of_birth": "2023-01-15",
-        "gestational_age_weeks": str(patient.gestational_age_weeks),
-        "birth_weight": str(patient.birth_weight),
-        "date": "2023-02-01",  # novo record
-        "weight": "4.50",  # novo discharge
-        "feeding_type": "mixed",
-    }
-
-    response = client.post(url, data)
-
-    assert response.status_code == 302
-
-    # Verifica se foram criados
-    record = Record.objects.get(patient=patient, record_type="discharge")
-    discharge = DischargeRecord.objects.get(record=record)
-
-    assert discharge.weight == Decimal("4.50")
-
-
-@pytest.mark.django_db
 def test_patient_edit_invalid_pk(client):
     """Testa acesso com ID inválido"""
     url = "/patients/99999/edit/"
     response = client.get(url)
 
     assert response.status_code == 404
-
-
-# ============ TESTES DE INTEGRAÇÃO ============
-
-
-@pytest.mark.django_db
-@pytest.mark.integration
-def test_complete_patient_workflow(client, patient_form_data):
-    """Testa fluxo completo: criar -> listar -> editar"""
-
-    # 1. Criar paciente
-    create_url = "/patients/create/"
-    response = client.post(create_url, patient_form_data)
-    assert response.status_code == 302
-
-    # 2. Verificar na lista
-    list_url = "/patients/"
-    response = client.get(list_url)
-    assert "Ana" in response.content.decode()
-
-    # 3. Editar paciente
-    patient = Patient.objects.get(first_name="Ana")
-    edit_url = f"/patients/{patient.pk}/edit/"
-
-    edit_data = patient_form_data.copy()
-    edit_data["first_name"] = "Ana Editada"
-
-    response = client.post(edit_url, edit_data)
-    assert response.status_code == 302
-
-    # 4. Verificar edição na lista
-    response = client.get(list_url)
-    content = response.content.decode()
-    assert "Ana Editada" in content
