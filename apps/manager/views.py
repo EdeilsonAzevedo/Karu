@@ -1,12 +1,11 @@
-from django.contrib.auth.decorators import login_required
+# Importa o modelo LogEntry da biblioteca django-auditlog
+from auditlog.models import LogEntry
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render
 
-# Importa o modelo LogEntry da biblioteca django-auditlog
-from auditlog.models import LogEntry
 
-#@login_required
+# @login_required
 def audit_log_view(request):
     """
     Exibe a lista de logs de auditoria do django-auditlog em um template customizado.

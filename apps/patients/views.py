@@ -6,19 +6,22 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import (
+    ClinicalEvaluationForm,
     ClinicalWarningSignForm,
     ConsultationRecordForm,
     DischargeRecordForm,
+    InterdisciplinaryEvaluationForm,
     PatientForm,
     RecordForm,
-    ClinicalEvaluationForm, InterdisciplinaryEvaluationForm
 )
 from .models import (
+    ClinicalEvaluation,
+    ClinicalEvaluationType,
     ClinicalWarningSign,
+    InterdisciplinaryEvaluation,
+    InterdisciplinaryEvaluationArea,
     Patient,
     Record,
-    ClinicalEvaluation, InterdisciplinaryEvaluation,
-    ClinicalEvaluationType, InterdisciplinaryEvaluationArea
 )
 
 
@@ -102,7 +105,9 @@ def patient_edit(request, pk):
         record = None
         discharge = None
 
-    existing_clinical_evals = {e.type: e for e in record.clinical_evaluations.all()} if record else {}
+    existing_clinical_evals = (
+        {e.type: e for e in record.clinical_evaluations.all()} if record else {}
+    )
     existing_team_evals = {e.area: e for e in record.team_evaluations.all()} if record else {}
 
     if request.method == "POST":
@@ -114,24 +119,28 @@ def patient_edit(request, pk):
             ctype.value: ClinicalEvaluationForm(
                 request.POST,
                 instance=existing_clinical_evals.get(ctype.value),
-                prefix=f'clinic-{ctype.value}'
-            ) for ctype in ClinicalEvaluationType
+                prefix=f"clinic-{ctype.value}",
+            )
+            for ctype in ClinicalEvaluationType
         }
         team_forms = {
             area.value: InterdisciplinaryEvaluationForm(
                 request.POST,
                 instance=existing_team_evals.get(area.value),
-                prefix=f'team-{area.value}'
-            ) for area in InterdisciplinaryEvaluationArea
+                prefix=f"team-{area.value}",
+            )
+            for area in InterdisciplinaryEvaluationArea
         }
 
-        all_forms_valid = all([
-            patient_form.is_valid(),
-            record_form.is_valid(),
-            discharge_form.is_valid(),
-            all(f.is_valid() for f in clinical_forms.values()),
-            all(f.is_valid() for f in team_forms.values())
-        ])
+        all_forms_valid = all(
+            [
+                patient_form.is_valid(),
+                record_form.is_valid(),
+                discharge_form.is_valid(),
+                all(f.is_valid() for f in clinical_forms.values()),
+                all(f.is_valid() for f in team_forms.values()),
+            ]
+        )
 
         if all_forms_valid:
             patient = patient_form.save()
@@ -145,19 +154,19 @@ def patient_edit(request, pk):
             discharge_instance.save()
 
             for ctype_enum, form in clinical_forms.items():
-                if form.cleaned_data.get('status'):
+                if form.cleaned_data.get("status"):
                     eval_obj, created = ClinicalEvaluation.objects.get_or_create(
                         record=record_instance, type=ctype_enum
                     )
-                    eval_obj.status = form.cleaned_data['status']
+                    eval_obj.status = form.cleaned_data["status"]
                     eval_obj.save()
 
             for area_enum, form in team_forms.items():
-                if form.cleaned_data.get('notes'):
+                if form.cleaned_data.get("notes"):
                     eval_obj, created = InterdisciplinaryEvaluation.objects.get_or_create(
                         record=record_instance, area=area_enum
                     )
-                    eval_obj.notes = form.cleaned_data['notes']
+                    eval_obj.notes = form.cleaned_data["notes"]
                     eval_obj.save()
 
             return redirect("patients:detail", pk=patient.pk)
@@ -169,16 +178,18 @@ def patient_edit(request, pk):
         clinical_forms = {
             ctype.value: ClinicalEvaluationForm(
                 instance=existing_clinical_evals.get(ctype.value),
-                prefix=f'clinic-{ctype.value}',
-                initial={'type': ctype.value}
-            ) for ctype in ClinicalEvaluationType
+                prefix=f"clinic-{ctype.value}",
+                initial={"type": ctype.value},
+            )
+            for ctype in ClinicalEvaluationType
         }
         team_forms = {
             area.value: InterdisciplinaryEvaluationForm(
                 instance=existing_team_evals.get(area.value),
-                prefix=f'team-{area.value}',
-                initial={'area': area.value}
-            ) for area in InterdisciplinaryEvaluationArea
+                prefix=f"team-{area.value}",
+                initial={"area": area.value},
+            )
+            for area in InterdisciplinaryEvaluationArea
         }
 
     context = {
