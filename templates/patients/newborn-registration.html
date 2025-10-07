@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load patient_extras %}
 
 {% block title %}Cadastro de Alta de Recém-Nascido - Karu{% endblock title %}
 
@@ -70,10 +71,12 @@
                                 <label class="label"><span class="label-text">CPF</span></label>
                                 <input name="cpf" inputmode="numeric" pattern="[0-9]{11}" class="input input-bordered"
                                     placeholder="11 dígitos (opcional)" />
-                                <label class="label required"><span class="label-text-alt">Somente números</span></label>
+                                <label class="label required"><span class="label-text-alt">Somente
+                                        números</span></label>
                             </div>
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Certidão de Nascimento</span></label>
+                                <label class="label required"><span class="label-text">Certidão de
+                                        Nascimento</span></label>
                                 <input name="birth_certificate_number" class="input input-bordered"
                                     placeholder="Número da certidão" />
                             </div>
@@ -86,12 +89,14 @@
                         <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Dados do Responsável</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Nome do Responsável</span></label>
+                                <label class="label required"><span class="label-text">Nome do
+                                        Responsável</span></label>
                                 <input name="guardian_name" type="text" class="input input-bordered"
                                     placeholder="Ex.: Ana Souza" />
                             </div>
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Telefone de Contato</span></label>
+                                <label class="label required"><span class="label-text">Telefone de
+                                        Contato</span></label>
                                 <input name="contact_phone" type="tel" class="input input-bordered"
                                     placeholder="(82) 99999-9999" />
                             </div>
@@ -226,90 +231,54 @@
                     </div>
                 </section>
 
-                <!-- SEÇÃO 4: AVALIAÇÕES CLÍNICAS -->
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="activity" class="w-5 h-5"></i>Avaliações Clínicas</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                            {% for ctype in ClinicalEvaluationType %}
+                            {% with clinical_form=clinical_forms|get_item:ctype.value %}
                             <div class="form-control">
-                                <label class="label"><span class="label-text">Avaliação Pediátrica</span></label>
-                                <select name="clinical_pediatric" class="select select-bordered">
-                                    <option value="">Não informado</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="altered">Alterada</option>
-                                </select>
+                                <label class="label"><span class="label-text">{{ ctype.label }}</span></label>
+
+                                {{ clinical_form.status }}
+                                {{ clinical_form.type }}
+
+                                {% for error in clinical_form.status.errors %}
+                                <div class="label">
+                                    <span class="label-text-alt text-error">{{ error }}</span>
+                                </div>
+                                {% endfor %}
                             </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Avaliação Neurológica</span></label>
-                                <select name="clinical_neurologic" class="select select-bordered">
-                                    <option value="">Não informado</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="altered">Alterada</option>
-                                </select>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Avaliação Cardiológica</span></label>
-                                <select name="clinical_cardiac" class="select select-bordered">
-                                    <option value="">Não informado</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="altered">Alterada</option>
-                                </select>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Avaliação Visual</span></label>
-                                <select name="clinical_visual" class="select select-bordered">
-                                    <option value="">Não informado</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="altered">Alterada</option>
-                                </select>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Avaliação Auditiva</span></label>
-                                <select name="clinical_auditory" class="select select-bordered">
-                                    <option value="">Não informado</option>
-                                    <option value="normal">Normal</option>
-                                    <option value="altered">Alterada</option>
-                                </select>
-                            </div>
+                            {% endwith %}
+                            {% endfor %}
+
                         </div>
                     </div>
                 </section>
 
-                <!-- SEÇÃO 5: AVALIAÇÕES INTERDISCIPLINARES -->
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Avaliações da Equipe</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            {% for area in InterdisciplinaryEvaluationArea %}
+                            {% with team_form=team_forms|get_item:area.value %}
                             <div class="form-control">
-                                <label class="label"><span class="label-text">Enfermagem</span></label>
-                                <textarea name="team_nursing" class="textarea textarea-bordered" rows="2"
-                                    placeholder="Observações da enfermagem..."></textarea>
+                                <label class="label"><span class="label-text">{{ area.label }}</span></label>
+
+                                {{ team_form.notes }}
+                                {{ team_form.area }}
+
+                                {% for error in team_form.notes.errors %}
+                                <div class="label">
+                                    <span class="label-text-alt text-error">{{ error }}</span>
+                                </div>
+                                {% endfor %}
                             </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Fisioterapia</span></label>
-                                <textarea name="team_physiotherapy" class="textarea textarea-bordered" rows="2"
-                                    placeholder="Observações da fisioterapia..."></textarea>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Fonoaudiologia</span></label>
-                                <textarea name="team_speech" class="textarea textarea-bordered" rows="2"
-                                    placeholder="Observações da fonoaudiologia..."></textarea>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Psicologia</span></label>
-                                <textarea name="team_psychology" class="textarea textarea-bordered" rows="2"
-                                    placeholder="Observações da psicologia..."></textarea>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Serviço Social</span></label>
-                                <textarea name="team_social_work" class="textarea textarea-bordered" rows="2"
-                                    placeholder="Observações do serviço social..."></textarea>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Terapia Ocupacional</span></label>
-                                <textarea name="team_occupational_therapy" class="textarea textarea-bordered" rows="2"
-                                    placeholder="Observações da terapia ocupacional..."></textarea>
-                            </div>
+                            {% endwith %}
+                            {% endfor %}
+
                         </div>
                     </div>
                 </section>
