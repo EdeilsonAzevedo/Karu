@@ -4,14 +4,6 @@
 
 {% block content %}
 <main class="min-h-screen bg-base-100">
-    <!-- Breadcrumb -->
-    <div class="text-sm breadcrumbs px-6 py-2 bg-base-200">
-        <ul>
-            <li><a href="index.html">Início</a></li>
-            <li><a href="manager-dashboard.html">Dashboard</a></li>
-            <li>Nova Alta de RN</li>
-        </ul>
-    </div>
 
     <main class="px-6 py-6">
         <div class="max-w-6xl mx-auto">
@@ -23,16 +15,6 @@
                 </div>
             </div>
 
-            <!-- Steps -->
-            <ul class="steps w-full mb-6">
-                <li class="step step-primary">Paciente</li>
-                <li class="step">Responsável</li>
-                <li class="step">Endereço</li>
-                <li class="step">Nascimento</li>
-                <li class="step">Alta</li>
-                <li class="step">Registro</li>
-                <li class="step">Confirmar</li>
-            </ul>
 
             <form id="formDischarge" method="POST" class="grid grid-cols-1 gap-6">
                 {% csrf_token %}

@@ -1,18 +1,18 @@
-from django.contrib import admin
 from auditlog.registry import auditlog
+from django.contrib import admin
 
 # Importe todos os modelos que você deseja auditar
 from .models import (
+    ClinicalEvaluation,
+    ClinicalWarningSign,
+    ConsultationRecord,
+    DischargeRecord,
+    Exam,
+    FollowUp,
+    InterdisciplinaryEvaluation,
     Patient,
     Record,
-    DischargeRecord,
-    ConsultationRecord,
-    ClinicalEvaluation,
-    InterdisciplinaryEvaluation,
-    ClinicalWarningSign,
-    Exam,
     Vaccine,
-    FollowUp,
 )
 
 # --- Registro na Interface de Admin (Opcional, mas recomendado) ---

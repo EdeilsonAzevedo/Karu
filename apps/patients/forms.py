@@ -33,8 +33,8 @@ class PatientForm(forms.ModelForm):
             "gestational_age_weeks",
             "gestational_age_days",
             "birth_weight",
-            "birth_length",        
-            "head_circumference", 
+            "birth_length",
+            "head_circumference",
         ]
 
         # 1. Definindo os rótulos (labels) em português
@@ -108,22 +108,32 @@ class RecordForm(forms.ModelForm):
             "professional": "Profissional/Cargo",
             "notes": "Observações da alta",
         }
+
     def __init__(self, *args, **kwargs):
         super(RecordForm, self).__init__(*args, **kwargs)
-        input_classes = "input input-bordered w-full transition-all duration-300 focus:input-primary"
-        textarea_classes = "textarea textarea-bordered w-full transition-all duration-300 focus:textarea-primary"
+        input_classes = (
+            "input input-bordered w-full transition-all duration-300 focus:input-primary"
+        )
+        textarea_classes = (
+            "textarea textarea-bordered w-full transition-all duration-300 focus:textarea-primary"
+        )
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.Textarea):
                 field.widget.attrs.update({"class": textarea_classes})
             else:
                 field.widget.attrs.update({"class": input_classes})
 
+
 class DischargeRecordForm(forms.ModelForm):
     class Meta:
         model = DischargeRecord
         fields = [
-            "chronological_age_days", "corrected_age_weeks", "weight",
-            "length", "head_circumference", "feeding_type",
+            "chronological_age_days",
+            "corrected_age_weeks",
+            "weight",
+            "length",
+            "head_circumference",
+            "feeding_type",
         ]
         labels = {
             "chronological_age_days": "Idade cronológica (dias)",
@@ -139,8 +149,12 @@ class DischargeRecordForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(DischargeRecordForm, self).__init__(*args, **kwargs)
-        input_classes = "input input-bordered w-full transition-all duration-300 focus:input-primary"
-        select_classes = "select select-bordered w-full transition-all duration-300 focus:select-primary"
+        input_classes = (
+            "input input-bordered w-full transition-all duration-300 focus:input-primary"
+        )
+        select_classes = (
+            "select select-bordered w-full transition-all duration-300 focus:select-primary"
+        )
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.Select):
                 field.widget.attrs.update({"class": select_classes})
@@ -157,16 +171,16 @@ class ClinicalEvaluationForm(forms.ModelForm):
         widgets = {
             "type": forms.HiddenInput(),
         }
-        labels = {
-            "status": ""
-        }
+        labels = {"status": ""}
 
     def __init__(self, *args, **kwargs):
         super(ClinicalEvaluationForm, self).__init__(*args, **kwargs)
-        self.fields['status'].required = False
-        status_choices = self.fields['status'].choices[1:]  # type: ignore
-        self.fields['status'].choices = [('', 'Não informado')] + status_choices
-        self.fields['status'].widget.attrs.update({'class': 'select select-bordered w-full'})
+        self.fields["type"].required = False
+        self.fields["status"].required = False
+        status_choices = self.fields["status"].choices[1:]  # type: ignore
+        self.fields["status"].choices = [("", "Não informado")] + status_choices
+        self.fields["status"].widget.attrs.update({"class": "select select-bordered w-full"})
+
 
 # formulário para as avaliações da equipe
 class InterdisciplinaryEvaluationForm(forms.ModelForm):
@@ -179,9 +193,8 @@ class InterdisciplinaryEvaluationForm(forms.ModelForm):
                 attrs={"rows": 2, "class": "textarea textarea-bordered w-full"}
             ),
         }
-        labels = {
-            "notes": ""
-        }
+        labels = {"notes": ""}
+
 
 class ConsultationRecordForm(forms.ModelForm):
     class Meta:

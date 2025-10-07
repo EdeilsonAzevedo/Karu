@@ -3,11 +3,7 @@
 
 {% block title %}Novo Responsável · Karu{% endblock %}
 
-{% block breadcrumb %}
-  <div class="px-4 py-2 bg-base-200 text-sm">
-    <span class="opacity-70">Início</span> / <span>Usuários</span> / <span>Cadastro de Responsável</span>
-  </div>
-{% endblock %}
+
 
 {% block sidebar_extra %}
   {% if request.user.is_superuser or request.user|has_group:'gestores' %}

@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.core",
     "apps.patients",
-    "apps.manager", 
+    "apps.manager",
     "auditlog",
 ]
 
@@ -96,6 +96,7 @@ DATABASES = {
         "PASSWORD": "postgres",  # A senha deste usuário
         "HOST": "localhost",  # O endereço do servidor (localhost = sua própria máquina)
         "PORT": "5432",  # A porta padrão do PostgreSQL
+        "TEST": {"NAME": "karu_test"},  # Nome do banco de dados de teste
     }
 }
 
