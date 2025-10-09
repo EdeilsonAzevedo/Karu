@@ -54,31 +54,34 @@ def patient_list(request):
 
 # Em patients/views.py
 
+
 @transaction.atomic
 def patient_create(request):
     if request.method == "POST":
         patient_form = PatientForm(request.POST)
         record_form = RecordForm(request.POST)
         discharge_form = DischargeRecordForm(request.POST)
-        
+
         # --- ADICIONE ESTES FORMULÁRIOS ---
         clinical_forms = {
-            ctype.value: ClinicalEvaluationForm(request.POST, prefix=f'clinic-{ctype.value}')
+            ctype.value: ClinicalEvaluationForm(request.POST, prefix=f"clinic-{ctype.value}")
             for ctype in ClinicalEvaluationType
         }
         team_forms = {
-            area.value: InterdisciplinaryEvaluationForm(request.POST, prefix=f'team-{area.value}')
+            area.value: InterdisciplinaryEvaluationForm(request.POST, prefix=f"team-{area.value}")
             for area in InterdisciplinaryEvaluationArea
         }
 
         # --- ATUALIZE A CONDIÇÃO DE VALIDAÇÃO ---
-        all_forms_valid = all([
-            patient_form.is_valid(),
-            record_form.is_valid(),
-            discharge_form.is_valid(),
-            all(f.is_valid() for f in clinical_forms.values()),
-            all(f.is_valid() for f in team_forms.values())
-        ])
+        all_forms_valid = all(
+            [
+                patient_form.is_valid(),
+                record_form.is_valid(),
+                discharge_form.is_valid(),
+                all(f.is_valid() for f in clinical_forms.values()),
+                all(f.is_valid() for f in team_forms.values()),
+            ]
+        )
 
         if all_forms_valid:
             patient = patient_form.save()
@@ -91,22 +94,18 @@ def patient_create(request):
             discharge = discharge_form.save(commit=False)
             discharge.record = record
             discharge.save()
-            
+
             # --- ADICIONE A LÓGICA PARA SALVAR AS AVALIAÇÕES ---
             for ctype_enum, form in clinical_forms.items():
-                if form.cleaned_data.get('status'):
+                if form.cleaned_data.get("status"):
                     ClinicalEvaluation.objects.create(
-                        record=record,
-                        type=ctype_enum,
-                        status=form.cleaned_data['status']
+                        record=record, type=ctype_enum, status=form.cleaned_data["status"]
                     )
 
             for area_enum, form in team_forms.items():
-                if form.cleaned_data.get('notes'):
+                if form.cleaned_data.get("notes"):
                     InterdisciplinaryEvaluation.objects.create(
-                        record=record,
-                        area=area_enum,
-                        notes=form.cleaned_data['notes']
+                        record=record, area=area_enum, notes=form.cleaned_data["notes"]
                     )
             # --- FIM DAS ADIÇÕES ---
 
@@ -123,22 +122,24 @@ def patient_create(request):
                 if not form.is_valid():
                     print(f"Team Form ({key}) Errors:", form.errors)
 
-
-    else: # GET request
+    else:  # GET request
         patient_form = PatientForm()
         record_form = RecordForm()
         discharge_form = DischargeRecordForm()
-        
+
         # --- ADICIONE ESTES FORMULÁRIOS TAMBÉM NO GET ---
         clinical_forms = {
-            ctype.value: ClinicalEvaluationForm(prefix=f'clinic-{ctype.value}', initial={'type': ctype.value})
+            ctype.value: ClinicalEvaluationForm(
+                prefix=f"clinic-{ctype.value}", initial={"type": ctype.value}
+            )
             for ctype in ClinicalEvaluationType
         }
         team_forms = {
-            area.value: InterdisciplinaryEvaluationForm(prefix=f'team-{area.value}', initial={'area': area.value})
+            area.value: InterdisciplinaryEvaluationForm(
+                prefix=f"team-{area.value}", initial={"area": area.value}
+            )
             for area in InterdisciplinaryEvaluationArea
         }
-
 
     return render(
         request,
@@ -153,6 +154,7 @@ def patient_create(request):
             "InterdisciplinaryEvaluationArea": InterdisciplinaryEvaluationArea,
         },
     )
+
 
 @transaction.atomic
 def patient_edit(request, pk):
