@@ -70,7 +70,7 @@
                     </label>
 
                     <!-- Logo -->
-                    <a href="{}" class="flex items-center space-x-3 ml-2">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-3 ml-2">
                         <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg">
                             <i data-lucide="heart" class="w-6 h-6 text-white"></i>
                         </div>
@@ -151,32 +151,47 @@
                 <!-- Navigation Menu -->
                 <ul class="menu text-base space-y-1">
                     <!-- Menu items podem ser adicionados conforme necessário -->
-                    <li><a href="#"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a></li>
+                    <li><a href="#"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                        <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
                     <li><a href="{% url 'patients:list' %}"><i data-lucide="search" class="w-5 h-5"></i> Buscar
                             Recém-Nascidos</a></li>
                     <li><a href="{% url 'patients:create' %}"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova
                             Criança</a></li>
                     <li><a href="#"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
-                    <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios</a></li>
-                    <li><a href="#"><i data-lucide="history" class="w-5 h-5"></i> Histórico</a></li>
+                    <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios
+                        <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
                     <li><a href="{% url 'manager:audit_log' %}"><i data-lucide="file-text" class="w-5 h-5"></i> Logs de Atividade</a></li>
                     
+                    <li class="menu-title mt-4"><span>Conta</span></li>
+                    <li><a href="#"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil
+                        <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
+                    <li><a href="#"><i data-lucide="settings" class="w-5 h-5"></i> Configurações
+                        <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
+
+                    <!-- Administração (apenas para superuser e gestores) -->
+                    {% if request.user.is_superuser or request.user|has_group:'gestores' %}
+                    <li class="menu-title mt-4"><span>Administração</span></li>
+                    
+                    {% if request.user.is_superuser %}
+                    <li><a href="{% url 'accounts:signup_gestor' %}"><i data-lucide="shield-plus" class="w-5 h-5"></i> Novo Gestor</a></li>
+                    {% endif %}
+                    
+                    <li><a href="{% url 'accounts:signup_profissional' %}"><i data-lucide="user-plus" class="w-5 h-5"></i> Novo Profissional</a></li>
+                    <li><a href="{% url 'accounts:signup_pais' %}"><i data-lucide="users" class="w-5 h-5"></i> Novo Responsável</a></li>
+                    {% endif %}
+
+                    <!-- Block extra para outros templates adicionarem itens -->
                     {% block sidebar_extra %}{% endblock %}
 
-                    <li class="menu-title mt-4"><span>Conta</span></li>
-                    <li><a href="#"><i data-lucide="user" class="w-5 h-5"></i> Meu Perfil</a></li>
-                    <li><a href="#"><i data-lucide="settings" class="w-5 h-5"></i> Configurações</a></li>
-
-                    <form id="logout-form" method="post" action="{% url 'accounts:logout' %}" class="hidden">
-                    {% csrf_token %}
-                    </form>
-
-                    <li>
-                    <button type="submit" form="logout-form"
-                            class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-base-200 focus:outline-none">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
-                        <span>Sair</span>
-                    </button>
+                    <!-- Logout -->
+                    <li class="mt-4">
+                        <form id="logout-form" method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full flex items-center gap-2 text-error hover:bg-error/10">
+                                <i data-lucide="log-out" class="w-5 h-5"></i>
+                                <span>Sair</span>
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>
