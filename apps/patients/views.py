@@ -1,7 +1,5 @@
 from datetime import timedelta
 
-from datetime import timedelta
-
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -58,31 +56,34 @@ def patient_list(request):
 
 # Em patients/views.py
 
+
 @transaction.atomic
 def patient_create(request):
     if request.method == "POST":
         patient_form = PatientForm(request.POST)
         record_form = RecordForm(request.POST)
         discharge_form = DischargeRecordForm(request.POST)
-        
+
         # --- ADICIONE ESTES FORMULÁRIOS ---
         clinical_forms = {
-            ctype.value: ClinicalEvaluationForm(request.POST, prefix=f'clinic-{ctype.value}')
+            ctype.value: ClinicalEvaluationForm(request.POST, prefix=f"clinic-{ctype.value}")
             for ctype in ClinicalEvaluationType
         }
         team_forms = {
-            area.value: InterdisciplinaryEvaluationForm(request.POST, prefix=f'team-{area.value}')
+            area.value: InterdisciplinaryEvaluationForm(request.POST, prefix=f"team-{area.value}")
             for area in InterdisciplinaryEvaluationArea
         }
 
         # --- ATUALIZE A CONDIÇÃO DE VALIDAÇÃO ---
-        all_forms_valid = all([
-            patient_form.is_valid(),
-            record_form.is_valid(),
-            discharge_form.is_valid(),
-            all(f.is_valid() for f in clinical_forms.values()),
-            all(f.is_valid() for f in team_forms.values())
-        ])
+        all_forms_valid = all(
+            [
+                patient_form.is_valid(),
+                record_form.is_valid(),
+                discharge_form.is_valid(),
+                all(f.is_valid() for f in clinical_forms.values()),
+                all(f.is_valid() for f in team_forms.values()),
+            ]
+        )
 
         if all_forms_valid:
             patient = patient_form.save()
@@ -95,22 +96,18 @@ def patient_create(request):
             discharge = discharge_form.save(commit=False)
             discharge.record = record
             discharge.save()
-            
+
             # --- ADICIONE A LÓGICA PARA SALVAR AS AVALIAÇÕES ---
             for ctype_enum, form in clinical_forms.items():
-                if form.cleaned_data.get('status'):
+                if form.cleaned_data.get("status"):
                     ClinicalEvaluation.objects.create(
-                        record=record,
-                        type=ctype_enum,
-                        status=form.cleaned_data['status']
+                        record=record, type=ctype_enum, status=form.cleaned_data["status"]
                     )
 
             for area_enum, form in team_forms.items():
-                if form.cleaned_data.get('notes'):
+                if form.cleaned_data.get("notes"):
                     InterdisciplinaryEvaluation.objects.create(
-                        record=record,
-                        area=area_enum,
-                        notes=form.cleaned_data['notes']
+                        record=record, area=area_enum, notes=form.cleaned_data["notes"]
                     )
             # --- FIM DAS ADIÇÕES ---
 
@@ -127,22 +124,24 @@ def patient_create(request):
                 if not form.is_valid():
                     print(f"Team Form ({key}) Errors:", form.errors)
 
-
-    else: # GET request
+    else:  # GET request
         patient_form = PatientForm()
         record_form = RecordForm()
         discharge_form = DischargeRecordForm()
-        
+
         # --- ADICIONE ESTES FORMULÁRIOS TAMBÉM NO GET ---
         clinical_forms = {
-            ctype.value: ClinicalEvaluationForm(prefix=f'clinic-{ctype.value}', initial={'type': ctype.value})
+            ctype.value: ClinicalEvaluationForm(
+                prefix=f"clinic-{ctype.value}", initial={"type": ctype.value}
+            )
             for ctype in ClinicalEvaluationType
         }
         team_forms = {
-            area.value: InterdisciplinaryEvaluationForm(prefix=f'team-{area.value}', initial={'area': area.value})
+            area.value: InterdisciplinaryEvaluationForm(
+                prefix=f"team-{area.value}", initial={"area": area.value}
+            )
             for area in InterdisciplinaryEvaluationArea
         }
-
 
     return render(
         request,
@@ -157,6 +156,7 @@ def patient_create(request):
             "InterdisciplinaryEvaluationArea": InterdisciplinaryEvaluationArea,
         },
     )
+
 
 @transaction.atomic
 def patient_edit(request, pk):
@@ -435,7 +435,7 @@ def get_weight_gain_analysis_data(patient):
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
-    # --- LÓGICA DE FILTRO DO HISTÓRICO ---
+    # LÓGICA DE FILTRO DO HISTÓRICO
     # Começa com todos os registros do paciente
     records_queryset = patient.records.all().order_by("-date")
 
@@ -448,27 +448,30 @@ def patient_detail(request, pk):
             Q(notes__icontains=query_text) | Q(professional__icontains=query_text)
         )
 
-    # A variável final que vai para o template agora é a queryset filtrada
-    # (Usamos prefetch_related para otimizar as buscas futuras no template)
     consultation_records = records_queryset.prefetch_related(
-        "consultation_details", "warning_signs"
+        "consultation_details", "warning_signs", "clinical_evaluations", "team_evaluations"
     )
 
-    # --- O RESTO DA SUA VIEW CONTINUA IGUAL ---
-
-    # --- DADOS PARA OS CARDS DE ALERTAS E MEDICAÇÕES ---
+    # DADOS PARA OS CARDS DE ALERTAS E MEDICAÇÕES
     patient_exams = Exam.objects.filter(record__patient=patient).order_by("-date")
     patient_vaccines = Vaccine.objects.filter(record__patient=patient).order_by("-date")
 
-    # --- DADOS PARA A EQUIPE RESPONSÁVEL ---
-    team_professionals = (
+    # DADOS DA EQUIPE
+    professional_strings = (
         patient.records.exclude(professional__isnull=True)
         .exclude(professional__exact="")
         .values_list("professional", flat=True)
         .distinct()
     )
 
-    # --- CÁLCULOS DE IDADE E GRÁFICOS ---
+    processed_professionals = []
+    for prof_string in professional_strings:
+        parts = prof_string.split("/")
+        name = parts[0].strip()
+        role = parts[1].strip() if len(parts) > 1 else "Não especificado"
+        processed_professionals.append({"name": name, "role": role})
+
+    # CÁLCULOS DE IDADE E GRÁFICOS
     # (Supondo que as funções auxiliares _get_growth_chart_data e get_weight_gain_analysis_data existem)
     chart_context = _get_growth_chart_data(patient)
     weight_gain_context = get_weight_gain_analysis_data(patient)
@@ -479,13 +482,39 @@ def patient_detail(request, pk):
     total_days_corrected = (patient.gestational_age_weeks * 7) + age_in_days
     corrected_age_weeks = total_days_corrected // 7
     corrected_age_remaining_days = total_days_corrected % 7
-    
-    # --- PREPARAÇÃO DOS DADOS PARA O GRÁFICO ---
+
+    # PREPARAÇÃO DOS DADOS PARA O GRÁFICO
     # (Supondo que as funções auxiliares _get_growth_chart_data e get_weight_gain_analysis_data existem)
     chart_context = _get_growth_chart_data(patient)
     weight_gain_context = get_weight_gain_analysis_data(patient)
 
-    # --- MONTAGEM DO CONTEXTO FINAL ---
+    # LÓGICA PARA O BADGE DE STATUS DINÂMICO
+    patient_status = {
+        "text": "Acompanhamento Normal",
+        "badge_class": "badge-success",
+        "reasons": [],
+    }
+    latest_record = consultation_records.first()
+
+    if latest_record:
+        reasons_list = []
+
+        # Coleta os sinais de alerta presentes
+        warning_signs = latest_record.warning_signs.filter(is_present=True)
+        for sign in warning_signs:
+            reasons_list.append(sign.get_type_display())
+
+        # Coleta as avaliações clínicas alteradas
+        altered_evals = latest_record.clinical_evaluations.filter(status="altered")
+        for eval in altered_evals:
+            reasons_list.append(f"Avaliação {eval.get_type_display()}: Alterada")
+
+        if reasons_list:
+            patient_status["text"] = "Requer Atenção"
+            patient_status["badge_class"] = "badge-warning"
+            patient_status["reasons"] = reasons_list
+
+    # MONTAGEM DO CONTEXTO FINAL
     context = {
         "patient": patient,
         "consultation_records": consultation_records,  # <- Agora contém os resultados filtrados
@@ -494,13 +523,15 @@ def patient_detail(request, pk):
         "corrected_age_remaining_days": corrected_age_remaining_days,
         "patient_exams": patient_exams,
         "patient_vaccines": patient_vaccines,
-        "team_professionals": team_professionals,
+        "team_professionals": processed_professionals,
+        "patient_status": patient_status,
     }
 
     context.update(chart_context)
     context.update(weight_gain_context)
-    
+
     return render(request, "patients/patient_detail.html", context)
+
 
 @transaction.atomic
 def consultation_create(request, pk):
