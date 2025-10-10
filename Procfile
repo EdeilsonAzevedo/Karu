@@ -1,0 +1,2 @@
+release: python manage.py migrate --noinput
+web: gunicorn config.wsgi:application --log-file - --log-level info
