@@ -38,14 +38,14 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.contenttypes",
+    "apps.accounts",
+    "apps.core",
     "django.contrib.admin",
     "django.contrib.auth",
-    "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "apps.accounts",
-    "apps.core",
     "apps.patients",
     "apps.manager",
     "auditlog",
