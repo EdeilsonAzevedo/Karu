@@ -407,7 +407,7 @@ def get_weight_gain_analysis_data(patient):
             delta_weight = curr["weight"] - prev["weight"]
             daily_gain = round(delta_weight / delta_days)
 
-            label = f'{prev["date"].strftime("%d/%m")}-{curr["date"].strftime("%d/%m")}'
+            label = f"{prev['date'].strftime('%d/%m')}-{curr['date'].strftime('%d/%m')}"
             bar_chart_labels.append(label)
             bar_chart_data.append(daily_gain)
 
