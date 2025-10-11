@@ -1,5 +1,5 @@
 from datetime import timedelta
-
+import logging
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -24,6 +24,7 @@ from .models import (
     Record,
 )
 
+logger = logging.getLogger(__name__)
 
 def patient_list(request):
     """Lista + busca por nome, CPF e certidão (q geral ou campos específicos name/cpf/sal)."""
@@ -262,27 +263,21 @@ def patient_detail(request, pk):
 @transaction.atomic
 def consultation_create(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
-    # Não vamos mais usar 'warning_sign_types' aqui
-
+    
     if request.method == "POST":
-        # A lógica de POST precisa ser ajustada para recriar os forms da mesma forma
         record_form = RecordForm(request.POST, prefix="record")
         consultation_form = ConsultationRecordForm(request.POST, prefix="consultation")
 
-        # Recria os forms de sinais de alerta para validação
         warning_sign_forms = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
             warning_sign_forms.append({"form": form, "value": value})
 
-        # Validação
-        all_forms_valid = all(
-            [
-                record_form.is_valid(),
-                consultation_form.is_valid(),
-                all(item["form"].is_valid() for item in warning_sign_forms),
-            ]
-        )
+        all_forms_valid = all([
+            record_form.is_valid(),
+            consultation_form.is_valid(),
+            all(item["form"].is_valid() for item in warning_sign_forms),
+        ])
 
         if all_forms_valid:
             record = record_form.save(commit=False)
@@ -294,31 +289,35 @@ def consultation_create(request, pk):
             consultation_details.record = record
             consultation_details.save()
 
+            # Salva todos os sinais primeiro
+            warning_signs_created = []
             for item in warning_sign_forms:
                 if item["form"].cleaned_data.get("is_present"):
-                    ClinicalWarningSign.objects.create(
+                    warning_sign = ClinicalWarningSign.objects.create(
                         record=record, type=item["value"], is_present=True
                     )
+                    warning_signs_created.append(warning_sign)
 
+            # Dispara UM alerta para TODOS os sinais desta consulta
+            if warning_signs_created:
+                from apps.emails.tasks import create_consultation_alert
+                create_consultation_alert.delay(record.id)
+                logger.info(f"📋 VIEW: Alerta agrupado criado para consulta {record.id} com {len(warning_signs_created)} sinais")
+            
             return redirect("patients:detail", pk=patient.pk)
 
-    else:  # GET Request
+    else:
         record_form = RecordForm(prefix="record")
         consultation_form = ConsultationRecordForm(prefix="consultation")
 
-        # --- LÓGICA CORRIGIDA ---
-        # Criamos uma lista, onde cada item tem o form e o seu label
         clinical_forms_with_labels = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(prefix=f"warning_{value}", initial={"type": value})
             clinical_forms_with_labels.append({"form": form, "label": label})
-        # --- FIM DA LÓGICA CORRIGIDA ---
 
-    # Lógica de idade corrigida
+    # Lógica de idade corrigida (mantida fora dos blocos POST/GET)
     today = timezone.now().date()
-    total_days_corrected = (patient.gestational_age_weeks * 7) + (
-        today - patient.date_of_birth
-    ).days
+    total_days_corrected = (patient.gestational_age_weeks * 7) + (today - patient.date_of_birth).days
     corrected_age_weeks = total_days_corrected // 7
     corrected_age_remaining_days = total_days_corrected % 7
 
@@ -326,8 +325,10 @@ def consultation_create(request, pk):
         "patient": patient,
         "record_form": record_form,
         "consultation_form": consultation_form,
-        "clinical_forms": clinical_forms_with_labels,  # Enviando a nova lista para o template
+        "clinical_forms": clinical_forms_with_labels,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
     }
     return render(request, "patients/consultation_form.html", context)
+
+    

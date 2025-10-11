@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Múltiplos Sinais Críticos - Sistema Karu</title>
+    <style>
+        /* Mantenha o mesmo CSS do critical_alert.html */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background-color: #f9fafb;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .alert-banner {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .alert-banner h2 {
+            color: #dc2626;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .patient-card, .warning-details, .consultation-info, .action-required {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .warning-list {
+            margin-top: 1rem;
+        }
+        
+        .warning-item {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .warning-count {
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>🚨 Múltiplos Sinais Críticos - Sistema Karu</h1>
+            <p>Monitoramento de Recém-Nascidos</p>
+        </div>
+        
+        <!-- Banner de Alerta -->
+        <div class="alert-banner">
+            <div class="icon">⚠️</div>
+            <h2>{{ alert.context_data.warning_count }} Sinais Clínicos Críticos Detectados</h2>
+            <p>Requerem atenção imediata da equipe médica</p>
+        </div>
+        
+        <div class="content">
+            <!-- Informações do Paciente -->
+            <div class="patient-card">
+                <h3>👶 Dados do Paciente</h3>
+                <div class="patient-info">
+                    <div class="info-item">
+                        <span class="info-label">Nome</span>
+                        <span class="info-value">{{ patient.first_name }} {{ patient.last_name|default:"" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Data de Nascimento</span>
+                        <span class="info-value">{{ patient.date_of_birth|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Idade Gestacional</span>
+                        <span class="info-value">{{ patient.gestational_age_weeks }} semanas</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lista de Sinais de Alerta -->
+        <div class="warning-details">
+            <h3>🩺 Sinais de Alerta Identificados</h3>
+            <div class="warning-list">
+                {% for warning_type in alert.context_data.warning_types %}
+                <div class="warning-item">
+                    <span class="warning-count">{{ forloop.counter }}</span>
+                    {{ warning_type }}
+                </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: #fef3c7; border-radius: 6px;">
+                <strong>Total: {{ alert.context_data.warning_count }} sinais críticos detectados</strong>
+            </div>
+        </div>
+            
+            <!-- Informações da Consulta -->
+            <div class="consultation-info">
+                <h3>📋 Dados da Consulta</h3>
+                <div class="patient-info">
+                    <div class="info-item">
+                        <span class="info-label">Data da Consulta</span>
+                        <span class="info-value">{{ alert.context_data.consultation_date|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Profissional</span>
+                        <span class="info-value">{{ alert.context_data.professional|default:"Não informado" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ação Requerida -->
+            <div class="action-required">
+                <h3>⚡ Ação Imediata Requerida</h3>
+                <p><strong>{{ alert.context_data.warning_count }} sinais críticos</strong> foram detectados nesta consulta. Avaliação médica urgente necessária.</p>
+                <a href="{{ site_url }}{% url 'patients:detail' patient.pk %}" class="btn">
+                    Ver Prontuário Completo
+                </a>
+            </div>
+        </div>
+        
+        <!-- Rodapé -->
+        <div class="footer">
+            <p><strong>Sistema Karu</strong> - Monitoramento de Recém-Nascidos de Risco</p>
+            <p>Este é um alerta automático. Em caso de emergência, entre em contato com a equipe médica.</p>
+            <p><a href="{{ site_url }}">Acessar Sistema</a> | <a href="mailto:suporte@karu.com">Suporte</a></p>
+            <p style="margin-top: 1rem; font-size: 0.75rem; color: #94a3b8;">
+                ID do Alerta: {{ alert.id }} • Gerado em: {{ alert.created_at|date:"d/m/Y H:i:s" }}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

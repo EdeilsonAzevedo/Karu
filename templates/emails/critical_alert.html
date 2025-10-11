@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta Crítico - Sistema Karu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background-color: #f9fafb;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .alert-banner {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .alert-banner h2 {
+            color: #dc2626;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .alert-banner .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .patient-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .patient-card h3 {
+            color: #1e293b;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .patient-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .warning-details {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .warning-details h3 {
+            color: #ea580c;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .consultation-info {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .consultation-info h3 {
+            color: #0369a1;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .action-required {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .action-required h3 {
+            color: #1d4ed8;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+        
+        .btn:hover {
+            background: #1d4ed8;
+        }
+        
+        .footer {
+            background: #f1f5f9;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .footer a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .patient-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>🚨 Sistema Karu - Alerta</h1>
+            <p>Monitoramento de Recém-Nascidos</p>
+        </div>
+        
+        <!-- Banner de Alerta -->
+        <div class="alert-banner">
+            <div class="icon">⚠️</div>
+            <h2>Sinal Clínico Crítico Detectado</h2>
+            <p>Requer atenção imediata da equipe médica</p>
+        </div>
+        
+        <div class="content">
+            <!-- Informações do Paciente -->
+            <div class="patient-card">
+                <h3>👶 Dados do Paciente</h3>
+                <div class="patient-info">
+                    <div class="info-item">
+                        <span class="info-label">Nome</span>
+                        <span class="info-value">{{ patient.first_name }} {{ patient.last_name|default:"" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Data de Nascimento</span>
+                        <span class="info-value">{{ patient.date_of_birth|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Idade Gestacional</span>
+                        <span class="info-value">{{ patient.gestational_age_weeks }} semanas</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Peso ao Nascer</span>
+                        <span class="info-value">{{ patient.birth_weight }}g</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detalhes do Sinal de Alerta -->
+            <div class="warning-details">
+                <h3>🩺 Sinal de Alerta Identificado</h3>
+                <div class="patient-info">
+                    <div class="info-item">
+                        <span class="info-label">Tipo de Sinal</span>
+                        <span class="info-value">{{ warning_sign.get_type_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Gravidade</span>
+                        <span class="info-value" style="color: #dc2626;">CRÍTICO</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Detectado em</span>
+                        <span class="info-value">{{ alert.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informações da Consulta -->
+            <div class="consultation-info">
+                <h3>📋 Dados da Consulta</h3>
+                <div class="patient-info">
+                    <div class="info-item">
+                        <span class="info-label">Data da Consulta</span>
+                        <span class="info-value">{{ warning_sign.record.date|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Local</span>
+                        <span class="info-value">{{ warning_sign.record.location|default:"Não informado" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Profissional</span>
+                        <span class="info-value">{{ warning_sign.record.professional|default:"Não informado" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ação Requerida -->
+            <div class="action-required">
+                <h3>⚡ Ação Imediata Requerida</h3>
+                <p>Este sinal clínico requer avaliação médica imediata. Por favor, verifique o prontuário do paciente e tome as providências necessárias.</p>
+                <a href="{{ site_url }}{% url 'patients:detail' patient.pk %}" class="btn">
+                    Ver Prontuário Completo
+                </a>
+            </div>
+        </div>
+        
+        <!-- Rodapé -->
+        <div class="footer">
+            <p><strong>Sistema Karu</strong> - Monitoramento de Recém-Nascidos de Risco</p>
+            <p>Este é um alerta automático. Em caso de emergência, entre em contato com a equipe médica.</p>
+            <p><a href="{{ site_url }}">Acessar Sistema</a> | <a href="mailto:suporte@karu.com">Suporte</a></p>
+            <p style="margin-top: 1rem; font-size: 0.75rem; color: #94a3b8;">
+                ID do Alerta: {{ alert.id }} • Gerado em: {{ alert.created_at|date:"d/m/Y H:i:s" }}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Sistema - Karu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background-color: #f9fafb;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .test-card {
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .test-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .test-card h2 {
+            color: #7c3aed;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .test-card p {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .status-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .status-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .status-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        .next-steps {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .next-steps h3 {
+            color: #047857;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .steps-list {
+            list-style: none;
+        }
+        
+        .steps-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .footer {
+            background: #f1f5f9;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        @media (max-width: 600px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>🧪 Teste de Sistema - Karu</h1>
+            <p>Verificação do Sistema de Alertas</p>
+        </div>
+        
+        <div class="content">
+            <!-- Card de Teste -->
+            <div class="test-card">
+                <div class="test-icon">⚡</div>
+                <h2>Sistema de Alertas Operacional</h2>
+                <p>Este email confirma que o sistema de alertas do Karu está funcionando corretamente e enviando emails com templates HTML.</p>
+                
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-label">Serviço de Email</div>
+                        <div class="status-value">✅ Ativo</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Fila de Tasks</div>
+                        <div class="status-value">✅ Operacional</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Templates HTML</div>
+                        <div class="status-value">✅ Carregados</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Fuso Horário</div>
+                        <div class="status-value">✅ America/Sao_Paulo</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Próximos Passos -->
+            <div class="next-steps">
+                <h3>📋 Status do Sistema</h3>
+                <ul class="steps-list">
+                    <li>✅ Sistema de alertas configurado e testado</li>
+                    <li>✅ Monitoramento ativo de sinais críticos</li>
+                    <li>✅ Templates HTML funcionando</li>
+                    <li>✅ Fuso horário correto (Brasília)</li>
+                    <li>✅ Notificações automáticas habilitadas</li>
+                </ul>
+            </div>
+
+            <!-- Informações Técnicas -->
+            <div class="test-card" style="background: #eff6ff; border-color: #bfdbfe;">
+                <h3>📊 Informações do Teste</h3>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-label">Data do Teste</div>
+                        <div class="status-value">{{ test_date|date:"d/m/Y" }}</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Hora do Teste</div>
+                        <div class="status-value">{{ test_date|date:"H:i" }}</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Fuso Horário</div>
+                        <div class="status-value">America/Sao_Paulo</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Versão</div>
+                        <div class="status-value">Karu v1.0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rodapé -->
+        <div class="footer">
+            <p><strong>Sistema Karu</strong> - Monitoramento de Recém-Nascidos de Risco</p>
+            <p>Teste realizado em: {{ test_date|date:"d/m/Y H:i" }} (Horário de Brasília)</p>
+            <p>Este é um email automático de verificação do sistema.</p>
+        </div>
+    </div>
+</body>
+</html>

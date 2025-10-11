@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo Diário - Sistema Karu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #374151;
+            background-color: #f9fafb;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .summary-stats {
+            background: #ffffff;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .stat-card {
+            padding: 1rem;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .critical-stat {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        
+        .critical-stat .stat-number {
+            color: #dc2626;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+        }
+        
+        .section h2 {
+            color: #1e293b;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .alert-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .alert-patient {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .alert-type {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .alert-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        .no-alerts {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .footer {
+            background: #f1f5f9;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .footer a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .alert-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Cabeçalho -->
+        <div class="header">
+            <h1>📊 Resumo Diário - Sistema Karu</h1>
+            <p>Relatório de {{ date|date:"d/m/Y" }}</p>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="summary-stats">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ alert_count }}</div>
+                    <div class="stat-label">Total de Alertas</div>
+                </div>
+                <div class="stat-card critical-stat">
+                    <div class="stat-number">{{ alerts|length }}</div>
+                    <div class="stat-label">Alertas Críticos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ patients_count }}</div>
+                    <div class="stat-label">Pacientes</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Alertas Críticos -->
+            <div class="section">
+                <h2>🚨 Alertas Críticos do Dia</h2>
+                
+                {% if alerts %}
+                    {% for alert in alerts %}
+                    <div class="alert-item">
+                        <div class="alert-header">
+                            <span class="alert-patient">{{ alert.patient.first_name }} {{ alert.patient.last_name|default:"" }}</span>
+                            <span class="alert-type">{{ alert.get_alert_type_display }}</span>
+                        </div>
+                        <div class="alert-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Sinal</span>
+                                <span class="detail-value">{{ alert.warning_sign.get_type_display }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Data/Hora</span>
+                                <span class="detail-value">{{ alert.created_at|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Local</span>
+                                <span class="detail-value">{{ alert.warning_sign.record.location|default:"Não informado" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Status</span>
+                                <span class="detail-value" style="color: {% if alert.status == 'sent' %}#059669{% else %}#dc2626{% endif %};">
+                                    {{ alert.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-alerts">
+                        <p>🎉 Nenhum alerta crítico registrado hoje!</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Resumo de Ações -->
+            <div class="section">
+                <h2>📈 Resumo do Período</h2>
+                <div class="alert-item">
+                    <div class="alert-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Período Analisado</span>
+                            <span class="detail-value">Últimas 24 horas</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Taxa de Alertas</span>
+                            <span class="detail-value">{{ alert_count }} por dia</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Pacientes Monitorados</span>
+                            <span class="detail-value">{{ patients_count }} únicos</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Status do Sistema</span>
+                            <span class="detail-value" style="color: #059669;">Operacional</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rodapé -->
+        <div class="footer">
+            <p><strong>Sistema Karu</strong> - Monitoramento de Recém-Nascidos de Risco</p>
+            <p>Relatório gerado automaticamente em {{ generated_at|date:"d/m/Y H:i" }}</p>
+            <p><a href="{{ site_url }}">Acessar Sistema</a> | <a href="{{ site_url }}{% url 'manager:audit_log' %}">Ver Logs</a></p>
+        </div>
+    </div>
+</body>
+</html>

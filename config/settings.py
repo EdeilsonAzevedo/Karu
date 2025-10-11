@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "apps.patients",
     "apps.manager",
     "auditlog",
+    'django_celery_results',
+    'apps.emails',
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -140,3 +142,30 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Configurações do Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'America/Sao_Paulo'
+
+# Configurações de Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # ou seu servidor SMTP
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'tjesuinodasilva@gmail.com'
+EMAIL_HOST_PASSWORD = 'kixj chmk vhgw ueok'
+DEFAULT_FROM_EMAIL = 'tjesuinodasilva@gmail.com'
+
+# Configurações do sistema de alertas
+ALERT_EMAIL_RECIPIENTS = ['tjesuinodasilva@gmail.com']
+CRITICAL_ALERT_THRESHOLD = 3  # Número de sinais críticos para disparar alerta
+
+# Configuração do Celery para usar o mesmo fuso
+CELERY_TIMEZONE = 'America/Sao_Paulo'
+CELERY_ENABLE_UTC = False
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
