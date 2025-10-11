@@ -233,14 +233,15 @@ def patient_edit(request, pk):
                     eval_obj.save()
 
             return redirect("patients:detail", pk=patient.pk)
-    else:
-        form = PatientForm(instance=patient)
+    else:  # GET request
+        patient_form = PatientForm(instance=patient)
+        record_form = RecordForm(instance=record)
+        discharge_form = DischargeRecordForm(instance=discharge)
 
         clinical_forms = {
             ctype.value: ClinicalEvaluationForm(
                 instance=existing_clinical_evals.get(ctype.value),
                 prefix=f"clinic-{ctype.value}",
-                initial={"type": ctype.value},
             )
             for ctype in ClinicalEvaluationType
         }
@@ -248,7 +249,6 @@ def patient_edit(request, pk):
             area.value: InterdisciplinaryEvaluationForm(
                 instance=existing_team_evals.get(area.value),
                 prefix=f"team-{area.value}",
-                initial={"area": area.value},
             )
             for area in InterdisciplinaryEvaluationArea
         }
@@ -491,7 +491,6 @@ def patient_detail(request, pk):
         processed_professionals.append({"name": name, "role": role})
 
     # CÁLCULOS DE IDADE E GRÁFICOS
-    # (Supondo que as funções auxiliares _get_growth_chart_data e get_weight_gain_analysis_data existem)
     chart_context = _get_growth_chart_data(patient)
     weight_gain_context = get_weight_gain_analysis_data(patient)
 
@@ -501,11 +500,6 @@ def patient_detail(request, pk):
     total_days_corrected = (patient.gestational_age_weeks * 7) + age_in_days
     corrected_age_weeks = total_days_corrected // 7
     corrected_age_remaining_days = total_days_corrected % 7
-
-    # PREPARAÇÃO DOS DADOS PARA O GRÁFICO
-    # (Supondo que as funções auxiliares _get_growth_chart_data e get_weight_gain_analysis_data existem)
-    chart_context = _get_growth_chart_data(patient)
-    weight_gain_context = get_weight_gain_analysis_data(patient)
 
     # LÓGICA PARA O BADGE DE STATUS DINÂMICO
     patient_status = {
@@ -536,7 +530,7 @@ def patient_detail(request, pk):
     # MONTAGEM DO CONTEXTO FINAL
     context = {
         "patient": patient,
-        "consultation_records": consultation_records,  # <- Agora contém os resultados filtrados
+        "consultation_records": consultation_records,
         "age_in_days": age_in_days,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,

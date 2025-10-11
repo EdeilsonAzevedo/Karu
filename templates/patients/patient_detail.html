@@ -29,6 +29,11 @@
                             <div class="bg-primary text-primary-content rounded-full w-20">
                                 <span class="text-2xl font-bold">{{ patient.first_name|default:""|first }}{{ patient.last_name|default:""|first }}</span>
                             </div>
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <div class="badge badge-success">Acompanhamento Normal</div>
+                                <div class="badge badge-info">Etapa 3 - Método Canguru</div>
+                                <div class="badge badge-outline">Aleitamento Exclusivo</div>
+                            </div>
                         </div>
                         <div class="space-y-2">
                             <div class="flex items-center gap-4">
@@ -192,6 +197,15 @@
                     </div>
                 </div>
             </div>
+            <div class="navbar-end">
+                <ul class="menu menu-horizontal px-1">
+                    <li><a href="#dados-gerais">Dados Gerais</a></li>
+                    <li><a href="#curvas-crescimento">Curvas de Crescimento</a></li>
+                    <li><a href="#alertas-medicacoes">Alertas e Medicações</a></li>
+                    <li><a href="#historico-consultas">Histórico de Consultas</a></li>
+                </ul>
+            </div>
+        </div>
 
             <div class="card bg-base-200 shadow-xl">
                 <div class="card-body">
@@ -263,10 +277,26 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     <div class="lg:col-span-3">
-                        <div class="bg-base-100 p-4 rounded-lg">
+                        <div class="bg-base-100 p-4 rounded-lg h-96">
                             <canvas id="growthChart"></canvas>
                         </div>
                     </div>
+                    <form method="GET" action="#historico-consultas" class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+
+                            <div class="form-control col-span-1 md:col-span-2">
+                                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Buscar por profissional, notas..." class="input input-bordered w-full" />
+                            </div>
+
+                            <div class="form-control">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-lucide="filter" class="w-4 h-4"></i>
+                                    Filtrar Histórico
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
                     <div class="space-y-4">
                         <div class="stats stats-vertical shadow">
                             <div class="stat">
@@ -348,6 +378,12 @@
                         <p class="text-base-content/60">Nenhuma vacina registrada.</p>
                         {% endfor %}
                     </div>
+                    {% empty %}
+                    <div class="text-center py-8">
+                        <p class="text-lg text-base-content/60">Nenhum registro de consulta encontrado para este
+                            paciente.</p>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
