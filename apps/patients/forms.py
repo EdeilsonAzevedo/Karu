@@ -195,6 +195,12 @@ class InterdisciplinaryEvaluationForm(forms.ModelForm):
         }
         labels = {"notes": ""}
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Torna ambos os campos opcionais para a validação do formulário
+        self.fields["area"].required = False
+        self.fields["notes"].required = False
+
 
 class ConsultationRecordForm(forms.ModelForm):
     class Meta:
