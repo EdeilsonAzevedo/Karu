@@ -156,12 +156,12 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # ou seu servidor SMTP
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'tjesuinodasilva@gmail.com'
-EMAIL_HOST_PASSWORD = 'kixj chmk vhgw ueok'
-DEFAULT_FROM_EMAIL = 'tjesuinodasilva@gmail.com'
+EMAIL_HOST_USER = '' #email que enviara todos os emails
+EMAIL_HOST_PASSWORD = '' #senha de configuraçao apps
+DEFAULT_FROM_EMAIL = 'Karu@noreplay.com' #email do projeto
 
 # Configurações do sistema de alertas
-ALERT_EMAIL_RECIPIENTS = ['tjesuinodasilva@gmail.com']
+ALERT_EMAIL_RECIPIENTS = ['coordenadorkaru@gmail.com'] #Emails de todos que iram receber os alertas
 CRITICAL_ALERT_THRESHOLD = 3  # Número de sinais críticos para disparar alerta
 
 # Configuração do Celery para usar o mesmo fuso
