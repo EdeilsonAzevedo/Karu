@@ -1,5 +1,6 @@
-from datetime import timedelta
 import logging
+from datetime import timedelta
+
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -25,6 +26,7 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 def patient_list(request):
     """Lista + busca por nome, CPF e certidão (q geral ou campos específicos name/cpf/sal)."""
@@ -263,7 +265,7 @@ def patient_detail(request, pk):
 @transaction.atomic
 def consultation_create(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
-    
+
     if request.method == "POST":
         record_form = RecordForm(request.POST, prefix="record")
         consultation_form = ConsultationRecordForm(request.POST, prefix="consultation")
@@ -273,11 +275,13 @@ def consultation_create(request, pk):
             form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
             warning_sign_forms.append({"form": form, "value": value})
 
-        all_forms_valid = all([
-            record_form.is_valid(),
-            consultation_form.is_valid(),
-            all(item["form"].is_valid() for item in warning_sign_forms),
-        ])
+        all_forms_valid = all(
+            [
+                record_form.is_valid(),
+                consultation_form.is_valid(),
+                all(item["form"].is_valid() for item in warning_sign_forms),
+            ]
+        )
 
         if all_forms_valid:
             record = record_form.save(commit=False)
@@ -301,9 +305,12 @@ def consultation_create(request, pk):
             # Dispara UM alerta para TODOS os sinais desta consulta
             if warning_signs_created:
                 from apps.emails.tasks import create_consultation_alert
+
                 create_consultation_alert.delay(record.id)
-                logger.info(f"📋 VIEW: Alerta agrupado criado para consulta {record.id} com {len(warning_signs_created)} sinais")
-            
+                logger.info(
+                    f"📋 VIEW: Alerta agrupado criado para consulta {record.id} com {len(warning_signs_created)} sinais"
+                )
+
             return redirect("patients:detail", pk=patient.pk)
 
     else:
@@ -317,7 +324,9 @@ def consultation_create(request, pk):
 
     # Lógica de idade corrigida (mantida fora dos blocos POST/GET)
     today = timezone.now().date()
-    total_days_corrected = (patient.gestational_age_weeks * 7) + (today - patient.date_of_birth).days
+    total_days_corrected = (patient.gestational_age_weeks * 7) + (
+        today - patient.date_of_birth
+    ).days
     corrected_age_weeks = total_days_corrected // 7
     corrected_age_remaining_days = total_days_corrected % 7
 
@@ -330,5 +339,3 @@ def consultation_create(request, pk):
         "corrected_age_remaining_days": corrected_age_remaining_days,
     }
     return render(request, "patients/consultation_form.html", context)
-
-    
