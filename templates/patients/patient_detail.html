@@ -210,8 +210,6 @@
                             </div>
                         </div>
 
-                        {# --- Bloco de Endereço Melhorado --- #}
-                        {# Só exibe o endereço se houver pelo menos uma informação preenchida #}
                         {% if patient.address_street or patient.address_neighborhood or patient.address_city %}
                             <div class="text-sm mt-2">
                                 <strong>Endereço:</strong>
@@ -219,7 +217,6 @@
                                     {{ patient.address_street|default:"" }}{% if patient.address_number %}, {{ patient.address_number }}{% endif %}<br>
                                     {{ patient.address_neighborhood|default:"" }}<br>
                                     {{ patient.address_city|default:"" }} - {{ patient.address_state|default:"" }}<br>
-                                    {# Adicionando o CEP que faltava #}
                                     {% if patient.address_zip_code %}
                                         CEP: {{ patient.address_zip_code }}
                                     {% endif %}
@@ -233,17 +230,15 @@
             <div class="card bg-base-200 shadow-xl">
                 <div class="card-body">
                     <h3 class="card-title text-accent mb-4"><i data-lucide="stethoscope" class="w-5 h-5"></i> Equipe Responsável</h3>
-                    <div class="space-y-4"> {# Aumentei o espaço para 'space-y-4' #}
+                    <div class="space-y-4"> 
                         
                         {% for prof in team_professionals %}
                             <div class="flex items-center gap-3">
-                                {# Um ícone genérico para profissional de saúde #}
                                 <div class="bg-accent/20 p-2 rounded-full">
                                     <i data-lucide="user-md" class="w-5 h-5 text-accent"></i>
                                 </div>
                                 <div>
                                     <div class="font-bold">{{ prof.name }}</div>
-                                    {# O cargo/especialidade com destaque menor #}
                                     <div class="text-sm text-base-content/70">{{ prof.role }}</div>
                                 </div>
                             </div>
@@ -258,15 +253,77 @@
 
         <div id="curvas-crescimento" class="card bg-base-200 shadow-xl mb-8">
             <div class="card-body">
-                <h3 class="card-title text-primary mb-6"><i data-lucide="trending-up" class="w-6 h-6"></i> Curvas de
-                    Crescimento - Intergrowth-21</h3>
-                <div class="tabs tabs-boxed mb-6">
-                    <button class="tab tab-active">Peso</button>
-                    <button class="tab">Comprimento</button>
-                    <button class="tab">Perímetro Cefálico</button>
+                <h3 class="card-title text-primary mb-6"><i data-lucide="trending-up" class="w-6 h-6"></i> Curvas de Crescimento - Intergrowth-21</h3>
+                
+                <div class="tabs tabs-boxed mb-6" id="growthChartTabs">
+                    <button class="tab tab-active" data-metric="weight">Peso (g)</button>
+                    <button class="tab" data-metric="length">Comprimento (cm)</button>
+                    <button class="tab" data-metric="head">Perímetro Cefálico (cm)</button>
                 </div>
-                <div class="bg-base-100 p-4 rounded-lg">
-                    <canvas id="growthChart" height="400"></canvas>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div class="lg:col-span-3">
+                        <div class="bg-base-100 p-4 rounded-lg">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="stats stats-vertical shadow">
+                            <div class="stat">
+                                <div class="stat-title">Último Peso</div>
+                                <div class="stat-value text-lg">{{ weight_data.patient|last|default:'N/A' }}g</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-title">Último Comprimento</div>
+                                <div class="stat-value text-lg">{{ length_data.patient|last|default:'N/A' }}cm</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-title">Último PC</div>
+                                <div class="stat-value text-lg">{{ head_data.patient|last|default:'N/A' }}cm</div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                            <span class="text-xs">Eixo X representa a Idade Corrigida em semanas.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-200 shadow-xl mb-8">
+            <div class="card-body">
+                <h3 class="card-title text-secondary mb-6"><i data-lucide="bar-chart-3" class="w-6 h-6"></i> Análise de Ganho de Peso</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2">
+                        <div class="bg-base-100 p-4 rounded-lg">
+                            <canvas id="weightGainChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="stats stats-vertical shadow">
+                            <div class="stat">
+                                <div class="stat-title">Ganho Médio</div>
+                                <div class="stat-value text-success">{{ average_gain_30_days }}g/dia</div>
+                                <div class="stat-desc">Últimos 30 dias</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-title">Ganho Atual</div>
+                                <div class="stat-value text-primary">{{ current_gain_7_days }}g/dia</div>
+                                <div class="stat-desc">Último período</div>
+                            </div>
+                        </div>
+                        {% if status == 'adequate' %}
+                        <div class="alert alert-success">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i><span class="text-xs">Ganho de peso adequado.</span>
+                        </div>
+                        {% elif status == 'low' or status == 'high' %}
+                        <div class="alert alert-warning">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i><span class="text-xs">Ganho de peso fora do ideal (15-30g/dia).</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -392,11 +449,124 @@
     </div>
 </div>
 
-<script>
-    // Inicializa os ícones do Lucide assim que a página carregar
-    document.addEventListener('DOMContentLoaded', function () {
-        lucide.createIcons();
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {{ chart_labels|json_script:"chart-labels" }}
+    {{ weight_data|json_script:"weight-data" }}
+    {{ length_data|json_script:"length-data" }}
+    {{ head_data|json_script:"head-data" }}
+    {{ bar_chart_labels|json_script:"bar-chart-labels" }}
+    {{ bar_chart_data|json_script:"bar-chart-data" }}
+    {{ bar_chart_colors|json_script:"bar-chart-colors" }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializa os ícones do Lucide (como já estava)
+            lucide.createIcons();
+
+            // --- GRÁFICO 1: CURVAS DE CRESCIMENTO (INTERGROWTH) ---
+            const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+            const chartData = {
+                weight: JSON.parse(document.getElementById('weight-data').textContent),
+                length: JSON.parse(document.getElementById('length-data').textContent),
+                head: JSON.parse(document.getElementById('head-data').textContent)
+            };
+            const ctxGrowth = document.getElementById('growthChart')?.getContext('2d');
+            let growthChart;
+
+            function renderGrowthChart(metric) {
+                if (!ctxGrowth) return;
+                if (growthChart) {
+                    growthChart.destroy();
+                }
+                const data = chartData[metric];
+                const unit = metric === 'weight' ? 'g' : 'cm';
+                growthChart = new Chart(ctxGrowth, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Paciente',
+                                data: data.patient,
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                backgroundColor: 'rgba(59, 130, 246, 1)',
+                                borderWidth: 3,
+                                pointRadius: 5,
+                                tension: 0.1
+                            },
+                            {
+                                label: 'P90',
+                                data: data.p90,
+                                borderColor: 'rgba(239, 68, 68, 0.5)',
+                                borderWidth: 1.5,
+                                pointRadius: 0,
+                                borderDash: [5, 5]
+                            },
+                            {
+                                label: 'P50',
+                                data: data.p50,
+                                borderColor: 'rgba(75, 85, 99, 0.5)',
+                                borderWidth: 1.5,
+                                pointRadius: 0,
+                            },
+                            {
+                                label: 'P10',
+                                data: data.p10,
+                                borderColor: 'rgba(239, 68, 68, 0.5)',
+                                borderWidth: 1.5,
+                                pointRadius: 0,
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: false, title: { display: true, text: `Valor (${unit})` } },
+                            x: { title: { display: true, text: 'Idade Corrigida (Semanas)' } }
+                        }
+                    }
+                });
+            }
+
+            const tabs = document.querySelectorAll('#growthChartTabs .tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('tab-active'));
+                    tab.classList.add('tab-active');
+                    renderGrowthChart(tab.dataset.metric);
+                });
+            });
+            renderGrowthChart('weight');
+
+            // --- GRÁFICO 2: ANÁLISE DE GANHO DE PESO ---
+            const barLabels = JSON.parse(document.getElementById('bar-chart-labels').textContent);
+            const barData = JSON.parse(document.getElementById('bar-chart-data').textContent);
+            const barColors = JSON.parse(document.getElementById('bar-chart-colors').textContent);
+            const ctxWeightGain = document.getElementById('weightGainChart')?.getContext('2d');
+
+            if (barLabels.length > 0 && ctxWeightGain) {
+                new Chart(ctxWeightGain, {
+                    type: 'bar',
+                    data: {
+                        labels: barLabels,
+                        datasets: [{
+                            label: 'Ganho Diário (g/dia)',
+                            data: barData,
+                            backgroundColor: barColors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'g/dia' } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        });
+    </script>
 
 {% endblock %}

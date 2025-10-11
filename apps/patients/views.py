@@ -267,7 +267,11 @@ def patient_edit(request, pk):
 
 
 def _get_growth_chart_data(patient):
-    # Busca por registros que contenham medições antropométricas
+    # O cálculo da idade corrigida precisa dos dados de nascimento do paciente
+    gestational_weeks_at_birth = patient.gestational_age_weeks
+    gestational_days_at_birth = patient.gestational_age_days or 0
+    date_of_birth = patient.date_of_birth
+
     records_for_chart = (
         Record.objects.filter(
             Q(consultation_details__isnull=False) | Q(discharge__isnull=False), patient=patient
@@ -276,59 +280,74 @@ def _get_growth_chart_data(patient):
         .distinct()
     )
 
-    # Prepara as listas para o gráfico
     chart_labels = []
     patient_weight_data = []
     patient_length_data = []
     patient_head_data = []
 
     for rec in records_for_chart:
-        chart_labels.append(rec.date.strftime("%d/%m/%Y"))
+        # CÁLCULO DA IDADE CORRIGIDA PARA CADA PONTO DO GRÁFICO
+        chronological_age_days = (rec.date - date_of_birth).days
 
-        # Pega os dados da consulta ou da alta, o que estiver disponível
-        consultation_details = getattr(rec, "consultation_details", None)
-        discharge_details = getattr(rec, "discharge", None)
+        # Dias que faltavam para chegar a 40 semanas
+        days_to_full_term = (40 * 7) - (
+            (gestational_weeks_at_birth * 7) + gestational_days_at_birth
+        )
 
-        if consultation_details and consultation_details.weight:
-            patient_weight_data.append(float(consultation_details.weight))
-            patient_length_data.append(
-                float(consultation_details.length) if consultation_details.length else None
-            )
+        corrected_age_days = chronological_age_days - days_to_full_term
+        if corrected_age_days < 0:
+            corrected_age_days = 0  # Idade corrigida não pode ser negativa
+
+        corrected_age_weeks = round(corrected_age_days / 7, 1)
+        chart_labels.append(corrected_age_weeks)
+
+        # Pega os dados da consulta ou da alta
+        data_source = getattr(rec, "consultation_details", None) or getattr(rec, "discharge", None)
+
+        if data_source:
+            patient_weight_data.append(float(data_source.weight) if data_source.weight else None)
+            patient_length_data.append(float(data_source.length) if data_source.length else None)
             patient_head_data.append(
-                float(consultation_details.head_circumference)
-                if consultation_details.head_circumference
-                else None
+                float(data_source.head_circumference) if data_source.head_circumference else None
             )
-        elif discharge_details and discharge_details.weight:
-            patient_weight_data.append(float(discharge_details.weight))
-            patient_length_data.append(
-                float(discharge_details.length) if discharge_details.length else None
-            )
-            patient_head_data.append(
-                float(discharge_details.head_circumference)
-                if discharge_details.head_circumference
-                else None
-            )
+
+    # LÓGICA DE PERCENTIL APENAS PARA DEMONSTRAÇÃO VISUAL
+    # Tem que substituir essa lógica por uma busca em tabelas de referencia da Intergrowth-21
+    # Esses valores servem apenas pro gráfico aparecer.
+    # PESO
+    weight_p10 = [weight * 0.9 if weight else None for weight in patient_weight_data]
+    weight_p50 = [weight * 1.0 if weight else None for weight in patient_weight_data]
+    weight_p90 = [weight * 1.1 if weight else None for weight in patient_weight_data]
+
+    # COMPRIMENTO
+    length_p10 = [length * 0.95 if length else None for length in patient_length_data]
+    length_p50 = [length * 1.0 if length else None for length in patient_length_data]
+    length_p90 = [length * 1.05 if length else None for length in patient_length_data]
+
+    # PERÍMETRO CEFÁLICO
+    head_p10 = [head * 0.98 if head else None for head in patient_head_data]
+    head_p50 = [head * 1.0 if head else None for head in patient_head_data]
+    head_p90 = [head * 1.02 if head else None for head in patient_head_data]
 
     return {
         "chart_labels": chart_labels,
         "weight_data": {
             "patient": patient_weight_data,
-            "p10": [weight * 0.9 if weight else None for weight in patient_weight_data],
-            "p50": [weight * 1.0 if weight else None for weight in patient_weight_data],
-            "p90": [weight * 1.1 if weight else None for weight in patient_weight_data],
+            "p10": weight_p10,
+            "p50": weight_p50,
+            "p90": weight_p90,
         },
         "length_data": {
             "patient": patient_length_data,
-            "p10": [length * 0.95 if length else None for length in patient_length_data],
-            "p50": [length * 1.0 if length else None for length in patient_length_data],
-            "p90": [length * 1.05 if length else None for length in patient_length_data],
+            "p10": length_p10,
+            "p50": length_p50,
+            "p90": length_p90,
         },
         "head_data": {
             "patient": patient_head_data,
-            "p10": [head * 0.98 if head else None for head in patient_head_data],
-            "p50": [head * 1.0 if head else None for head in patient_head_data],
-            "p90": [head * 1.02 if head else None for head in patient_head_data],
+            "p10": head_p10,
+            "p50": head_p50,
+            "p90": head_p90,
         },
     }
 
