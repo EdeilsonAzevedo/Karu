@@ -1,4 +1,5 @@
 from django import forms
+import datetime 
 
 from .models import (
     ClinicalEvaluation,
@@ -73,6 +74,12 @@ class PatientForm(forms.ModelForm):
         if len(only_digits) != 11:
             raise forms.ValidationError("CPF deve conter 11 dígitos numéricos.")
         return only_digits
+    
+    def clean_date_of_birth(self):
+        date_of_birth = self.cleaned_data.get('date_of_birth')
+        if date_of_birth and date_of_birth > datetime.date.today():
+            raise forms.ValidationError("A data de nascimento não pode ser no futuro.")
+        return date_of_birth
 
     def __init__(self, *args, **kwargs):
         super(PatientForm, self).__init__(*args, **kwargs)
@@ -172,6 +179,20 @@ class ClinicalEvaluationForm(forms.ModelForm):
             "type": forms.HiddenInput(),
         }
         labels = {"status": ""}
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        status = cleaned_data.get("status")
+        
+        # Se o campo de conteúdo (status) não foi preenchido, removemos o erro 'required'
+        # que o Django pode ter gerado no nível do modelo, tornando-o sempre válido.
+        if not status:
+            # Não fazemos nada, o formulário é considerado válido, mas vazio
+            # e a view vai ignorá-lo na hora de salvar.
+            pass
+
+        return cleaned_data
 
     def __init__(self, *args, **kwargs):
         super(ClinicalEvaluationForm, self).__init__(*args, **kwargs)
@@ -194,6 +215,22 @@ class InterdisciplinaryEvaluationForm(forms.ModelForm):
             ),
         }
         labels = {"notes": ""}
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        notes = cleaned_data.get("notes")
+        
+        # Se o campo de conteúdo (notes) não foi preenchido, o form é válido, mas vazio.
+        if not notes:
+            pass
+            
+        return cleaned_data
+    
+    def __init__(self, *args, **kwargs):
+        super(InterdisciplinaryEvaluationForm, self).__init__(*args, **kwargs)
+        self.fields['area'].required = False
+        self.fields['notes'].required = False
 
 
 class ConsultationRecordForm(forms.ModelForm):

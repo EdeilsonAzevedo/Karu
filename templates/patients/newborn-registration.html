@@ -16,51 +16,62 @@
                 </div>
             </div>
 
-
             <form id="formDischarge" method="POST" class="grid grid-cols-1 gap-6">
                 {% csrf_token %}
 
-                <!-- SEÇÃO 1: DADOS DO PACIENTE -->
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="user" class="w-5 h-5"></i>Dados do Paciente</h2>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Nome</span></label>
-                                <input name="first_name" required type="text" class="input input-bordered"
-                                    placeholder="Ex.: João" />
+                                <label class="label"><span class="label-text">{{ patient_form.first_name.label }}</span></label>
+                                {{ patient_form.first_name }}
+                                {% for error in patient_form.first_name.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
+
                             <div class="form-control">
-                                <label class="label"><span class="label-text">Sobrenome</span></label>
-                                <input name="last_name" type="text" class="input input-bordered"
-                                    placeholder="Ex.: Silva" />
+                                <label class="label"><span class="label-text">{{ patient_form.last_name.label }}</span></label>
+                                {{ patient_form.last_name }}
+                                {% for error in patient_form.last_name.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
+
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Data de nascimento</span></label>
-                                <input name="date_of_birth" required type="date" class="input input-bordered" />
-                                <label class="label"><span class="label-text-alt">Idade: <span id="ageBadge"
-                                            class="font-semibold"></span></span></label>
+                                <label class="label"><span class="label-text">{{ patient_form.date_of_birth.label }}</span></label>
+                                {{ patient_form.date_of_birth }}
+                                <label class="label"><span class="label-text-alt">Idade: <span id="ageBadge" class="font-semibold"></span></span></label>
+                                {% for error in patient_form.date_of_birth.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
+
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Sexo</span></label>
-                                <select name="sex" required class="select select-bordered">
-                                    <option value="">Selecione</option>
-                                    <option value="M">Masculino</option>
-                                    <option value="F">Feminino</option>
-                                </select>
+                                <label class="label"><span class="label-text">{{ patient_form.sex.label }}</span></label>
+                                {{ patient_form.sex }}
+                                {% for error in patient_form.sex.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
+
                             <div class="form-control">
-                                <label class="label"><span class="label-text">CPF</span></label>
-                                <input name="cpf" inputmode="numeric" pattern="[0-9]{11}" class="input input-bordered"
-                                    placeholder="11 dígitos (opcional)" />
-                                <label class="label required"><span class="label-text-alt">Somente
-                                        números</span></label>
+                                <label class="label"><span class="label-text">{{ patient_form.cpf.label }}</span></label>
+                                {{ patient_form.cpf }}
+                                <label class="label"><span class="label-text-alt">Somente números</span></label>
+                                {% for error in patient_form.cpf.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
+
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Certidão de
-                                        Nascimento</span></label>
-                                <input name="birth_certificate_number" class="input input-bordered"
-                                    placeholder="Número da certidão" />
+                                <label class="label"><span class="label-text">{{ patient_form.birth_certificate_number.label }}</span></label>
+                                {{ patient_form.birth_certificate_number }}
+                                {% for error in patient_form.birth_certificate_number.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -71,16 +82,18 @@
                         <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Dados do Responsável</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Nome do
-                                        Responsável</span></label>
-                                <input name="guardian_name" type="text" class="input input-bordered"
-                                    placeholder="Ex.: Ana Souza" />
+                                <label class="label"><span class="label-text">{{ patient_form.guardian_name.label }}</span></label>
+                                {{ patient_form.guardian_name }}
+                                {% for error in patient_form.guardian_name.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
                             <div class="form-control">
-                                <label class="label required"><span class="label-text">Telefone de
-                                        Contato</span></label>
-                                <input name="contact_phone" type="tel" class="input input-bordered"
-                                    placeholder="(82) 99999-9999" />
+                                <label class="label"><span class="label-text">{{ patient_form.contact_phone.label }}</span></label>
+                                {{ patient_form.contact_phone }}
+                                {% for error in patient_form.contact_phone.errors %}
+                                <div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -90,182 +103,86 @@
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="map-pin" class="w-5 h-5"></i>Endereço</h2>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="form-control md:col-span-2">
-                                <label class="label required"><span class="label-text">Logradouro</span></label>
-                                <input name="address_street" class="input input-bordered"
-                                    placeholder="Rua, avenida..." />
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">Número</span></label>
-                                <input name="address_number" class="input input-bordered" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Complemento</span></label>
-                                <input name="address_complement" class="input input-bordered"
-                                    placeholder="Apto, Bloco, etc." />
-                            </div>
-                            <div class="form-control md:col-span-2">
-                                <label class="label required"><span class="label-text">Bairro</span></label>
-                                <input name="address_neighborhood" class="input input-bordered" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">Cidade</span></label>
-                                <input name="address_city" class="input input-bordered" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">UF</span></label>
-                                <input name="address_state" maxlength="2" class="input input-bordered" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">CEP</span></label>
-                                <input name="address_zip_code" class="input input-bordered"
-                                    placeholder="Somente números" />
-                            </div>
+                            <div class="form-control md:col-span-2">{{ patient_form.address_street.label_tag }}{{ patient_form.address_street }}{% for error in patient_form.address_street.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.address_number.label_tag }}{{ patient_form.address_number }}{% for error in patient_form.address_number.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.address_complement.label_tag }}{{ patient_form.address_complement }}{% for error in patient_form.address_complement.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control md:col-span-2">{{ patient_form.address_neighborhood.label_tag }}{{ patient_form.address_neighborhood }}{% for error in patient_form.address_neighborhood.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.address_city.label_tag }}{{ patient_form.address_city }}{% for error in patient_form.address_city.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.address_state.label_tag }}{{ patient_form.address_state }}{% for error in patient_form.address_state.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.address_zip_code.label_tag }}{{ patient_form.address_zip_code }}{% for error in patient_form.address_zip_code.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
                         </div>
                     </div>
                 </section>
 
-                <!-- SEÇÃO 2: DADOS DO NASCIMENTO -->
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="stethoscope" class="w-5 h-5"></i>Dados do Nascimento</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">IG (semanas)</span></label>
-                                <input name="gestational_age_weeks" required inputmode="numeric" min="20" max="44"
-                                    class="input input-bordered" placeholder="Ex.: 38" />
-                                <label class="label"><span class="label-text-alt">Idade gestacional</span></label>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">IG (dias)</span></label>
-                                <input name="gestational_age_days" inputmode="numeric" min="0" max="6"
-                                    class="input input-bordered" placeholder="0-6" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">Peso ao nascer (g)</span></label>
-                                <input name="birth_weight" required inputmode="decimal" step="0.01"
-                                    class="input input-bordered" placeholder="Ex.: 3200.00" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Comprimento (cm)</span></label>
-                                <input name="birth_length" inputmode="decimal" step="0.01" class="input input-bordered"
-                                    placeholder="Ex.: 49.5" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">PC ao nascer (cm)</span></label>
-                                <input name="head_circumference" inputmode="decimal" step="0.01"
-                                    class="input input-bordered" placeholder="Perímetro cefálico" />
-                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div class="form-control">{{ patient_form.gestational_age_weeks.label_tag }}{{ patient_form.gestational_age_weeks }}{% for error in patient_form.gestational_age_weeks.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.gestational_age_days.label_tag }}{{ patient_form.gestational_age_days }}{% for error in patient_form.gestational_age_days.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.birth_weight.label_tag }}{{ patient_form.birth_weight }}{% for error in patient_form.birth_weight.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.birth_length.label_tag }}{{ patient_form.birth_length }}{% for error in patient_form.birth_length.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ patient_form.head_circumference.label_tag }}{{ patient_form.head_circumference }}{% for error in patient_form.head_circumference.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
                         </div>
                     </div>
                 </section>
 
-                <!-- SEÇÃO 3: DADOS DA ALTA -->
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Dados da Alta</h2>
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">Data da alta</span></label>
-                                <input name="date" required type="date" class="input input-bordered" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Idade cronológica (dias)</span></label>
-                                <input name="chronological_age_days" inputmode="numeric" class="input input-bordered"
-                                    placeholder="Dias de vida" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Idade corrigida (semanas)</span></label>
-                                <input name="corrected_age_weeks" inputmode="numeric" class="input input-bordered"
-                                    placeholder="IG corrigida" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">Peso na alta (g)</span></label>
-                                <input name="weight" required inputmode="decimal" step="0.01"
-                                    class="input input-bordered" placeholder="Ex.: 2800.00" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Comprimento na alta (cm)</span></label>
-                                <input name="length" inputmode="decimal" step="0.01" class="input input-bordered"
-                                    placeholder="Ex.: 47.5" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">PC na alta (cm)</span></label>
-                                <input name="head_circumference_discharge" inputmode="decimal" step="0.01"
-                                    class="input input-bordered" placeholder="Perímetro cefálico" />
-                            </div>
-                            <div class="form-control">
-                                <label class="label required"><span class="label-text">Tipo de
-                                        alimentação</span></label>
-                                <select name="feeding_type" required class="select select-bordered">
-                                    <option value="">Selecione</option>
-                                    <option value="breastfeeding">SME (Aleitamento Exclusivo)</option>
-                                    <option value="mixed">SM + Fórmula (Misto)</option>
-                                    <option value="formula">Fórmula</option>
-                                </select>
-                            </div>
-                            <div class="form-control">
-                                <label class="label"><span class="label-text">Observações da alta</span></label>
-                                <textarea name="notes" class="textarea textarea-bordered" rows="2"
-                                    placeholder="Observações, orientações..."></textarea>
-                            </div>
+                            <div class="form-control">{{ record_form.date.label_tag }}{{ record_form.date }}{% for error in record_form.date.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ discharge_form.chronological_age_days.label_tag }}{{ discharge_form.chronological_age_days }}{% for error in discharge_form.chronological_age_days.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ discharge_form.corrected_age_weeks.label_tag }}{{ discharge_form.corrected_age_weeks }}{% for error in discharge_form.corrected_age_weeks.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ discharge_form.weight.label_tag }}{{ discharge_form.weight }}{% for error in discharge_form.weight.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ discharge_form.length.label_tag }}{{ discharge_form.length }}{% for error in discharge_form.length.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ discharge_form.head_circumference.label_tag }}{{ discharge_form.head_circumference }}{% for error in discharge_form.head_circumference.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control">{{ discharge_form.feeding_type.label_tag }}{{ discharge_form.feeding_type }}{% for error in discharge_form.feeding_type.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
+                            <div class="form-control md:col-span-4">{{ record_form.notes.label_tag }}{{ record_form.notes }}{% for error in record_form.notes.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}</div>
                         </div>
                     </div>
                 </section>
-
+                
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="activity" class="w-5 h-5"></i>Avaliações Clínicas</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
                             {% for ctype in ClinicalEvaluationType %}
                             {% with clinical_form=clinical_forms|get_item:ctype.value %}
                             <div class="form-control">
                                 <label class="label"><span class="label-text">{{ ctype.label }}</span></label>
-
                                 {{ clinical_form.status }}
                                 {{ clinical_form.type }}
-
                                 {% for error in clinical_form.status.errors %}
-                                <div class="label">
-                                    <span class="label-text-alt text-error">{{ error }}</span>
-                                </div>
+                                <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
                                 {% endfor %}
                             </div>
                             {% endwith %}
                             {% endfor %}
-
                         </div>
                     </div>
                 </section>
-
+                
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Avaliações da Equipe</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                             {% for area in InterdisciplinaryEvaluationArea %}
                             {% with team_form=team_forms|get_item:area.value %}
                             <div class="form-control">
                                 <label class="label"><span class="label-text">{{ area.label }}</span></label>
-
                                 {{ team_form.notes }}
                                 {{ team_form.area }}
-
                                 {% for error in team_form.notes.errors %}
-                                <div class="label">
-                                    <span class="label-text-alt text-error">{{ error }}</span>
-                                </div>
+                                <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
                                 {% endfor %}
                             </div>
                             {% endwith %}
                             {% endfor %}
-
                         </div>
                     </div>
                 </section>
 
-                <!-- SEÇÃO 6: CONFIRMAÇÃO -->
                 <section class="card bg-base-200 shadow">
                     <div class="card-body">
                         <h2 class="card-title"><i data-lucide="check-square" class="w-5 h-5"></i>Confirmação</h2>
@@ -288,12 +205,10 @@
                 </section>
             </form>
 
-            <!-- Preview rápido -->
             <div class="card bg-base-200 shadow mt-4">
                 <div class="card-body">
                     <h2 class="card-title"><i data-lucide="eye" class="w-5 h-5"></i>Pré-visualização</h2>
-                    <div id="preview" class="text-sm text-base-content/80">Preencha os campos para ver a
-                        pré-visualização...</div>
+                    <div id="preview" class="text-sm text-base-content/80">Preencha os campos para ver a pré-visualização...</div>
                 </div>
             </div>
         </div>

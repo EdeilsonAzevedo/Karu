@@ -18,15 +18,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from apps.accounts.views import MyLoginView, MyLogoutView, home
+from apps.accounts.views import MyLoginView, MyLogoutView, home as dashboard_home  # renomeei para evitar confusão
 
 urlpatterns = [
+    # ROTA PÚBLICA (landing)
+    path("", include("apps.core.urls")),   # <— raiz pública
+
+    # ÁREA AUTENTICADA
+    path("home/", dashboard_home, name="home"),
+
     path("admin/", admin.site.urls),
     path("patients/", include("apps.patients.urls")),
     path("manager/", include("apps.manager.urls")),
     path("accounts/", include("apps.accounts.urls")),
-    path("home/", home, name="home"),
-    path("", home, name="home"),
     path("login/", MyLoginView.as_view(), name="login"),
     path("logout/", MyLogoutView.as_view(), name="logout"),
 ]

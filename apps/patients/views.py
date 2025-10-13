@@ -51,18 +51,27 @@ def patient_list(request):
 
     return render(request, "patients/list.html", {"patients": qs})
 
-
-# Em patients/views.py
-
-
 @transaction.atomic
 def patient_create(request):
-    if request.method == "POST":
-        patient_form = PatientForm(request.POST)
-        record_form = RecordForm(request.POST)
-        discharge_form = DischargeRecordForm(request.POST)
+    if request.method != "POST":
+        patient_form = PatientForm()
+        # já cria uma instância com record_type fixé
+        record_form = RecordForm(instance=Record(record_type="discharge"))
+        discharge_form = DischargeRecordForm()
+        clinical_forms = {
+            ctype.value: ClinicalEvaluationForm(prefix=f"clinic-{ctype.value}", initial={"type": ctype.value})
+            for ctype in ClinicalEvaluationType
+        }
+        team_forms = {
+            area.value: InterdisciplinaryEvaluationForm(prefix=f"team-{area.value}", initial={"area": area.value})
+            for area in InterdisciplinaryEvaluationArea
+        }
 
-        # --- ADICIONE ESTES FORMULÁRIOS ---
+    else:
+        patient_form = PatientForm(request.POST)
+        # instancia com record_type para a validação já ter o valor
+        record_form = RecordForm(request.POST, instance=Record(record_type="discharge"))
+        discharge_form = DischargeRecordForm(request.POST)
         clinical_forms = {
             ctype.value: ClinicalEvaluationForm(request.POST, prefix=f"clinic-{ctype.value}")
             for ctype in ClinicalEvaluationType
@@ -72,22 +81,23 @@ def patient_create(request):
             for area in InterdisciplinaryEvaluationArea
         }
 
-        # --- ATUALIZE A CONDIÇÃO DE VALIDAÇÃO ---
-        all_forms_valid = all(
-            [
-                patient_form.is_valid(),
-                record_form.is_valid(),
-                discharge_form.is_valid(),
-                all(f.is_valid() for f in clinical_forms.values()),
-                all(f.is_valid() for f in team_forms.values()),
-            ]
-        )
+        all_forms_valid = all([
+            patient_form.is_valid(),
+            record_form.is_valid(),
+            discharge_form.is_valid(),
+            all(f.is_valid() for f in clinical_forms.values()),
+            all(f.is_valid() for f in team_forms.values()),
+        ])
+        
+        print(patient_form.errors, record_form.errors, discharge_form.errors)
+        for k, f in clinical_forms.items(): print("clinic", k, f.errors)
+        for k, f in team_forms.items(): print("team", k, f.errors)
 
         if all_forms_valid:
             patient = patient_form.save()
-
             record = record_form.save(commit=False)
             record.patient = patient
+            # opcional (já está na instância), mas mantém por clareza:
             record.record_type = "discharge"
             record.save()
 
@@ -95,65 +105,30 @@ def patient_create(request):
             discharge.record = record
             discharge.save()
 
-            # --- ADICIONE A LÓGICA PARA SALVAR AS AVALIAÇÕES ---
-            for ctype_enum, form in clinical_forms.items():
+            for ctype_value, form in clinical_forms.items():
                 if form.cleaned_data.get("status"):
                     ClinicalEvaluation.objects.create(
-                        record=record, type=ctype_enum, status=form.cleaned_data["status"]
+                        record=record, type=ctype_value, status=form.cleaned_data["status"]
                     )
 
-            for area_enum, form in team_forms.items():
+            for area_value, form in team_forms.items():
                 if form.cleaned_data.get("notes"):
                     InterdisciplinaryEvaluation.objects.create(
-                        record=record, area=area_enum, notes=form.cleaned_data["notes"]
+                        record=record, area=area_value, notes=form.cleaned_data["notes"]
                     )
-            # --- FIM DAS ADIÇÕES ---
 
             return redirect("patients:list")
-        else:
-            # Opcional, mas recomendado para debug:
-            print("Patient Form Errors:", patient_form.errors)
-            print("Record Form Errors:", record_form.errors)
-            print("Discharge Form Errors:", discharge_form.errors)
-            for key, form in clinical_forms.items():
-                if not form.is_valid():
-                    print(f"Clinical Form ({key}) Errors:", form.errors)
-            for key, form in team_forms.items():
-                if not form.is_valid():
-                    print(f"Team Form ({key}) Errors:", form.errors)
 
-    else:  # GET request
-        patient_form = PatientForm()
-        record_form = RecordForm()
-        discharge_form = DischargeRecordForm()
-
-        # --- ADICIONE ESTES FORMULÁRIOS TAMBÉM NO GET ---
-        clinical_forms = {
-            ctype.value: ClinicalEvaluationForm(
-                prefix=f"clinic-{ctype.value}", initial={"type": ctype.value}
-            )
-            for ctype in ClinicalEvaluationType
-        }
-        team_forms = {
-            area.value: InterdisciplinaryEvaluationForm(
-                prefix=f"team-{area.value}", initial={"area": area.value}
-            )
-            for area in InterdisciplinaryEvaluationArea
-        }
-
-    return render(
-        request,
-        "patients/newborn-registration.html",
-        {
-            "patient_form": patient_form,
-            "record_form": record_form,
-            "discharge_form": discharge_form,
-            "clinical_forms": clinical_forms,
-            "team_forms": team_forms,
-            "ClinicalEvaluationType": ClinicalEvaluationType,
-            "InterdisciplinaryEvaluationArea": InterdisciplinaryEvaluationArea,
-        },
-    )
+    context = {
+        "patient_form": patient_form,
+        "record_form": record_form,
+        "discharge_form": discharge_form,
+        "clinical_forms": clinical_forms,
+        "team_forms": team_forms,
+        "ClinicalEvaluationType": ClinicalEvaluationType,
+        "InterdisciplinaryEvaluationArea": InterdisciplinaryEvaluationArea,
+    }
+    return render(request, "patients/newborn-registration.html", context)
 
 
 @transaction.atomic
