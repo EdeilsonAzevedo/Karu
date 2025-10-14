@@ -3,7 +3,6 @@
 {% block title %}{{ patient.first_name }} {{ patient.last_name }} - Prontuário Karu {% endblock %}
 
 {% block extra_head %}
-    {# Bloco para CSS específico desta página, se necessário #}
     <style>
         html {
             scroll-behavior: smooth;
@@ -12,12 +11,6 @@
 {% endblock %}
 
 {% block content %}
-<style>
-    html {
-        scroll-behavior: smooth;
-    }
-</style>
-
 <div class="px-6 py-6">
     <div class="max-w-7xl mx-auto">
 
@@ -29,20 +22,12 @@
                             <div class="bg-primary text-primary-content rounded-full w-20">
                                 <span class="text-2xl font-bold">{{ patient.first_name|default:""|first }}{{ patient.last_name|default:""|first }}</span>
                             </div>
-                            <div class="flex flex-wrap gap-2 mt-3">
-                                <div class="badge badge-success">Acompanhamento Normal</div>
-                                <div class="badge badge-info">Etapa 3 - Método Canguru</div>
-                                <div class="badge badge-outline">Aleitamento Exclusivo</div>
-                            </div>
                         </div>
                         <div class="space-y-2">
                             <div class="flex items-center gap-4">
                                 <h1 class="text-3xl font-bold text-base-content">{{ patient.first_name }} {{ patient.last_name }}</h1>
-
-                                <a href="{% url 'patients:edit' patient.pk %}"
-                                    class="btn btn-outline btn-info btn-sm">
-                                    <i data-lucide="edit" class="w-4 h-4"></i>
-                                    Editar cadastro
+                                <a href="{% url 'patients:edit' patient.pk %}" class="btn btn-outline btn-info btn-sm">
+                                    <i data-lucide="edit" class="w-4 h-4"></i> Editar cadastro
                                 </a>
                             </div>
 
@@ -53,47 +38,38 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <i data-lucide="clock" class="w-4 h-4 text-secondary"></i>
-                                    <span><strong>IG Nascimento:</strong> {{ patient.gestational_age_weeks }}
-                                        semanas</span>
+                                    <span><strong>IG Nascimento:</strong> {{ patient.gestational_age_weeks }} semanas</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <i data-lucide="file-text" class="w-4 h-4 text-accent"></i>
                                     <span><strong>Certidão:</strong> {{ patient.birth_certificate_number|default:"Não informado" }}</span>
                                 </div>
-                                <div class="flex flex-wrap gap-2 mt-3"> 
-                                    {% if patient_status.reasons %}
-                                        {# Se houver motivos, cria um tooltip #}
-                                        <div class="tooltip" data-tip="{{ patient_status.reasons|join:' | ' }}">
-                                            <div class="badge {{ patient_status.badge_class }}">{{ patient_status.text }}</div>
-                                        </div>
-                                    {% else %}
-                                        {# Caso contrário, exibe o badge normal #}
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                {% if patient_status.reasons %}
+                                    <div class="tooltip" data-tip="{{ patient_status.reasons|join:' | ' }}">
                                         <div class="badge {{ patient_status.badge_class }}">{{ patient_status.text }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="badge {{ patient_status.badge_class }}">{{ patient_status.text }}</div>
+                                {% endif %}
+                                {% with latest_record=consultation_records.first %}
+                                    {% if latest_record and latest_record.consultation_details.kangaroo_hours_per_day is not None %}
+                                        <div class="badge badge-info">Canguru: {{ latest_record.consultation_details.kangaroo_hours_per_day }}h/dia</div>
                                     {% endif %}
-
-                                    {% with latest_record=consultation_records.first %}
-                                        
-                                        {% if latest_record and latest_record.consultation_details.kangaroo_hours_per_day is not None %}
-                                            <div class="badge badge-info">
-                                                Canguru: {{ latest_record.consultation_details.kangaroo_hours_per_day }}h/dia
-                                            </div>
-                                        {% endif %}
-
-                                        {% if latest_record and latest_record.consultation_details.feeding_type %}
-                                            {% with feeding_type=latest_record.consultation_details.feeding_type %}
-                                                {% if feeding_type == 'exclusive' %}
-                                                    <div class="badge badge-success">{{ latest_record.consultation_details.get_feeding_type_display }}</div>
-                                                {% elif feeding_type == 'mixed' %}
-                                                    <div class="badge badge-info">{{ latest_record.consultation_details.get_feeding_type_display }}</div>
-                                                {% else %}
-                                                    <div class="badge badge-warning">{{ latest_record.consultation_details.get_feeding_type_display }}</div>
-                                                {% endif %}
-                                            {% endwith %}
-                                        {% endif %}
-
-                                    {% endwith %}
-
-                                </div>
+                                    {% if latest_record and latest_record.consultation_details.feeding_type %}
+                                        {% with feeding_type=latest_record.consultation_details.feeding_type %}
+                                            {% if feeding_type == 'exclusive' %}
+                                                <div class="badge badge-success">{{ latest_record.consultation_details.get_feeding_type_display }}</div>
+                                            {% elif feeding_type == 'mixed' %}
+                                                <div class="badge badge-info">{{ latest_record.consultation_details.get_feeding_type_display }}</div>
+                                            {% else %}
+                                                <div class="badge badge-warning">{{ latest_record.consultation_details.get_feeding_type_display }}</div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
                             </div>
                         </div>
                     </div>
@@ -105,43 +81,37 @@
                             </div>
                             <div class="stat">
                                 <div class="stat-title">Idade Corrigida</div>
-                                <div class="stat-value text-secondary text-lg">
-                                    {{ corrected_age_weeks }} sem e {{ corrected_age_remaining_days }}d
-                                </div>
+                                <div class="stat-value text-secondary text-lg">{{ corrected_age_weeks }} sem e {{ corrected_age_remaining_days }}d</div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <a href="{% url 'patients:consultation_create' patient.pk %}" class="btn btn-primary w-full mt-4">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    Registrar Nova Consulta
-                </a>
+                <div class="mt-4">
+                    <a href="{% url 'patients:consultation_create' patient.pk %}" class="btn btn-primary w-full">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Registrar Nova Consulta
+                    </a>
+                </div>
             </div>
         </div>
 
-        <div class="navbar bg-base-200 rounded-box shadow-lg mb-8">
+        <div class="navbar bg-base-200 rounded-box shadow-lg mb-8 sticky top-4 z-20">
             <div class="navbar-start">
                 <div class="dropdown">
-                    <label tabindex="0" class="btn btn-ghost lg:hidden">
-                        <i data-lucide="menu"></i>
-                    </label>
-                    <ul tabindex="0"
-                        class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <label tabindex="0" class="btn btn-ghost lg:hidden"><i data-lucide="menu"></i></label>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
                         <li><a href="#dados-gerais">Dados Gerais</a></li>
                         <li><a href="#curvas-crescimento">Curvas de Crescimento</a></li>
-                        <li><a href="#alertas-medicacoes">Alertas e Medicações</a></li>
+                        <li><a href="#alertas-medicacoes">Alertas e Exames</a></li>
                         <li><a href="#historico-consultas">Histórico de Consultas</a></li>
                     </ul>
                 </div>
                 <a class="btn btn-ghost text-xl hidden lg:flex">Visão Geral</a>
             </div>
-            <div class="navbar-center hidden lg:flex">
-            </div>
-            <div class="navbar-end">
+            <div class="navbar-end hidden lg:flex">
                 <ul class="menu menu-horizontal px-1">
                     <li><a href="#dados-gerais">Dados Gerais</a></li>
                     <li><a href="#curvas-crescimento">Curvas de Crescimento</a></li>
-                    <li><a href="#alertas-medicacoes">Alertas e Medicações</a></li>
+                    <li><a href="#alertas-medicacoes">Alertas e Exames</a></li>
                     <li><a href="#historico-consultas">Histórico de Consultas</a></li>
                 </ul>
             </div>
@@ -152,44 +122,21 @@
                 <div class="card-body">
                     <h3 class="card-title text-primary mb-4"><i data-lucide="activity" class="w-5 h-5"></i> Dados Atuais</h3>
                     <div class="space-y-3">
-                        {% with latest_record=patient.records.first %}
+                        {% with latest_record=consultation_records.first %}
                             {% if latest_record %}
-                                
                                 {% if latest_record.record_type == 'consultation' and latest_record.consultation_details %}
-                                    <div class="flex justify-between">
-                                        <span>Peso:</span>
-                                        <span class="font-semibold">{{ latest_record.consultation_details.weight }}g</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Comprimento:</span>
-                                        <span class="font-semibold">{{ latest_record.consultation_details.length }}cm</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>PC:</span>
-                                        <span class="font-semibold">{{ latest_record.consultation_details.head_circumference }}cm</span>
-                                    </div>
-                                
+                                    <div class="flex justify-between"><span>Peso:</span><span class="font-semibold">{{ latest_record.consultation_details.weight }}g</span></div>
+                                    <div class="flex justify-between"><span>Comprimento:</span><span class="font-semibold">{{ latest_record.consultation_details.length }}cm</span></div>
+                                    <div class="flex justify-between"><span>PC:</span><span class="font-semibold">{{ latest_record.consultation_details.head_circumference }}cm</span></div>
                                 {% elif latest_record.record_type == 'discharge' and latest_record.discharge %}
-                                    <div class="flex justify-between">
-                                        <span>Peso (na alta):</span>
-                                        <span class="font-semibold">{{ latest_record.discharge.weight }}g</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Comprimento (na alta):</span>
-                                        <span class="font-semibold">{{ latest_record.discharge.length }}cm</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>PC (na alta):</span>
-                                        <span class="font-semibold">{{ latest_record.discharge.head_circumference }}cm</span>
-                                    </div>
+                                    <div class="flex justify-between"><span>Peso (na alta):</span><span class="font-semibold">{{ latest_record.discharge.weight }}g</span></div>
+                                    <div class="flex justify-between"><span>Comprimento (na alta):</span><span class="font-semibold">{{ latest_record.discharge.length }}cm</span></div>
+                                    <div class="flex justify-between"><span>PC (na alta):</span><span class="font-semibold">{{ latest_record.discharge.head_circumference }}cm</span></div>
+                                {% else %}
+                                    <p>Dados de medidas não disponíveis.</p>
                                 {% endif %}
-
                                 <div class="divider my-2"></div>
-                                <div class="flex justify-between">
-                                    <span>Último registro:</span>
-                                    <span class="font-semibold">{{ latest_record.date|date:"d/m/Y" }}</span>
-                                </div>
-
+                                <div class="flex justify-between"><span>Último registro:</span><span class="font-semibold">{{ latest_record.date|date:"d/m/Y" }}</span></div>
                             {% else %}
                                 <p class="text-base-content/60">Nenhum registro encontrado.</p>
                             {% endif %}
@@ -197,69 +144,43 @@
                     </div>
                 </div>
             </div>
-            <div class="navbar-end">
-                <ul class="menu menu-horizontal px-1">
-                    <li><a href="#dados-gerais">Dados Gerais</a></li>
-                    <li><a href="#curvas-crescimento">Curvas de Crescimento</a></li>
-                    <li><a href="#alertas-medicacoes">Alertas e Medicações</a></li>
-                    <li><a href="#historico-consultas">Histórico de Consultas</a></li>
-                </ul>
-            </div>
-        </div>
-
             <div class="card bg-base-200 shadow-xl">
                 <div class="card-body">
                     <h3 class="card-title text-secondary mb-4"><i data-lucide="users" class="w-5 h-5"></i> Responsáveis</h3>
                     <div class="space-y-3">
                         <div>
                             <div class="font-semibold">{{ patient.guardian_name|default:"Não informado" }}</div>
-                            <div class="text-sm text-base-content/70">
-                                Responsável - Tel: 
-                                {% if patient.contact_phone %}
-                                    {# Cria um link clicável para o telefone #}
-                                    <a href="tel:{{ patient.contact_phone }}" class="link link-hover">{{ patient.contact_phone }}</a>
-                                {% else %}
-                                    Não informado
-                                {% endif %}
-                            </div>
+                            <div class="text-sm text-base-content/70">Responsável - Tel: {% if patient.contact_phone %}<a href="tel:{{ patient.contact_phone }}" class="link link-hover">{{ patient.contact_phone }}</a>{% else %}Não informado{% endif %}</div>
                         </div>
-
                         {% if patient.address_street or patient.address_neighborhood or patient.address_city %}
                             <div class="text-sm mt-2">
                                 <strong>Endereço:</strong>
-                                <address class="not-italic"> {# Usar a tag <address> é semanticamente correto #}
+                                <address class="not-italic">
                                     {{ patient.address_street|default:"" }}{% if patient.address_number %}, {{ patient.address_number }}{% endif %}<br>
                                     {{ patient.address_neighborhood|default:"" }}<br>
                                     {{ patient.address_city|default:"" }} - {{ patient.address_state|default:"" }}<br>
-                                    {% if patient.address_zip_code %}
-                                        CEP: {{ patient.address_zip_code }}
-                                    {% endif %}
+                                    {% if patient.address_zip_code %}CEP: {{ patient.address_zip_code }}{% endif %}
                                 </address>
                             </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
-
             <div class="card bg-base-200 shadow-xl">
                 <div class="card-body">
                     <h3 class="card-title text-accent mb-4"><i data-lucide="stethoscope" class="w-5 h-5"></i> Equipe Responsável</h3>
-                    <div class="space-y-4"> 
-                        
+                    <div class="space-y-4">
                         {% for prof in team_professionals %}
                             <div class="flex items-center gap-3">
-                                <div class="bg-accent/20 p-2 rounded-full">
-                                    <i data-lucide="user-md" class="w-5 h-5 text-accent"></i>
-                                </div>
+                                <div class="bg-accent/20 p-2 rounded-full"><i data-lucide="user-md" class="w-5 h-5 text-accent"></i></div>
                                 <div>
                                     <div class="font-bold">{{ prof.name }}</div>
                                     <div class="text-sm text-base-content/70">{{ prof.role }}</div>
                                 </div>
                             </div>
                         {% empty %}
-                            <p class="text-base-content/60">Nenhum profissional registrado nos atendimentos.</p>
+                            <p class="text-base-content/60">Nenhum profissional registrado.</p>
                         {% endfor %}
-
                     </div>
                 </div>
             </div>
@@ -268,54 +189,24 @@
         <div id="curvas-crescimento" class="card bg-base-200 shadow-xl mb-8">
             <div class="card-body">
                 <h3 class="card-title text-primary mb-6"><i data-lucide="trending-up" class="w-6 h-6"></i> Curvas de Crescimento - Intergrowth-21</h3>
-                
                 <div class="tabs tabs-boxed mb-6" id="growthChartTabs">
                     <button class="tab tab-active" data-metric="weight">Peso (g)</button>
                     <button class="tab" data-metric="length">Comprimento (cm)</button>
                     <button class="tab" data-metric="head">Perímetro Cefálico (cm)</button>
                 </div>
-
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     <div class="lg:col-span-3">
                         <div class="bg-base-100 p-4 rounded-lg h-96">
                             <canvas id="growthChart"></canvas>
                         </div>
                     </div>
-                    <form method="GET" action="#historico-consultas" class="mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-
-                            <div class="form-control col-span-1 md:col-span-2">
-                                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Buscar por profissional, notas..." class="input input-bordered w-full" />
-                            </div>
-
-                            <div class="form-control">
-                                <button type="submit" class="btn btn-primary">
-                                    <i data-lucide="filter" class="w-4 h-4"></i>
-                                    Filtrar Histórico
-                                </button>
-                            </div>
-
-                        </div>
-                    </form>
                     <div class="space-y-4">
                         <div class="stats stats-vertical shadow">
-                            <div class="stat">
-                                <div class="stat-title">Último Peso</div>
-                                <div class="stat-value text-lg">{{ weight_data.patient|last|default:'N/A' }}g</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-title">Último Comprimento</div>
-                                <div class="stat-value text-lg">{{ length_data.patient|last|default:'N/A' }}cm</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-title">Último PC</div>
-                                <div class="stat-value text-lg">{{ head_data.patient|last|default:'N/A' }}cm</div>
-                            </div>
+                            <div class="stat"><div class="stat-title">Último Peso</div><div class="stat-value text-lg">{{ weight_data.patient|last|default:'N/A' }}g</div></div>
+                            <div class="stat"><div class="stat-title">Último Comprimento</div><div class="stat-value text-lg">{{ length_data.patient|last|default:'N/A' }}cm</div></div>
+                            <div class="stat"><div class="stat-title">Último PC</div><div class="stat-value text-lg">{{ head_data.patient|last|default:'N/A' }}cm</div></div>
                         </div>
-                        <div class="alert alert-info">
-                            <i data-lucide="info" class="w-4 h-4"></i>
-                            <span class="text-xs">Eixo X representa a Idade Corrigida em semanas.</span>
-                        </div>
+                        <div class="alert alert-info"><i data-lucide="info" class="w-4 h-4"></i><span class="text-xs">Eixo X representa a Idade Corrigida em semanas.</span></div>
                     </div>
                 </div>
             </div>
@@ -324,34 +215,21 @@
         <div class="card bg-base-200 shadow-xl mb-8">
             <div class="card-body">
                 <h3 class="card-title text-secondary mb-6"><i data-lucide="bar-chart-3" class="w-6 h-6"></i> Análise de Ganho de Peso</h3>
-                
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2">
-                        <div class="bg-base-100 p-4 rounded-lg">
+                        <div class="bg-base-100 p-4 rounded-lg h-96">
                             <canvas id="weightGainChart"></canvas>
                         </div>
                     </div>
                     <div class="space-y-4">
                         <div class="stats stats-vertical shadow">
-                            <div class="stat">
-                                <div class="stat-title">Ganho Médio</div>
-                                <div class="stat-value text-success">{{ average_gain_30_days }}g/dia</div>
-                                <div class="stat-desc">Últimos 30 dias</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-title">Ganho Atual</div>
-                                <div class="stat-value text-primary">{{ current_gain_7_days }}g/dia</div>
-                                <div class="stat-desc">Último período</div>
-                            </div>
+                            <div class="stat"><div class="stat-title">Ganho Médio</div><div class="stat-value text-success">{{ average_gain_30_days }}g/dia</div><div class="stat-desc">Últimos 30 dias</div></div>
+                            <div class="stat"><div class="stat-title">Ganho Atual</div><div class="stat-value text-primary">{{ current_gain_7_days }}g/dia</div><div class="stat-desc">Último período</div></div>
                         </div>
                         {% if status == 'adequate' %}
-                        <div class="alert alert-success">
-                            <i data-lucide="check-circle" class="w-4 h-4"></i><span class="text-xs">Ganho de peso adequado.</span>
-                        </div>
+                        <div class="alert alert-success"><i data-lucide="check-circle" class="w-4 h-4"></i><span class="text-xs">Ganho de peso adequado.</span></div>
                         {% elif status == 'low' or status == 'high' %}
-                        <div class="alert alert-warning">
-                            <i data-lucide="alert-triangle" class="w-4 h-4"></i><span class="text-xs">Ganho de peso fora do ideal (15-30g/dia).</span>
-                        </div>
+                        <div class="alert alert-warning"><i data-lucide="alert-triangle" class="w-4 h-4"></i><span class="text-xs">Ganho de peso fora do ideal (15-30g/dia).</span></div>
                         {% endif %}
                     </div>
                 </div>
@@ -367,31 +245,19 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <div class="font-semibold">{{ vaccine.name }}</div>
-                                <div class="text-sm text-base-content/70">
-                                    Aplicada em: {{ vaccine.date|date:"d/m/Y" }}
-                                    {% if vaccine.lot %}| Lote: {{ vaccine.lot }}{% endif %}
-                                </div>
+                                <div class="text-sm text-base-content/70">Aplicada em: {{ vaccine.date|date:"d/m/Y" }} {% if vaccine.lot %}| Lote: {{ vaccine.lot }}{% endif %}</div>
                             </div>
-                            {# O badge "Ativo" foi removido por ser impreciso #}
                         </div>
                         {% empty %}
                         <p class="text-base-content/60">Nenhuma vacina registrada.</p>
                         {% endfor %}
                     </div>
-                    {% empty %}
-                    <div class="text-center py-8">
-                        <p class="text-lg text-base-content/60">Nenhum registro de consulta encontrado para este
-                            paciente.</p>
-                    </div>
-                    {% endfor %}
                 </div>
             </div>
-
             <div class="card bg-base-200 shadow-xl">
                 <div class="card-body">
                     <h3 class="card-title text-error mb-4"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Alertas e Exames</h3>
                     <div class="space-y-4">
-                        
                         <div>
                             <h4 class="font-semibold mb-2">Sinais de Alerta (Última Consulta)</h4>
                             {% with latest_record=consultation_records.first %}
@@ -401,16 +267,16 @@
                                         {% if sign.is_present %}
                                             <li class="text-error-content">{{ sign.get_type_display }}</li>
                                         {% endif %}
+                                    {% empty %}
+                                        <li>Nenhum sinal de alerta presente.</li>
                                     {% endfor %}
                                     </ul>
                                 {% else %}
-                                    <p class="text-sm text-base-content/60">Nenhum sinal de alerta na última consulta.</p>
+                                    <p class="text-sm text-base-content/60">Nenhum sinal de alerta registrado.</p>
                                 {% endif %}
                             {% endwith %}
                         </div>
-
                         <div class="divider"></div>
-
                         <div>
                             <h4 class="font-semibold mb-2">Histórico de Exames</h4>
                             {% for exam in patient_exams %}
@@ -418,9 +284,7 @@
                                     <i data-lucide="file-text" class="w-4 h-4 mt-1 text-primary"></i>
                                     <div>
                                         <div class="font-semibold">{{ exam.type }}</div>
-                                        <div class="text-xs text-base-content/70">
-                                            {{ exam.date|date:"d/m/Y" }} - Resultado: {{ exam.result|default:"Aguardando" }}
-                                        </div>
+                                        <div class="text-xs text-base-content/70">{{ exam.date|date:"d/m/Y" }} - Resultado: {{ exam.result|default:"Aguardando" }}</div>
                                     </div>
                                 </div>
                             {% empty %}
@@ -431,178 +295,149 @@
                 </div>
             </div>
         </div>
-
-            <div id="historico-consultas" class="card bg-base-200 shadow-xl">
-                <div class="card-body">
-                    <h3 class="card-title text-primary"><i data-lucide="history" class="w-6 h-6"></i> Histórico de Consultas</h3>
-                    <form method="GET" action="#historico-consultas" class="mb-6">
-                        ...
-                    </form>
-
-                    <div class="space-y-4">
-                        {% for record in consultation_records %}
-                            <div class="collapse collapse-plus bg-base-100 shadow">
-                                <input type="checkbox" /> 
-                                
-                                {# --- CABEÇALHO MELHORADO --- #}
-                                <div class="collapse-title text-md font-semibold flex justify-between items-center">
-                                    <div>
-                                        {{ record.get_record_type_display }}
-                                        {% if record.professional %}
-                                            <span class="text-sm font-normal text-base-content/70">- {{ record.professional }}</span>
-                                        {% endif %}
-                                    </div>
-                                    <span class="text-sm font-normal">{{ record.date|date:"d/m/Y" }}</span>
-                                </div>
-
-                                {# --- CONTEÚDO ENRIQUECIDO --- #}
-                                <div class="collapse-content">
-                                    <div class="space-y-3 text-sm pt-2 border-t">
-                                        
-                                        {% if record.record_type == 'consultation' and record.consultation_details %}
-                                            <p><strong>Horas em Posição Canguru:</strong> {{ record.consultation_details.kangaroo_hours_per_day|default:"Não informado" }}h/dia</p>
-                                            <p><strong>Tipo de Aleitamento:</strong> {{ record.consultation_details.get_feeding_type_display|default:"Não informado" }}</p>
-                                        {% endif %}
-                                        
-                                        {% if record.notes %}<p><strong>Observações Gerais:</strong> {{ record.notes|linebreaksbr }}</p>{% endif %}
-                                        
-                                        <h4 class="font-semibold mt-2">Avaliações Clínicas:</h4>
-                                        <ul>...</ul>
-                                        <h4 class="font-semibold mt-2">Avaliações da Equipe:</h4>
-                                        <ul>...</ul>
-
-                                    </div>
-                                </div>
-                            </div>
-                        {% empty %}
-                            <div class="text-center py-8">
-                                <p class="text-lg text-base-content/60">Nenhum registro de consulta encontrado.</p>
-                            </div>
-                        {% endfor %}
+        
+        <div id="historico-consultas" class="card bg-base-200 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title text-primary"><i data-lucide="history" class="w-6 h-6"></i> Histórico de Consultas</h3>
+                <form method="GET" action="#historico-consultas" class="mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                        <div class="form-control col-span-1 md:col-span-2">
+                            <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Buscar por profissional, notas..." class="input input-bordered w-full" />
+                        </div>
+                        <div class="form-control">
+                            <button type="submit" class="btn btn-primary"><i data-lucide="filter" class="w-4 h-4"></i> Filtrar Histórico</button>
+                        </div>
                     </div>
+                </form>
+
+                <div class="space-y-4">
+                    {% for record in consultation_records %}
+                        <div class="collapse collapse-plus bg-base-100 shadow">
+                            <input type="checkbox" /> 
+                            <div class="collapse-title text-md font-semibold flex justify-between items-center">
+                                <div>
+                                    {{ record.get_record_type_display }}
+                                    {% if record.professional %}
+                                        <span class="text-sm font-normal text-base-content/70">- {{ record.professional }}</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-sm font-normal">{{ record.date|date:"d/m/Y" }}</span>
+                            </div>
+                            <div class="collapse-content">
+                                <div class="space-y-3 text-sm pt-2 border-t">
+                                    {% if record.record_type == 'consultation' and record.consultation_details %}
+                                        <p><strong>Horas em Posição Canguru:</strong> {{ record.consultation_details.kangaroo_hours_per_day|default:"Não informado" }}h/dia</p>
+                                        <p><strong>Tipo de Aleitamento:</strong> {{ record.consultation_details.get_feeding_type_display|default:"Não informado" }}</p>
+                                    {% endif %}
+                                    {% if record.notes %}<p><strong>Observações Gerais:</strong> {{ record.notes|linebreaksbr }}</p>{% endif %}
+                                    
+                                    <h4 class="font-semibold mt-2">Avaliações Clínicas:</h4>
+                                    <ul class="list-disc list-inside ml-4">
+                                        {% for eval in record.clinical_evaluations.all %}
+                                            <li><strong>{{ eval.get_type_display }}:</strong> {{ eval.get_status_display }}</li>
+                                        {% empty %}
+                                            <li>Nenhuma avaliação clínica registrada.</li>
+                                        {% endfor %}
+                                    </ul>
+
+                                    <h4 class="font-semibold mt-2">Avaliações da Equipe:</h4>
+                                    <ul class="list-disc list-inside ml-4">
+                                        {% for eval in record.team_evaluations.all %}
+                                            <li><strong>{{ eval.get_area_display }}:</strong> {{ eval.notes|default:"Sem anotações." }}</li>
+                                        {% empty %}
+                                            <li>Nenhuma avaliação da equipe registrada.</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-8">
+                            <p class="text-lg text-base-content/60">Nenhum registro de consulta encontrado.</p>
+                        </div>
+                    {% endfor %}
                 </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ chart_labels|json_script:"chart-labels" }}
+{{ weight_data|json_script:"weight-data" }}
+{{ length_data|json_script:"length-data" }}
+{{ head_data|json_script:"head-data" }}
+{{ bar_chart_labels|json_script:"bar-chart-labels" }}
+{{ bar_chart_data|json_script:"bar-chart-data" }}
+{{ bar_chart_colors|json_script:"bar-chart-colors" }}
 
-    {{ chart_labels|json_script:"chart-labels" }}
-    {{ weight_data|json_script:"weight-data" }}
-    {{ length_data|json_script:"length-data" }}
-    {{ head_data|json_script:"head-data" }}
-    {{ bar_chart_labels|json_script:"bar-chart-labels" }}
-    {{ bar_chart_data|json_script:"bar-chart-data" }}
-    {{ bar_chart_colors|json_script:"bar-chart-colors" }}
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Inicializa os ícones do Lucide (como já estava)
-            lucide.createIcons();
-
-            // --- GRÁFICO 1: CURVAS DE CRESCIMENTO (INTERGROWTH) ---
-            const labels = JSON.parse(document.getElementById('chart-labels').textContent);
-            const chartData = {
-                weight: JSON.parse(document.getElementById('weight-data').textContent),
-                length: JSON.parse(document.getElementById('length-data').textContent),
-                head: JSON.parse(document.getElementById('head-data').textContent)
-            };
-            const ctxGrowth = document.getElementById('growthChart')?.getContext('2d');
-            let growthChart;
-
-            function renderGrowthChart(metric) {
-                if (!ctxGrowth) return;
-                if (growthChart) {
-                    growthChart.destroy();
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    lucide.createIcons();
+    const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+    const chartData = {
+        weight: JSON.parse(document.getElementById('weight-data').textContent),
+        length: JSON.parse(document.getElementById('length-data').textContent),
+        head: JSON.parse(document.getElementById('head-data').textContent)
+    };
+    const ctxGrowth = document.getElementById('growthChart')?.getContext('2d');
+    let growthChart;
+    function renderGrowthChart(metric) {
+        if (!ctxGrowth) return;
+        if (growthChart) { growthChart.destroy(); }
+        const data = chartData[metric];
+        const unit = metric === 'weight' ? 'g' : 'cm';
+        growthChart = new Chart(ctxGrowth, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Paciente', data: data.patient, borderColor: 'rgba(59, 130, 246, 1)', backgroundColor: 'rgba(59, 130, 246, 1)', borderWidth: 3, pointRadius: 5, tension: 0.1 },
+                    { label: 'P90', data: data.p90, borderColor: 'rgba(239, 68, 68, 0.5)', borderWidth: 1.5, pointRadius: 0, borderDash: [5, 5] },
+                    { label: 'P50', data: data.p50, borderColor: 'rgba(75, 85, 99, 0.5)', borderWidth: 1.5, pointRadius: 0 },
+                    { label: 'P10', data: data.p10, borderColor: 'rgba(239, 68, 68, 0.5)', borderWidth: 1.5, pointRadius: 0, borderDash: [5, 5] }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: false, title: { display: true, text: `Valor (${unit})` } },
+                    x: { title: { display: true, text: 'Idade Corrigida (Semanas)' } }
                 }
-                const data = chartData[metric];
-                const unit = metric === 'weight' ? 'g' : 'cm';
-                growthChart = new Chart(ctxGrowth, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Paciente',
-                                data: data.patient,
-                                borderColor: 'rgba(59, 130, 246, 1)',
-                                backgroundColor: 'rgba(59, 130, 246, 1)',
-                                borderWidth: 3,
-                                pointRadius: 5,
-                                tension: 0.1
-                            },
-                            {
-                                label: 'P90',
-                                data: data.p90,
-                                borderColor: 'rgba(239, 68, 68, 0.5)',
-                                borderWidth: 1.5,
-                                pointRadius: 0,
-                                borderDash: [5, 5]
-                            },
-                            {
-                                label: 'P50',
-                                data: data.p50,
-                                borderColor: 'rgba(75, 85, 99, 0.5)',
-                                borderWidth: 1.5,
-                                pointRadius: 0,
-                            },
-                            {
-                                label: 'P10',
-                                data: data.p10,
-                                borderColor: 'rgba(239, 68, 68, 0.5)',
-                                borderWidth: 1.5,
-                                pointRadius: 0,
-                                borderDash: [5, 5]
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: false, title: { display: true, text: `Valor (${unit})` } },
-                            x: { title: { display: true, text: 'Idade Corrigida (Semanas)' } }
-                        }
-                    }
-                });
-            }
-
-            const tabs = document.querySelectorAll('#growthChartTabs .tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('tab-active'));
-                    tab.classList.add('tab-active');
-                    renderGrowthChart(tab.dataset.metric);
-                });
-            });
-            renderGrowthChart('weight');
-
-            // --- GRÁFICO 2: ANÁLISE DE GANHO DE PESO ---
-            const barLabels = JSON.parse(document.getElementById('bar-chart-labels').textContent);
-            const barData = JSON.parse(document.getElementById('bar-chart-data').textContent);
-            const barColors = JSON.parse(document.getElementById('bar-chart-colors').textContent);
-            const ctxWeightGain = document.getElementById('weightGainChart')?.getContext('2d');
-
-            if (barLabels.length > 0 && ctxWeightGain) {
-                new Chart(ctxWeightGain, {
-                    type: 'bar',
-                    data: {
-                        labels: barLabels,
-                        datasets: [{
-                            label: 'Ganho Diário (g/dia)',
-                            data: barData,
-                            backgroundColor: barColors
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true, title: { display: true, text: 'g/dia' } } },
-                        plugins: { legend: { display: false } }
-                    }
-                });
             }
         });
-    </script>
+    }
+    const tabs = document.querySelectorAll('#growthChartTabs .tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('tab-active'));
+            tab.classList.add('tab-active');
+            renderGrowthChart(tab.dataset.metric);
+        });
+    });
+    if (labels.length > 0) { renderGrowthChart('weight'); }
+    
+    const barLabels = JSON.parse(document.getElementById('bar-chart-labels').textContent);
+    const barData = JSON.parse(document.getElementById('bar-chart-data').textContent);
+    const barColors = JSON.parse(document.getElementById('bar-chart-colors').textContent);
+    const ctxWeightGain = document.getElementById('weightGainChart')?.getContext('2d');
+    if (barLabels.length > 0 && ctxWeightGain) {
+        new Chart(ctxWeightGain, {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [{ label: 'Ganho Diário (g/dia)', data: barData, backgroundColor: barColors }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'g/dia' } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+});
+</script>
 
 {% endblock %}

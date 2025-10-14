@@ -454,14 +454,9 @@ def get_weight_gain_analysis_data(patient):
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
-    # LÓGICA DE FILTRO DO HISTÓRICO
-    # Começa com todos os registros do paciente
     records_queryset = patient.records.all().order_by("-date")
 
-    # Pega o parâmetro de busca da URL (enviado pelo formulário)
     query_text = request.GET.get("q")
-
-    # Aplica o filtro de texto, se algo foi digitado
     if query_text:
         records_queryset = records_queryset.filter(
             Q(notes__icontains=query_text) | Q(professional__icontains=query_text)
@@ -471,18 +466,15 @@ def patient_detail(request, pk):
         "consultation_details", "warning_signs", "clinical_evaluations", "team_evaluations"
     )
 
-    # DADOS PARA OS CARDS DE ALERTAS E MEDICAÇÕES
     patient_exams = Exam.objects.filter(record__patient=patient).order_by("-date")
     patient_vaccines = Vaccine.objects.filter(record__patient=patient).order_by("-date")
 
-    # DADOS DA EQUIPE
     professional_strings = (
         patient.records.exclude(professional__isnull=True)
         .exclude(professional__exact="")
         .values_list("professional", flat=True)
         .distinct()
     )
-
     processed_professionals = []
     for prof_string in professional_strings:
         parts = prof_string.split("/")
@@ -490,44 +482,41 @@ def patient_detail(request, pk):
         role = parts[1].strip() if len(parts) > 1 else "Não especificado"
         processed_professionals.append({"name": name, "role": role})
 
-    # CÁLCULOS DE IDADE E GRÁFICOS
     chart_context = _get_growth_chart_data(patient)
     weight_gain_context = get_weight_gain_analysis_data(patient)
 
     today = timezone.now().date()
     age_timedelta = today - patient.date_of_birth
     age_in_days = age_timedelta.days
-    total_days_corrected = (patient.gestational_age_weeks * 7) + age_in_days
-    corrected_age_weeks = total_days_corrected // 7
-    corrected_age_remaining_days = total_days_corrected % 7
 
-    # LÓGICA PARA O BADGE DE STATUS DINÂMICO
+    # Lógica de idade corrigida no header
+    days_from_gestation = (patient.gestational_age_weeks * 7) + (patient.gestational_age_days or 0)
+    days_to_full_term = (40 * 7) - days_from_gestation
+    corrected_age_in_days = age_in_days - days_to_full_term
+    if corrected_age_in_days < 0:
+        corrected_age_in_days = 0
+    corrected_age_weeks = corrected_age_in_days // 7
+    corrected_age_remaining_days = corrected_age_in_days % 7
+
     patient_status = {
         "text": "Acompanhamento Normal",
         "badge_class": "badge-success",
         "reasons": [],
     }
     latest_record = consultation_records.first()
-
     if latest_record:
         reasons_list = []
-
-        # Coleta os sinais de alerta presentes
         warning_signs = latest_record.warning_signs.filter(is_present=True)
         for sign in warning_signs:
             reasons_list.append(sign.get_type_display())
-
-        # Coleta as avaliações clínicas alteradas
         altered_evals = latest_record.clinical_evaluations.filter(status="altered")
         for eval in altered_evals:
             reasons_list.append(f"Avaliação {eval.get_type_display()}: Alterada")
-
         if reasons_list:
             patient_status["text"] = "Requer Atenção"
             patient_status["badge_class"] = "badge-warning"
             patient_status["reasons"] = reasons_list
 
-    # MONTAGEM DO CONTEXTO FINAL
     context = {
         "patient": patient,
         "consultation_records": consultation_records,
@@ -539,7 +528,6 @@ def patient_detail(request, pk):
         "team_professionals": processed_professionals,
         "patient_status": patient_status,
     }
-
     context.update(chart_context)
     context.update(weight_gain_context)
 
