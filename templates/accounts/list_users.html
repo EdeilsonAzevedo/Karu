@@ -1,0 +1,457 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Gerenciar Usuários - Karu{% endblock title %}
+
+{% block content %}
+<main class="p-4 md:p-6 min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-3 bg-primary/10 rounded-xl">
+                        <i data-lucide="users" class="w-8 h-8 text-primary"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            Gerenciar Usuários
+                        </h1>
+                        <p class="text-base-content/70 mt-1">
+                            Total de <span class="font-semibold text-primary">{{ total_resultados }}</span> usuário(s) cadastrado(s)
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2 w-full md:w-auto">
+                <a href="{% url 'home' %}" class="btn btn-ghost gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Voltar
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards - CORES ATUALIZADAS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <!-- Card Gestores - ROXO (Primary) -->
+            <a href="?tipo=gestor" class="stats shadow-lg bg-gradient-to-br from-primary to-primary-focus text-primary-content cursor-pointer hover:scale-105 transition-transform">
+                <div class="stat">
+                    <div class="stat-figure text-primary-content/30">
+                        <i data-lucide="briefcase" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stat-title text-primary-content/80">Gestores</div>
+                    <div class="stat-value">{{ gestores_count }}</div>
+                    <div class="stat-desc text-primary-content/60">
+                        <i data-lucide="mouse-pointer-click" class="w-3 h-3 inline"></i>
+                        Clique para filtrar
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card Profissionais - ROSA (Secondary) -->
+            <a href="?tipo=profissional_saude" class="stats shadow-lg bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content cursor-pointer hover:scale-105 transition-transform">
+                <div class="stat">
+                    <div class="stat-figure text-secondary-content/30">
+                        <i data-lucide="stethoscope" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stat-title text-secondary-content/80">Profissionais</div>
+                    <div class="stat-value">{{ profissionais_count }}</div>
+                    <div class="stat-desc text-secondary-content/60">
+                        <i data-lucide="mouse-pointer-click" class="w-3 h-3 inline"></i>
+                        Clique para filtrar
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card Responsáveis - VERDE (info) -->
+            <a href="?tipo=pais" class="stats shadow-lg bg-gradient-to-br from-info to-info-focus text-info-content cursor-pointer hover:scale-105 transition-transform">
+                <div class="stat">
+                    <div class="stat-figure text-info-content/30">
+                        <i data-lucide="heart" class="w-8 h-8"></i>
+                    </div>
+                    <div class="stat-title text-info-content/80">Responsáveis</div>
+                    <div class="stat-value">{{ pais_count }}</div>
+                    <div class="stat-desc text-info-content/60">
+                        <i data-lucide="mouse-pointer-click" class="w-3 h-3 inline"></i>
+                        Clique para filtrar
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="card bg-base-100 shadow-xl mb-6 border border-base-300">
+            <div class="card-body">
+                <div class="flex items-center gap-2 mb-4">
+                    <i data-lucide="filter" class="w-5 h-5 text-primary"></i>
+                    <h2 class="card-title text-xl">Filtros de Busca</h2>
+                </div>
+                
+                <form method="GET" action="{% url 'accounts:listar_usuarios' %}" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        
+                        <!-- Nome -->
+                        <div class="form-control md:col-span-4">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
+                                    Nome do Usuário
+                                </span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="nome" 
+                                value="{{ filtros.nome }}" 
+                                placeholder="Digite o nome..." 
+                                class="input input-bordered input-primary w-full"
+                            />
+                        </div>
+
+                        <!-- CPF -->
+                        <div class="form-control md:col-span-3">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i data-lucide="credit-card" class="w-4 h-4 inline mr-1"></i>
+                                    CPF
+                                </span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="cpf"
+                                name="cpf" 
+                                value="{{ filtros.cpf }}" 
+                                placeholder="000.000.000-00" 
+                                maxlength="14"
+                                class="input input-bordered input-secondary w-full"
+                            />
+                        </div>
+
+                        <!-- Tipo -->
+                        <div class="form-control md:col-span-3">
+                            <label class="label">
+                                <span class="label-text font-semibold">
+                                    <i data-lucide="shield" class="w-4 h-4 inline mr-1"></i>
+                                    Tipo de Usuário
+                                </span>
+                            </label>
+                            <select name="tipo" class="select select-bordered select-accent w-full">
+                                <option value="">Todos os tipos</option>
+                                <option value="gestor" {% if filtros.tipo == 'gestor' %}selected{% endif %}>
+                                    Gestor
+                                </option>
+                                <option value="profissional_saude" {% if filtros.tipo == 'profissional_saude' %}selected{% endif %}>
+                                    Profissional de Saúde
+                                </option>
+                                <option value="pais" {% if filtros.tipo == 'pais' %}selected{% endif %}>
+                                    Pais/Responsáveis
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="form-control md:col-span-2 flex justify-end">
+                            <label class="label">
+                                <span class="label-text opacity-0">Ações</span>
+                            </label>
+                            <div class="flex gap-2">
+                                <button type="submit" class="btn btn-primary gap-2 flex-1">
+                                    <i data-lucide="search" class="w-4 h-4"></i>
+                                </button>
+                                <a href="{% url 'accounts:listar_usuarios' %}" class="btn btn-ghost btn-square">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Filters -->
+                    {% if filtros.nome or filtros.cpf or filtros.tipo %}
+                    <div class="alert alert-info shadow-lg">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <i data-lucide="info" class="w-5 h-5"></i>
+                            <span class="flex items-center gap-2 flex-wrap">
+                                <strong>Filtros ativos:</strong>
+                                {% if filtros.nome %}
+                                    <span class="badge badge-primary">Nome: {{ filtros.nome }}</span>
+                                {% endif %}
+                                {% if filtros.cpf %}
+                                    <span class="badge badge-secondary">CPF: {{ filtros.cpf }}</span>
+                                {% endif %}
+                                {% if filtros.tipo %}
+                                    <span class="badge badge-accent">
+                                        Tipo: 
+                                        {% if filtros.tipo == 'gestor' %}Gestor
+                                        {% elif filtros.tipo == 'profissional_saude' %}Profissional de Saúde
+                                        {% elif filtros.tipo == 'pais' %}Pais/Responsáveis
+                                        {% else %}{{ filtros.tipo }}
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card bg-base-100 shadow-xl border border-base-300">
+            <div class="card-body p-0">
+                
+                <!-- Table Header -->
+                <div class="bg-gradient-to-r from-primary/10 to-secondary/10 px-6 py-4 border-b border-base-300">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-lg flex items-center gap-2">
+                            <i data-lucide="list" class="w-5 h-5 text-primary"></i>
+                            Lista de Usuários
+                        </h3>
+                        <div class="badge badge-primary badge-lg">
+                            {{ total_resultados }} resultado(s)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table - BADGES COM CORES ATUALIZADAS -->
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr class="bg-base-200/50">
+                                <th class="text-left">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                        Usuário
+                                    </div>
+                                </th>
+                                <th class="text-left">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="mail" class="w-4 h-4"></i>
+                                        Email
+                                    </div>
+                                </th>
+                                <th class="text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                        CPF
+                                    </div>
+                                </th>
+                                <th class="text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <i data-lucide="shield" class="w-4 h-4"></i>
+                                        Tipo
+                                    </div>
+                                </th>
+                                <th class="text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <i data-lucide="activity" class="w-4 h-4"></i>
+                                        Status
+                                    </div>
+                                </th>
+                                <th class="text-center">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <i data-lucide="settings" class="w-4 h-4"></i>
+                                        Ações
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in page_obj %}
+                            <tr class="hover:bg-base-200/50 transition-colors">
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <div class="avatar placeholder">
+                                            <!-- Avatar com cor baseada no tipo -->
+                                            <div class="
+                                                rounded-full w-12 h-12
+                                                {% if user.user_type == 'gestor' %}bg-primary text-primary-content
+                                                {% elif user.user_type == 'profissional_saude' %}bg-secondary text-secondary-content
+                                                {% elif user.user_type == 'pais' %}bg-info text-info-content
+                                                {% else %}bg-base-300 text-base-content
+                                                {% endif %}
+                                            ">
+                                                <span class="text-lg font-bold">
+                                                    {{ user.username|slice:":2"|upper }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-base">{{ user.username }}</div>
+                                            <div class="text-sm opacity-60">
+                                                {{ user.get_full_name|default:"Nome não informado" }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-sm">{{ user.email|default:"Sem email" }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="font-mono text-sm">
+                                        {% if user.gestor %}
+                                            {{ user.gestor.cpf|default:"-" }}
+                                        {% elif user.profissional %}
+                                            {{ user.profissional.cpf|default:"-" }}
+                                        {% elif user.pais %}
+                                            {{ user.pais.cpf|default:"-" }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <!-- BADGES COM CORES ATUALIZADAS -->
+                                    {% if user.user_type == 'gestor' %}
+                                        <div class="badge badge-primary gap-2">
+                                            <i data-lucide="briefcase" class="w-3 h-3"></i>
+                                            Gestor
+                                        </div>
+                                    {% elif user.user_type == 'profissional_saude' %}
+                                        <div class="badge badge-secondary gap-2">
+                                            <i data-lucide="stethoscope" class="w-3 h-3"></i>
+                                            Profissional
+                                        </div>
+                                    {% elif user.user_type == 'pais' %}
+                                        <div class="badge badge-info gap-2">
+                                            <i data-lucide="heart" class="w-3 h-3"></i>
+                                            Responsável
+                                        </div>
+                                    {% else %}
+                                        <div class="badge badge-ghost">
+                                            {{ user.get_user_type_display }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if user.is_active %}
+                                        <div class="badge badge-success gap-2">
+                                            <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                            Ativo
+                                        </div>
+                                    {% else %}
+                                        <div class="badge badge-error gap-2">
+                                            <i data-lucide="x-circle" class="w-3 h-3"></i>
+                                            Inativo
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown dropdown-end">
+                                        <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
+                                            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                        </label>
+                                        <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300 z-10">
+                                            <li>
+                                                <a href="#" class="gap-2">
+                                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                                    Ver Detalhes
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" class="gap-2">
+                                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                                    Editar
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" class="gap-2 text-error">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    Desativar
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-16">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <div class="p-4 bg-base-200 rounded-full">
+                                            <i data-lucide="user-x" class="w-16 h-16 text-base-content/30"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xl font-semibold text-base-content/70 mb-2">
+                                                Nenhum usuário encontrado
+                                            </p>
+                                            <p class="text-sm text-base-content/50">
+                                                Tente ajustar os filtros de busca
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="bg-base-200/30 px-6 py-4 border-t border-base-300">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="text-sm text-base-content/70">
+                            Mostrando 
+                            <span class="font-semibold">{{ page_obj.start_index }}</span> 
+                            a 
+                            <span class="font-semibold">{{ page_obj.end_index }}</span> 
+                            de 
+                            <span class="font-semibold">{{ page_obj.paginator.count }}</span> 
+                            usuários
+                        </div>
+                        
+                        <div class="btn-group">
+                            {% if page_obj.has_previous %}
+                                <a href="?page=1&nome={{ filtros.nome }}&cpf={{ filtros.cpf }}&tipo={{ filtros.tipo }}" 
+                                   class="btn btn-sm">
+                                    <i data-lucide="chevrons-left" class="w-4 h-4"></i>
+                                </a>
+                                <a href="?page={{ page_obj.previous_page_number }}&nome={{ filtros.nome }}&cpf={{ filtros.cpf }}&tipo={{ filtros.tipo }}" 
+                                   class="btn btn-sm">
+                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                </a>
+                            {% endif %}
+                            
+                            <button class="btn btn-sm btn-active">
+                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                            </button>
+                            
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}&nome={{ filtros.nome }}&cpf={{ filtros.cpf }}&tipo={{ filtros.tipo }}" 
+                                   class="btn btn-sm">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </a>
+                                <a href="?page={{ page_obj.paginator.num_pages }}&nome={{ filtros.nome }}&cpf={{ filtros.cpf }}&tipo={{ filtros.tipo }}" 
+                                   class="btn btn-sm">
+                                    <i data-lucide="chevrons-right" class="w-4 h-4"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- JavaScript para máscara de CPF -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cpfInput = document.getElementById('cpf');
+    if (cpfInput) {
+        cpfInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = value;
+            }
+        });
+    }
+});
+</script>
+{% endblock content %}
