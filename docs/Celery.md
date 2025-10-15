@@ -66,19 +66,25 @@ __________________________________________________________________________
   echo 🚀 Iniciando Sistema Karu...
 
   REM Ativar ambiente virtual
+  
   call karu_env\Scripts\activate
 
   REM Iniciar Redis
+  
   start redis-server
 
   REM Iniciar Celery Worker
+  
   start cmd /k "karu_env\Scripts\activate && celery -A config worker --loglevel=info --pool=solo"
 
-  REM Iniciar Celery Beat  
+  REM Iniciar Celery Beat 
+  
   start cmd /k "karu_env\Scripts\activate && celery -A config beat --loglevel=info"
 
   REM Iniciar Servidor Django
+  
   echo 🌐 Iniciando Servidor Django...
+  
   python manage.py runserver
 
   pause
