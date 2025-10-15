@@ -9,11 +9,11 @@ cpf_validator = RegexValidator(regex=r"^\d{11}$", message="CPF deve ter 11 dígi
 
 class Patient(BaseModel):
     first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100, blank=True, null=True)
+    last_name = models.CharField(max_length=100, blank=True)
     sex = models.CharField(max_length=1, choices=[("M", "Masculino"), ("F", "Feminino")])
     date_of_birth = models.DateField()
     cpf = models.CharField(
-        max_length=11,
+        max_length=14,
         validators=[cpf_validator],
         blank=True,
         null=True,
@@ -65,11 +65,11 @@ class Record(BaseModel):
 
 class DischargeRecord(BaseModel):
     record = models.OneToOneField(Record, on_delete=models.CASCADE, related_name="discharge")
-    chronological_age_days = models.PositiveIntegerField(blank=True, null=True)
-    corrected_age_weeks = models.PositiveIntegerField(blank=True, null=True)
+    chronological_age_days = models.PositiveIntegerField(blank=True)
+    corrected_age_weeks = models.PositiveIntegerField(blank=True)
     weight = models.DecimalField(max_digits=6, decimal_places=2)
-    length = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    length = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
+    head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
     feeding_type = models.CharField(
         max_length=20,
         choices=[("breastfeeding", "SME"), ("mixed", "SM+Fórmula"), ("formula", "Fórmula")],
