@@ -16,3 +16,6 @@ check:
 	poetry run ruff format --check apps
 
 ci: check-format lint test
+
+populate_db:
+	poetry run python manage.py populate_db --patients 30 --records 80 --yes

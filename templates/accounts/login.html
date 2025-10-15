@@ -8,149 +8,239 @@
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
   <style>
-    .gradient-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
-    .glass-card{backdrop-filter:blur(10px);background:rgba(255,255,255,.95);border:1px solid rgba(255,255,255,.2)}
-    .floating-animation{animation:float 6s ease-in-out infinite}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
-    .user-type-selected{background:rgba(59,130,246,.1);border-color:#3b82f6;color:#3b82f6}
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      position: relative;
+    }
+    
+    .gradient-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+    }
+    
+    .glass-card {
+      backdrop-filter: blur(16px) saturate(180%);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 
+        0 20px 60px -15px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    }
+    
+    .floating-animation {
+      animation: float 8s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-30px) scale(1.05); }
+    }
+    
+    .pulse-animation {
+      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.1; }
+    }
+    
+    .input-focus-effect:focus {
+      transform: translateY(-2px);
+      transition: all 0.3s ease;
+    }
+    
+    .logo-glow {
+      box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+    }
+    
+    .btn-hover-lift {
+      transition: all 0.3s ease;
+    }
+    
+    .btn-hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.5);
+    }
+    
+    .info-badge {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
   </style>
 </head>
 <body class="min-h-screen gradient-bg flex items-center justify-center relative overflow-hidden">
-  <div class="absolute inset-0 overflow-hidden">
+  <!-- Background decorative elements -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
     <div class="floating-animation absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
-    <div class="floating-animation absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" style="animation-delay:-3s;"></div>
+    <div class="floating-animation absolute bottom-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" style="animation-delay: -4s;"></div>
+    <div class="pulse-animation absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
   </div>
 
   <div class="relative z-10 w-full max-w-md mx-auto px-6">
-    <div class="glass-card rounded-3xl shadow-2xl p-8">
-      <div class="text-center mb-6">
-        <div class="flex items-center justify-center space-x-3 mb-4">
-          <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-            <i data-lucide="heart" class="w-7 h-7 text-primary-content"></i>
+    <!-- Main Card -->
+    <div class="glass-card rounded-3xl p-10 transform transition-all duration-300 hover:shadow-2xl">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="flex items-center justify-center space-x-3 mb-6">
+          <div class="w-14 h-14 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center logo-glow transform transition-transform hover:scale-110 duration-300">
+            <i data-lucide="heart-pulse" class="w-8 h-8 text-white"></i>
           </div>
-          <span class="text-3xl font-bold text-primary">Karu</span>
+          <div>
+            <span class="text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">Karu</span>
+          </div>
         </div>
-        <h1 class="text-2xl font-bold text-base-content mb-2">Acesso ao Sistema</h1>
-        <p class="text-base-content/70">Selecione seu perfil (opcional) e faça login</p>
+        <h1 class="text-2xl font-bold text-base-content mb-1">Bem-vindo de volta</h1>
+        <p class="text-sm text-base-content/60">Acesse sua conta para continuar</p>
       </div>
 
+      <!-- Error messages -->
       {% if form.non_field_errors %}
-        <div class="alert alert-error mb-4 text-sm">
-          {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+        <div class="alert alert-error mb-6 shadow-lg">
+          <i data-lucide="alert-circle" class="w-5 h-5"></i>
+          <div class="text-sm">
+            {% for e in form.non_field_errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+          </div>
         </div>
       {% endif %}
 
-      <!-- seleção de tipo (opcional) -->
-      <div class="mb-6">
-        <label class="label"><span class="label-text font-medium">Tipo de Usuário</span></label>
-        <div class="grid grid-cols-1 gap-3">
-          <button type="button" class="btn btn-outline w-full justify-start user-type-btn" data-type="gestor" onclick="selectUserType('gestor')">
-            <i data-lucide="user-cog" class="w-5 h-5"></i>
-            <div class="text-left flex-1">
-              <div class="font-semibold">Gestor</div>
-              <div class="text-xs opacity-70">Administração e relatórios</div>
-            </div>
-          </button>
-          <button type="button" class="btn btn-outline w-full justify-start user-type-btn" data-type="profissional" onclick="selectUserType('profissional')">
-            <i data-lucide="stethoscope" class="w-5 h-5"></i>
-            <div class="text-left flex-1">
-              <div class="font-semibold">Profissional de Saúde</div>
-              <div class="text-xs opacity-70">Atendimento e consultas</div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <!-- formulário do LoginView -->
-      <form method="post" class="space-y-6" novalidate>
+      <!-- Login Form -->
+      <form method="post" class="space-y-5" novalidate>
         {% csrf_token %}
         {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-        <input type="hidden" name="selected_user_type" id="selected_user_type" value="">
 
-        <!-- CPF (username para o Django) -->
+        <!-- CPF Field -->
         <div class="form-control">
-          <label class="label"><span class="label-text font-medium">CPF (login)</span></label>
-          <div class="relative">
-            <input type="text" name="username" autocomplete="username" class="input input-bordered w-full pl-12"
-                  placeholder="Digite seu CPF (apenas números)" required inputmode="numeric"
-                  pattern="^\d{11}$" maxlength="11"
-                  value="{{ form.username.value|default_if_none:'' }}"
-                  aria-invalid="{{ form.username.errors|yesno:'true,false' }}">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i data-lucide="id-card" class="w-5 h-5 text-base-content/50"></i>
+          <label class="label">
+            <span class="label-text font-semibold text-base-content">CPF</span>
+          </label>
+          <div class="relative group">
+            <input 
+              type="text" 
+              name="username" 
+              autocomplete="username" 
+              class="input input-bordered w-full pl-12 pr-4 input-focus-effect focus:input-primary transition-all duration-300"
+              placeholder="000.000.000-00" 
+              required 
+              inputmode="numeric"
+              pattern="^\d{11}$" 
+              maxlength="11"
+              value="{{ form.username.value|default_if_none:'' }}"
+              aria-invalid="{{ form.username.errors|yesno:'true,false' }}">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <i data-lucide="id-card" class="w-5 h-5 text-base-content/40 group-focus-within:text-primary transition-colors"></i>
             </div>
           </div>
-          <p class="text-xs opacity-70 mt-1">Use seu <strong>CPF (11 dígitos)</strong> como login. Ex.: 12345678901.</p>
+          <label class="label">
+            <span class="label-text-alt text-base-content/60">
+              <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
+              Apenas números, sem pontos ou traços
+            </span>
+          </label>
           {% if form.username.errors %}
-            <p class="text-error text-sm mt-1">
-              {% for e in form.username.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
-            </p>
+            <label class="label">
+              <span class="label-text-alt text-error">
+                {% for e in form.username.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+              </span>
+            </label>
           {% endif %}
         </div>
 
-
-        <!-- senha -->
+        <!-- Password Field -->
         <div class="form-control">
-          <label class="label"><span class="label-text font-medium">Senha</span></label>
-          <div class="relative">
-            <input type="password" name="password" id="password_field"
-                   autocomplete="current-password"
-                   class="input input-bordered w-full pl-12 pr-12"
-                   placeholder="Digite sua senha" required
-                   aria-invalid="{{ form.password.errors|yesno:'true,false' }}" />
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <i data-lucide="lock" class="w-5 h-5 text-base-content/50"></i>
+          <label class="label">
+            <span class="label-text font-semibold text-base-content">Senha</span>
+          </label>
+          <div class="relative group">
+            <input 
+              type="password" 
+              name="password" 
+              id="password_field"
+              autocomplete="current-password"
+              class="input input-bordered w-full pl-12 pr-12 input-focus-effect focus:input-primary transition-all duration-300"
+              placeholder="Digite sua senha" 
+              required
+              aria-invalid="{{ form.password.errors|yesno:'true,false' }}" />
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <i data-lucide="lock" class="w-5 h-5 text-base-content/40 group-focus-within:text-primary transition-colors"></i>
             </div>
             <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <button type="button" class="text-base-content/50 hover:text-base-content transition-colors" onclick="togglePassword()">
+              <button 
+                type="button" 
+                class="text-base-content/40 hover:text-primary transition-colors p-1 rounded-lg hover:bg-base-200" 
+                onclick="togglePassword()"
+                aria-label="Mostrar/ocultar senha">
                 <i data-lucide="eye" class="w-5 h-5" id="toggleIcon"></i>
               </button>
             </div>
           </div>
           {% if form.password.errors %}
-            <p class="text-error text-sm mt-1">
-              {% for e in form.password.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
-            </p>
+            <label class="label">
+              <span class="label-text-alt text-error">
+                {% for e in form.password.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+              </span>
+            </label>
           {% endif %}
         </div>
 
-        <div class="flex items-center justify-between">
-          <label class="label cursor-pointer">
-            <input type="checkbox" class="checkbox checkbox-primary checkbox-sm mr-2" name="remember_me" />
-            <span class="label-text">Lembrar de mim</span>
+        <!-- Remember me & Forgot password -->
+        <div class="flex items-center justify-between pt-2">
+          <label class="label cursor-pointer gap-2 p-0">
+            <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" name="remember_me" />
+            <span class="label-text text-sm">Lembrar de mim</span>
           </label>
-          <a href="#" class="text-primary text-sm hover:underline font-medium">Esqueci minha senha</a>
+          <a href="#" class="text-primary text-sm hover:text-primary-focus font-medium transition-colors hover:underline">
+            Esqueci minha senha
+          </a>
         </div>
 
-        <button type="submit" class="btn btn-primary w-full" id="loginBtn">
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          class="btn btn-primary w-full gap-2 btn-hover-lift mt-6 text-base font-semibold" 
+          id="loginBtn">
           <i data-lucide="log-in" class="w-5 h-5"></i>
-          Entrar
+          Entrar no Sistema
         </button>
       </form>
+
+      <!-- Info Badge -->
+      <div class="info-badge rounded-xl p-4 mt-6">
+        <div class="flex items-start gap-3">
+          <i data-lucide="shield-check" class="w-5 h-5 text-primary flex-shrink-0 mt-0.5"></i>
+          <div>
+            <p class="text-sm font-medium text-base-content mb-1">Acesso Seguro</p>
+            <p class="text-xs text-base-content/70">Suas credenciais são protegidas com criptografia de ponta a ponta.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Footer -->
     <div class="text-center mt-6">
-      <a href="{% url 'accounts:login' %}" class="text-white/80 hover:text-white transition-colors text-sm">
-        <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
-        Voltar ao início
+      <p class="text-white/70 text-sm mb-2">Precisa de ajuda?</p>
+      <a href="#" class="text-white/90 hover:text-white transition-colors text-sm font-medium inline-flex items-center gap-2 hover:gap-3 transition-all">
+        <i data-lucide="headphones" class="w-4 h-4"></i>
+        Contatar Suporte
       </a>
+    </div>
+
+    <!-- Copyright -->
+    <div class="text-center mt-8">
+      <p class="text-white/50 text-xs">© 2025 Karu - Sistema de Monitoramento Neonatal</p>
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+    document.addEventListener('DOMContentLoaded', () => { 
+      if (typeof lucide !== 'undefined') lucide.createIcons(); 
+    });
 
-    function selectUserType(type){
-      document.querySelectorAll('.user-type-btn').forEach(btn => {
-        btn.classList.remove('user-type-selected'); btn.classList.add('btn-outline');
-      });
-      const btn = document.querySelector(`[data-type="${type}"]`);
-      if (btn){ btn.classList.add('user-type-selected'); btn.classList.remove('btn-outline'); }
-      document.getElementById('selected_user_type').value = type;
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    function togglePassword(){
+    function togglePassword() {
       const f = document.getElementById('password_field');
       const ic = document.getElementById('toggleIcon');
       if (!f) return;

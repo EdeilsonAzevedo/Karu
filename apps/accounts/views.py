@@ -25,7 +25,7 @@ def is_superuser_or_in_group(group_name: str):
     return user_passes_test(
         lambda u: u.is_authenticated
         and (u.is_superuser or u.groups.filter(name=group_name).exists()),
-        login_url="accounts:login",
+        login_url="login",
     )
 
 
@@ -56,7 +56,7 @@ def only_authenticated(request):
 def in_group(name: str):
     return user_passes_test(
         lambda u: u.is_authenticated and u.groups.filter(name=name).exists(),
-        login_url="accounts:login",
+        login_url="login",
     )
 
 
@@ -75,14 +75,14 @@ def area_pais(request):
     return HttpResponse("Área de Pais/Responsáveis.")
 
 
-@user_passes_test(lambda u: u.is_authenticated and u.is_superuser, login_url="accounts:login")
+@user_passes_test(lambda u: u.is_authenticated and u.is_superuser, login_url="login")
 def signup_gestor(request):
     if request.method == "POST":
         form = GestorSignupForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Gestor criado com sucesso.")
-            return redirect("accounts:home")
+            return redirect("home")
     else:
         form = GestorSignupForm()
     return render(request, "accounts/signup_gestor.html", {"form": form})
@@ -95,7 +95,7 @@ def signup_profissional(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Profissional criado com sucesso.")
-            return redirect("accounts:home")
+            return redirect("home")
     else:
         form = ProfissionalSignupForm()
     return render(request, "accounts/signup_profissional.html", {"form": form})
@@ -108,7 +108,7 @@ def signup_pais(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Pai/responsável criado com sucesso.")
-            return redirect("accounts:home")
+            return redirect("home")
     else:
         form = PaisSignupForm()
     return render(request, "accounts/signup_pais.html", {"form": form})
