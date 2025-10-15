@@ -21,20 +21,20 @@ __________________________________________________________________________
   #!/bin/bash
   echo "🚀 Iniciando Sistema Karu..."
 
-  ### Ativar ambiente virtual
   source karu_env/bin/activate
 
-  ### Iniciar Redis
   sudo systemctl start redis
 
-  ### Iniciar serviços em background
   echo "📧 Iniciando Celery Worker..."
+  
   celery -A config worker --loglevel=info --logfile=logs/celery.log &
 
   echo "⏰ Iniciando Celery Beat..." 
+  
   celery -A config beat --loglevel=info --logfile=logs/beat.log &
 
   echo "🌐 Iniciando Servidor Django..."
+  
   python manage.py runserver 0.0.0.0:8000
 
   echo "✅ Sistema Karu em execução!"
