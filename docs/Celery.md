@@ -90,21 +90,37 @@ __________________________________________________________________________
   pause
   __________________________________________________________________________
   ## Configurar Senha de App para Email (Gmail)
+  
   `Passo 2`: 
+  
   1. Acessar Configurações da Conta Google.
+      
   [https://myaccount.google.com/]
+
   2. Ativar Verificação em 2 Etapas
+     
      Clique em `Segurança` no menu lateral
+     
      Em `Como fazer login no Google` → `Verificação em 2 etapas`
+     
      Clique em `Começar` e siga as instruções
+     
      Configure com: SMS, Authenticator app ou backup codes
+     
   ## Criar Senha de App
+  
   `Passo 3`:
+  
   Volte para "Segurança"
+  
   Em `Como fazer login no Google` → `Senhas de app`
+  
   Clique em `Selecionar app` → Escolha `Outro (Nome personalizado)`
+  
   Digite: `Karu Alertas` → Escolha o nome adequado para a aplicaçao
+  
   Clique em `Gerar`
+  
   COPIE A SENHA (16 caracteres) - ela só aparece uma vez!
   __________________________________________________________________________
   ## Configurar no Django
