@@ -25,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+IS_CI = os.getenv("CI", "false").lower() == "true"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key")
@@ -93,6 +94,32 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 if "DATABASE_URL" in os.environ:
+    # Configuração para ambientes remotos (Produção/Heroku ou CI/GitHub)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ["DATABASE_URL"],
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=not IS_CI,
+        )
+    }
+else:
+    # Configuração para Local (desenvolvimento)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "karu",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432",
+            "TEST": {"NAME": "karu_test"},
+        }
+    }
+
+
+"""
+if "DATABASE_URL" in os.environ:
     # Heroku (produção)
     DATABASES = {
         "default": dj_database_url.config(
@@ -115,7 +142,7 @@ else:
             "TEST": {"NAME": "karu_test"},
         }
     }
-
+"""
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

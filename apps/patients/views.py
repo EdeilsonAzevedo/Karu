@@ -18,10 +18,12 @@ from .models import (
     ClinicalEvaluation,
     ClinicalEvaluationType,
     ClinicalWarningSign,
+    Exam,
     InterdisciplinaryEvaluation,
     InterdisciplinaryEvaluationArea,
     Patient,
     Record,
+    Vaccine,
 )
 
 
@@ -231,7 +233,7 @@ def patient_edit(request, pk):
                     eval_obj.save()
 
             return redirect("patients:detail", pk=patient.pk)
-    else:
+    else:  # GET request
         patient_form = PatientForm(instance=patient)
         record_form = RecordForm(instance=record)
         discharge_form = DischargeRecordForm(instance=discharge)
@@ -240,7 +242,6 @@ def patient_edit(request, pk):
             ctype.value: ClinicalEvaluationForm(
                 instance=existing_clinical_evals.get(ctype.value),
                 prefix=f"clinic-{ctype.value}",
-                initial={"type": ctype.value},
             )
             for ctype in ClinicalEvaluationType
         }
@@ -248,7 +249,6 @@ def patient_edit(request, pk):
             area.value: InterdisciplinaryEvaluationForm(
                 instance=existing_team_evals.get(area.value),
                 prefix=f"team-{area.value}",
-                initial={"area": area.value},
             )
             for area in InterdisciplinaryEvaluationArea
         }
@@ -266,56 +266,270 @@ def patient_edit(request, pk):
     return render(request, "patients/edit.html", context)
 
 
+def _get_growth_chart_data(patient):
+    # O cálculo da idade corrigida precisa dos dados de nascimento do paciente
+    gestational_weeks_at_birth = patient.gestational_age_weeks
+    gestational_days_at_birth = patient.gestational_age_days or 0
+    date_of_birth = patient.date_of_birth
+
+    records_for_chart = (
+        Record.objects.filter(
+            Q(consultation_details__isnull=False) | Q(discharge__isnull=False), patient=patient
+        )
+        .order_by("date")
+        .distinct()
+    )
+
+    chart_labels = []
+    patient_weight_data = []
+    patient_length_data = []
+    patient_head_data = []
+
+    for rec in records_for_chart:
+        # CÁLCULO DA IDADE CORRIGIDA PARA CADA PONTO DO GRÁFICO
+        chronological_age_days = (rec.date - date_of_birth).days
+
+        # Dias que faltavam para chegar a 40 semanas
+        days_to_full_term = (40 * 7) - (
+            (gestational_weeks_at_birth * 7) + gestational_days_at_birth
+        )
+
+        corrected_age_days = chronological_age_days - days_to_full_term
+        if corrected_age_days < 0:
+            corrected_age_days = 0  # Idade corrigida não pode ser negativa
+
+        corrected_age_weeks = round(corrected_age_days / 7, 1)
+        chart_labels.append(corrected_age_weeks)
+
+        # Pega os dados da consulta ou da alta
+        data_source = getattr(rec, "consultation_details", None) or getattr(rec, "discharge", None)
+
+        if data_source:
+            patient_weight_data.append(float(data_source.weight) if data_source.weight else None)
+            patient_length_data.append(float(data_source.length) if data_source.length else None)
+            patient_head_data.append(
+                float(data_source.head_circumference) if data_source.head_circumference else None
+            )
+
+    # LÓGICA DE PERCENTIL APENAS PARA DEMONSTRAÇÃO VISUAL
+    # Tem que substituir essa lógica por uma busca em tabelas de referencia da Intergrowth-21
+    # Esses valores servem apenas pro gráfico aparecer.
+    # PESO
+    weight_p10 = [weight * 0.9 if weight else None for weight in patient_weight_data]
+    weight_p50 = [weight * 1.0 if weight else None for weight in patient_weight_data]
+    weight_p90 = [weight * 1.1 if weight else None for weight in patient_weight_data]
+
+    # COMPRIMENTO
+    length_p10 = [length * 0.95 if length else None for length in patient_length_data]
+    length_p50 = [length * 1.0 if length else None for length in patient_length_data]
+    length_p90 = [length * 1.05 if length else None for length in patient_length_data]
+
+    # PERÍMETRO CEFÁLICO
+    head_p10 = [head * 0.98 if head else None for head in patient_head_data]
+    head_p50 = [head * 1.0 if head else None for head in patient_head_data]
+    head_p90 = [head * 1.02 if head else None for head in patient_head_data]
+
+    return {
+        "chart_labels": chart_labels,
+        "weight_data": {
+            "patient": patient_weight_data,
+            "p10": weight_p10,
+            "p50": weight_p50,
+            "p90": weight_p90,
+        },
+        "length_data": {
+            "patient": patient_length_data,
+            "p10": length_p10,
+            "p50": length_p50,
+            "p90": length_p90,
+        },
+        "head_data": {
+            "patient": patient_head_data,
+            "p10": head_p10,
+            "p50": head_p50,
+            "p90": head_p90,
+        },
+    }
+
+
+def get_weight_gain_analysis_data(patient):
+    # Busca todos os registros com peso, ordenados por data
+    records_with_weight = (
+        Record.objects.filter(
+            Q(consultation_details__weight__isnull=False) | Q(discharge__weight__isnull=False),
+            patient=patient,
+        )
+        .order_by("date")
+        .distinct()
+    )
+
+    if records_with_weight.count() < 2:
+        # Não é possível calcular ganho com menos de 2 medições
+        return {
+            "bar_chart_labels": [],
+            "bar_chart_data": [],
+            "bar_chart_colors": [],
+            "average_gain_30_days": 0,
+            "current_gain_7_days": 0,
+            "status": "insufficient_data",
+        }
+
+    # 1. Cálculo para o Gráfico de Barras (Ganho entre consultas)
+    bar_chart_labels = []
+    bar_chart_data = []
+    bar_chart_colors = []
+
+    # Constrói uma lista simples com data e peso
+    measurements = []
+    for rec in records_with_weight:
+        weight = None
+        # Checa de forma segura se é um registro de consulta com peso
+        if (
+            hasattr(rec, "consultation_details")
+            and rec.consultation_details
+            and rec.consultation_details.weight is not None
+        ):
+            weight = float(rec.consultation_details.weight)
+        # Se não for, checa de forma segura se é um registro de alta com peso
+        elif hasattr(rec, "discharge") and rec.discharge and rec.discharge.weight is not None:
+            weight = float(rec.discharge.weight)
+
+        # Só adiciona à lista se um peso válido foi encontrado
+        if weight is not None:
+            measurements.append({"date": rec.date, "weight": weight})
+
+    for i in range(1, len(measurements)):
+        prev = measurements[i - 1]
+        curr = measurements[i]
+
+        delta_days = (curr["date"] - prev["date"]).days
+        if delta_days > 0:
+            delta_weight = curr["weight"] - prev["weight"]
+            daily_gain = round(delta_weight / delta_days)
+
+            label = f"{prev['date'].strftime('%d/%m')}-{curr['date'].strftime('%d/%m')}"
+            bar_chart_labels.append(label)
+            bar_chart_data.append(daily_gain)
+
+            # Define a cor da barra com base na meta
+            if 15 <= daily_gain <= 30:
+                bar_chart_colors.append("rgba(34, 197, 94, 0.7)")  # Verde
+            else:
+                bar_chart_colors.append("rgba(245, 158, 11, 0.7)")  # Laranja
+
+    # 2. Cálculo do Ganho Atual (últimos 7 dias)
+    current_gain_7_days = bar_chart_data[-1] if bar_chart_data else 0
+
+    # 3. Cálculo do Ganho Médio (últimos 30 dias)
+    today = timezone.now().date()
+    thirty_days_ago = today - timedelta(days=30)
+    recent_measurements = [m for m in measurements if m["date"] >= thirty_days_ago]
+
+    average_gain_30_days = 0
+    if len(recent_measurements) >= 2:
+        first = recent_measurements[0]
+        last = recent_measurements[-1]
+        delta_days = (last["date"] - first["date"]).days
+        if delta_days > 0:
+            delta_weight = last["weight"] - first["weight"]
+            average_gain_30_days = round(delta_weight / delta_days)
+
+    # 4. Determinar o status
+    status = "adequate"
+    if current_gain_7_days < 15:
+        status = "low"
+    elif current_gain_7_days > 30:
+        status = "high"
+
+    return {
+        "bar_chart_labels": bar_chart_labels,
+        "bar_chart_data": bar_chart_data,
+        "bar_chart_colors": bar_chart_colors,
+        "average_gain_30_days": average_gain_30_days,
+        "current_gain_7_days": current_gain_7_days,
+        "status": status,
+    }
+
+
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
-    # --- DADOS PARA O HISTÓRICO ---
-    consultation_records = patient.records.filter(record_type="consultation").order_by("-date")
+    records_queryset = patient.records.all().order_by("-date")
 
-    # --- CÁLCULO DAS IDADES ---
+    query_text = request.GET.get("q")
+    if query_text:
+        records_queryset = records_queryset.filter(
+            Q(notes__icontains=query_text) | Q(professional__icontains=query_text)
+        )
+
+    consultation_records = records_queryset.prefetch_related(
+        "consultation_details", "warning_signs", "clinical_evaluations", "team_evaluations"
+    )
+
+    patient_exams = Exam.objects.filter(record__patient=patient).order_by("-date")
+    patient_vaccines = Vaccine.objects.filter(record__patient=patient).order_by("-date")
+
+    professional_strings = (
+        patient.records.exclude(professional__isnull=True)
+        .exclude(professional__exact="")
+        .values_list("professional", flat=True)
+        .distinct()
+    )
+    processed_professionals = []
+    for prof_string in professional_strings:
+        parts = prof_string.split("/")
+        name = parts[0].strip()
+        role = parts[1].strip() if len(parts) > 1 else "Não especificado"
+        processed_professionals.append({"name": name, "role": role})
+
+    chart_context = _get_growth_chart_data(patient)
+    weight_gain_context = get_weight_gain_analysis_data(patient)
+
     today = timezone.now().date()
-
-    # 1. Idade Cronológica
     age_timedelta = today - patient.date_of_birth
     age_in_days = age_timedelta.days
 
-    # 2. Idade Corrigida
+    # Lógica de idade corrigida no header
+    days_from_gestation = (patient.gestational_age_weeks * 7) + (patient.gestational_age_days or 0)
+    days_to_full_term = (40 * 7) - days_from_gestation
+    corrected_age_in_days = age_in_days - days_to_full_term
+    if corrected_age_in_days < 0:
+        corrected_age_in_days = 0
+    corrected_age_weeks = corrected_age_in_days // 7
+    corrected_age_remaining_days = corrected_age_in_days % 7
 
-    full_term_weeks = 40
-    prematurity_in_weeks = full_term_weeks - patient.gestational_age_weeks
-    corrected_age_in_days = age_in_days
-    total_days_corrected = (patient.gestational_age_weeks * 7) + age_in_days
-    corrected_age_weeks = total_days_corrected // 7
-    corrected_age_remaining_days = total_days_corrected % 7
+    patient_status = {
+        "text": "Acompanhamento Normal",
+        "badge_class": "badge-success",
+        "reasons": [],
+    }
+    latest_record = consultation_records.first()
+    if latest_record:
+        reasons_list = []
+        warning_signs = latest_record.warning_signs.filter(is_present=True)
+        for sign in warning_signs:
+            reasons_list.append(sign.get_type_display())
+        altered_evals = latest_record.clinical_evaluations.filter(status="altered")
+        for eval in altered_evals:
+            reasons_list.append(f"Avaliação {eval.get_type_display()}: Alterada")
+        if reasons_list:
+            patient_status["text"] = "Requer Atenção"
+            patient_status["badge_class"] = "badge-warning"
+            patient_status["reasons"] = reasons_list
 
-    if prematurity_in_weeks > 0:
-        prematurity_in_days = prematurity_in_weeks * 7
-        corrected_age_timedelta = age_timedelta - timedelta(days=prematurity_in_days)
-        corrected_age_in_days = max(0, corrected_age_timedelta.days)
-
-    # Dados para o gráfico de peso ao longo do tempo
-    # Por enquanto busca apenas por 'discharge records' que têm peso
-    # Quando as consultas tiverem peso, a lógica aqui será expandida
-    records_for_chart = (
-        Record.objects.filter(patient=patient, discharge__isnull=False)
-        .order_by("date")
-        .select_related("discharge")
-    )
-
-    chart_labels = [rec.date.strftime("%d/%m/%Y") for rec in records_for_chart]
-    chart_data = [float(rec.discharge.weight) for rec in records_for_chart]
-
-    # MONTAGEM DO CONTEXTO FINAL
     context = {
         "patient": patient,
         "consultation_records": consultation_records,
         "age_in_days": age_in_days,
-        "corrected_age_in_days": corrected_age_in_days,
-        "chart_labels": chart_labels,
-        "chart_data": chart_data,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
+        "patient_exams": patient_exams,
+        "patient_vaccines": patient_vaccines,
+        "team_professionals": processed_professionals,
+        "patient_status": patient_status,
     }
+    context.update(chart_context)
+    context.update(weight_gain_context)
 
     return render(request, "patients/patient_detail.html", context)
 
@@ -323,20 +537,16 @@ def patient_detail(request, pk):
 @transaction.atomic
 def consultation_create(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
-    # Não vamos mais usar 'warning_sign_types' aqui
 
     if request.method == "POST":
-        # A lógica de POST precisa ser ajustada para recriar os forms da mesma forma
         record_form = RecordForm(request.POST, prefix="record")
         consultation_form = ConsultationRecordForm(request.POST, prefix="consultation")
 
-        # Recria os forms de sinais de alerta para validação
         warning_sign_forms = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
             warning_sign_forms.append({"form": form, "value": value})
 
-        # Validação
         all_forms_valid = all(
             [
                 record_form.is_valid(),
@@ -367,15 +577,11 @@ def consultation_create(request, pk):
         record_form = RecordForm(prefix="record")
         consultation_form = ConsultationRecordForm(prefix="consultation")
 
-        # --- LÓGICA CORRIGIDA ---
-        # Criamos uma lista, onde cada item tem o form e o seu label
         clinical_forms_with_labels = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(prefix=f"warning_{value}", initial={"type": value})
             clinical_forms_with_labels.append({"form": form, "label": label})
-        # --- FIM DA LÓGICA CORRIGIDA ---
 
-    # Lógica de idade corrigida
     today = timezone.now().date()
     total_days_corrected = (patient.gestational_age_weeks * 7) + (
         today - patient.date_of_birth
@@ -387,7 +593,7 @@ def consultation_create(request, pk):
         "patient": patient,
         "record_form": record_form,
         "consultation_form": consultation_form,
-        "clinical_forms": clinical_forms_with_labels,  # Enviando a nova lista para o template
+        "clinical_forms": clinical_forms_with_labels,
         "corrected_age_weeks": corrected_age_weeks,
         "corrected_age_remaining_days": corrected_age_remaining_days,
     }
