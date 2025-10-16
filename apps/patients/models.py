@@ -9,7 +9,7 @@ cpf_validator = RegexValidator(regex=r"^\d{11}$", message="CPF deve ter 11 dígi
 
 class Patient(BaseModel):
     first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True, null=True)
     sex = models.CharField(max_length=1, choices=[("M", "Masculino"), ("F", "Feminino")])
     date_of_birth = models.DateField()
     cpf = models.CharField(
@@ -65,8 +65,8 @@ class Record(BaseModel):
 
 class DischargeRecord(BaseModel):
     record = models.OneToOneField(Record, on_delete=models.CASCADE, related_name="discharge")
-    chronological_age_days = models.PositiveIntegerField(blank=True)
-    corrected_age_weeks = models.PositiveIntegerField(blank=True)
+    chronological_age_days = models.IntegerField(blank=True, null=True)
+    corrected_age_weeks = models.IntegerField(blank=True, null=True)
     weight = models.DecimalField(max_digits=6, decimal_places=2)
     length = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
     head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
