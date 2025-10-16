@@ -109,6 +109,8 @@ class PatientCreateViewTests(TestCase):
              "birth_certificate_number": "CERT12345",
              "clinic-pediatric-status": "normal", 
              "team-nursing-notes": "Orientações de amamentação realizadas.", 
+             "length": 50.5,
+             "head_circumference": 35.2,
         })
 
         self.assertEqual(Patient.objects.count(), 0)
