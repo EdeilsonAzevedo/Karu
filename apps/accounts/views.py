@@ -168,7 +168,7 @@ def list_users(request):
 
     context = {
         "page_obj": page_obj,
-        "gropos_disponiveis": tipos_disponiveis,
+        "grupos_disponiveis": tipos_disponiveis,
         "filtros": {"nome": name, "cpf": cpf, "tipo": tipo},
         "total_resultados": paginator.count,
         "gestores_count": gestores_count,
@@ -355,3 +355,19 @@ def ativar_usuario(request, user_id):
         logger.error(f"Erro ao ativar usuário {user_id}: {str(e)}")
         messages.error(request, f"Erro ao ativar usuário: {str(e)}")
         return redirect("accounts:listar_usuarios")
+    
+    
+@require_http_methods(["GET", "POST"])
+def password_reset_manual(request):
+    form = PasswordResetByDataForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(
+            request, "Senha alterada com sucesso. Faça login com seu CPF e a nova senha."
+        )
+        return redirect("login")
+    return render(
+        request,
+        "accounts/password_reset_manual.html",
+        {"form": form, "hide_sidebar": True},
+    )
