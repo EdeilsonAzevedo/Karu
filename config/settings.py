@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 # carregar .env
@@ -24,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+IS_CI = os.getenv("CI", "false").lower() == "true"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key")
@@ -37,14 +39,14 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.contenttypes",
+    "apps.accounts",
+    "apps.core",
     "django.contrib.admin",
     "django.contrib.auth",
-    "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "apps.accounts",
-    "apps.core",
     "apps.patients",
     "apps.manager",
     "auditlog",
@@ -91,21 +93,56 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# config/settings.py
-
-DATABASES = {
-    "default": {
-        # 1. O "Motor" da Conexão
-        "ENGINE": "django.db.backends.postgresql",
-        # 2. As Credenciais e o Endereço
-        "NAME": "karu",  # O nome do seu banco de dados no PostgreSQL
-        "USER": "postgres",  # O usuário que tem permissão para acessar o banco
-        "PASSWORD": "postgres",  # A senha deste usuário
-        "HOST": "localhost",  # O endereço do servidor (localhost = sua própria máquina)
-        "PORT": "5432",  # A porta padrão do PostgreSQL
-        "TEST": {"NAME": "karu_test"},  # Nome do banco de dados de teste
+if "DATABASE_URL" in os.environ:
+    # Configuração para ambientes remotos (Produção/Heroku ou CI/GitHub)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ["DATABASE_URL"],
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=not IS_CI,
+        )
     }
-}
+else:
+    # Configuração para Local (desenvolvimento)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "karu",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432",
+            "TEST": {"NAME": "karu_test"},
+        }
+    }
+
+
+"""
+if "DATABASE_URL" in os.environ:
+    # Heroku (produção)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ["DATABASE_URL"],
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
+    }
+else:
+    # Local (desenvolvimento)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "karu",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432",
+            "TEST": {"NAME": "karu_test"},
+        }
+    }
+"""
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -142,6 +179,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# Whitenoise storage
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
