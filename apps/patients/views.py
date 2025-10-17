@@ -1,9 +1,10 @@
 from datetime import timedelta
-from apps.emails.tasks import check_weight_gain_issues
+
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+
 from apps.emails.tasks import check_weight_gain_issues
 
 from .forms import (
@@ -26,6 +27,7 @@ from .models import (
     Record,
     Vaccine,
 )
+
 
 def patient_list(request):
     """Lista + busca por nome, CPF e certidão (q geral ou campos específicos name/cpf/sal)."""

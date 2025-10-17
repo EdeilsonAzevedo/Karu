@@ -1,14 +1,16 @@
+import logging
+import threading
+import time
+from datetime import timedelta
+
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from datetime import timedelta
-import threading
-import time
-from django.db import transaction
-from apps.patients.models import ClinicalWarningSign, ConsultationRecord, Record
-from apps.emails.tasks import send_consolidated_alert, send_weight_gain_alert
-from apps.emails.models import EmailAlert, AlertType
-import logging
+
+from apps.emails.models import AlertType, EmailAlert
+from apps.emails.tasks import send_consolidated_alert
+from apps.patients.models import ClinicalWarningSign, Record
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth import get_user_model
 
 from apps.patients.models import Patient, Record
 
@@ -105,8 +105,9 @@ class EmailAlert(models.Model):
     
     def can_resend(self):
         """Verifica se o alerta pode ser reenviado"""
-        from django.utils import timezone
         from datetime import timedelta
+
+        from django.utils import timezone
         
         if self.last_sent_at:
             # Permite reenvio a cada 1 hora no máximo

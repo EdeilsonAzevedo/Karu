@@ -1,15 +1,12 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, DetailView, UpdateView, TemplateView
-from django.urls import reverse_lazy
-from django.utils import timezone
 from django.contrib import messages
-from django.db.models import Q, Count
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.views.generic import DetailView, ListView, TemplateView, UpdateView
 
-from apps.emails.models import EmailAlert, AlertStatus, AlertType, EmailTemplate
-from apps.accounts.models import User
+from apps.emails.models import AlertStatus, AlertType, EmailAlert
 
 
 class AlertListView(LoginRequiredMixin, ListView):

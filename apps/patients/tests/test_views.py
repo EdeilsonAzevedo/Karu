@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+
 from apps.patients.models import DischargeRecord, Patient, Record
 from apps.patients.tests.factories import PatientFactory
 

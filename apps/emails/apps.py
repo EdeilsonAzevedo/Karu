@@ -8,4 +8,4 @@ class EmailsConfig(AppConfig):
 
     def ready(self):
         # Registra os signals
-        import apps.emails.signals
+        pass

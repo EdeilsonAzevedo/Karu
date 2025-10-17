@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import EmailAlert, EmailTemplate
 
 
@@ -80,8 +81,8 @@ class EmailAlertAdmin(admin.ModelAdmin):
     
     def patient_link(self, obj):
         if obj.patient:
-            from django.utils.html import format_html
             from django.urls import reverse
+            from django.utils.html import format_html
             url = reverse('admin:patients_patient_change', args=[obj.patient.id])
             return format_html('<a href="{}">{}</a>', url, f"{obj.patient.first_name} {obj.patient.last_name}")
         return "-"
