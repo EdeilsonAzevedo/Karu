@@ -204,10 +204,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'tjesuinodasilva@gmail.com' #Email do responsavel pelos emails
-EMAIL_HOST_PASSWORD = 'kixj chmk vhgw ueok'  # Senha de app do Gmail
-DEFAULT_FROM_EMAIL = 'tjesuinodasilva@gmail.com'    #Email do responsavel pelos emails
-DEFAULT_ALERT_EMAIL = 'tjesuinodasilva@gmail.com'  # Para receber os alertas
+EMAIL_HOST_USER = '' #Email do responsavel pelos emails
+EMAIL_HOST_PASSWORD = ''  # Senha de app do Gmail
+DEFAULT_FROM_EMAIL = ''    #Email do responsavel pelos emails
+DEFAULT_ALERT_EMAIL = ''  # Para receber os alertas
 
 # URL do site para links nos emails
 SITE_URL = 'http://localhost:8000'  # Altere para seu domínio em produção
