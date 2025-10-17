@@ -27,7 +27,7 @@ urlpatterns = [
     # ÁREA AUTENTICADA
     path("home/", dashboard_home, name="home"),
 
-    path("admin/", admin.site.urls),
+    path('admin/', admin.site.urls),
     path("patients/", include("apps.patients.urls")),
     path("manager/", include("apps.manager.urls")),
     path("accounts/", include("apps.accounts.urls")),

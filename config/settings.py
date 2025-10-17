@@ -39,10 +39,10 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.admin',
     "django.contrib.contenttypes",
     "apps.accounts",
     "apps.core",
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -50,6 +50,9 @@ INSTALLED_APPS = [
     "apps.patients",
     "apps.manager",
     "auditlog",
+    'apps.emails',
+    'django_celery_results',
+    'django_celery_beat',
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -196,3 +199,26 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# Configurações de Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'tjesuinodasilva@gmail.com' #Email do responsavel pelos emails
+EMAIL_HOST_PASSWORD = 'kixj chmk vhgw ueok'  # Senha de app do Gmail
+DEFAULT_FROM_EMAIL = 'tjesuinodasilva@gmail.com'    #Email do responsavel pelos emails
+DEFAULT_ALERT_EMAIL = 'tjesuinodasilva@gmail.com'  # Para receber os alertas
+
+# URL do site para links nos emails
+SITE_URL = 'http://localhost:8000'  # Altere para seu domínio em produção
+
+# Configurações Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'America/Sao_Paulo'
+
+# DEBUG - Mostrar erros detalhados
+DEBUG = True

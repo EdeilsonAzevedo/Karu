@@ -1,9 +1,10 @@
 from datetime import timedelta
-
+from apps.emails.tasks import check_weight_gain_issues
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from apps.emails.tasks import check_weight_gain_issues
 
 from .forms import (
     ClinicalEvaluationForm,
@@ -25,7 +26,6 @@ from .models import (
     Record,
     Vaccine,
 )
-
 
 def patient_list(request):
     """Lista + busca por nome, CPF e certidão (q geral ou campos específicos name/cpf/sal)."""
@@ -545,6 +545,8 @@ def consultation_create(request, pk):
                     ClinicalWarningSign.objects.create(
                         record=record, type=item["value"], is_present=True
                     )
+            # Dispara verificação de ganho de peso APÓS o commit
+            check_weight_gain_issues.delay(record.id)
 
             return redirect("patients:detail", pk=patient.pk)
 
