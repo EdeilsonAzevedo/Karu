@@ -1,5 +1,6 @@
+import datetime
+
 from django import forms
-import datetime 
 
 from .models import (
     ClinicalEvaluation,
@@ -11,11 +12,7 @@ from .models import (
     Record,
 )
 
-
 # Em seu arquivo forms.py
-from django import forms
-import datetime
-from .models import Patient # Certifique-se de que a importação está correta
 
 class PatientForm(forms.ModelForm):
     class Meta:

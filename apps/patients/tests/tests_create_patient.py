@@ -1,14 +1,17 @@
-from django.test import TestCase
-from django.urls import reverse
-from apps.patients.models import (
-    Patient,
-    Record,
-    DischargeRecord,
-    ClinicalEvaluation,
-    InterdisciplinaryEvaluation,
-)
 import datetime
 from enum import Enum
+
+from django.test import TestCase
+from django.urls import reverse
+
+from apps.patients.models import (
+    ClinicalEvaluation,
+    DischargeRecord,
+    InterdisciplinaryEvaluation,
+    Patient,
+    Record,
+)
+
 
 # --- ENUMS CORRIGIDOS ---
 # Definir Enums completos para o teste garante que todos os campos esperados pela view existam.

@@ -1,4 +1,5 @@
 from django.urls import path
+
 from .views import (
     area_pais,
     area_profissional,
@@ -8,8 +9,8 @@ from .views import (
     signup_gestor,
     signup_pais,
     signup_profissional,
-    user_detail,
     user_deactivate,
+    user_detail,
 )
 
 app_name = "accounts"

@@ -1,6 +1,7 @@
 from auditlog.registry import auditlog
 from django.contrib.auth import get_user_model
-from .models import GestorProfile, ProfissionalSaudeProfile, PaisProfile
+
+from .models import GestorProfile, PaisProfile, ProfissionalSaudeProfile
 
 User = get_user_model()
 

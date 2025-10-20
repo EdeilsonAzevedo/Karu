@@ -3,15 +3,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
-from django.http import HttpResponse
-from django.shortcuts import redirect, render
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from auditlog.models import LogEntry
-from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
 
@@ -179,8 +175,8 @@ def user_detail(request, pk):
     
     # REGISTRAR AÇÃO DE VISUALIZAÇÃO NO AUDITLOG
     try:
-        from django.contrib.contenttypes.models import ContentType
         from auditlog.models import LogEntry
+        from django.contrib.contenttypes.models import ContentType
         from django.utils import timezone
         
         LogEntry.objects.create(

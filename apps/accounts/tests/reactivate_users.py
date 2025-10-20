@@ -1,4 +1,5 @@
 import os
+
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -24,7 +25,7 @@ def reactivate_users():
         status = "🔴 INATIVO"
         print(f"{i}. {status} - {user.username} - {user.get_full_name()}")
     
-    print(f"\nDigite o número do usuário para reativar (ou 0 para sair):")
+    print("\nDigite o número do usuário para reativar (ou 0 para sair):")
     
     try:
         choice = int(input("Escolha: "))
@@ -33,7 +34,7 @@ def reactivate_users():
         
         selected_user = inactive_users[choice - 1]
         
-        print(f"\n🔍 Confirmando reativação:")
+        print("\n🔍 Confirmando reativação:")
         print(f"   Usuário: {selected_user.username}")
         print(f"   Nome: {selected_user.get_full_name()}")
         print(f"   Email: {selected_user.email}")
