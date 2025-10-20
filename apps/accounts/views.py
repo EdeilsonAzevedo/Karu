@@ -8,6 +8,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
+from auditlog.context import set_actor
+from django.db import transaction
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
 
@@ -78,43 +80,40 @@ def area_profissional(request):
 def area_pais(request):
     return HttpResponse("Área de Pais/Responsáveis.")
 
-
 @user_passes_test(lambda u: u.is_authenticated and u.is_superuser, login_url="login")
 def signup_gestor(request):
     if request.method == "POST":
-        form = GestorSignupForm(request.POST)
+        form = GestorSignupForm(request.POST, request=request)  # Passe o request aqui
         if form.is_valid():
-            form.save()
+            user = form.save()
             messages.success(request, "Gestor criado com sucesso.")
             return redirect("home")
     else:
-        form = GestorSignupForm()
+        form = GestorSignupForm(request=request)  # Passe o request aqui também
     return render(request, "accounts/signup_gestor.html", {"form": form})
-
 
 @is_superuser_or_in_group("gestores")
 def signup_profissional(request):
     if request.method == "POST":
-        form = ProfissionalSignupForm(request.POST)
+        form = ProfissionalSignupForm(request.POST, request=request)  # Passe o request aqui
         if form.is_valid():
-            form.save()
+            user = form.save()
             messages.success(request, "Profissional criado com sucesso.")
             return redirect("home")
     else:
-        form = ProfissionalSignupForm()
+        form = ProfissionalSignupForm(request=request)  # Passe o request aqui também
     return render(request, "accounts/signup_profissional.html", {"form": form})
-
 
 @is_superuser_or_in_group("gestores")
 def signup_pais(request):
     if request.method == "POST":
-        form = PaisSignupForm(request.POST)
+        form = PaisSignupForm(request.POST, request=request)  # Passe o request aqui
         if form.is_valid():
-            form.save()
+            user = form.save()
             messages.success(request, "Pai/responsável criado com sucesso.")
             return redirect("home")
     else:
-        form = PaisSignupForm()
+        form = PaisSignupForm(request=request)  # Passe o request aqui também
     return render(request, "accounts/signup_pais.html", {"form": form})
 
 
@@ -173,25 +172,8 @@ def user_detail(request, pk):
     """View para exibir detalhes do usuário em popup"""
     user = get_object_or_404(get_user_model(), pk=pk)
     
-    # REGISTRAR AÇÃO DE VISUALIZAÇÃO NO AUDITLOG
-    try:
-        from auditlog.models import LogEntry
-        from django.contrib.contenttypes.models import ContentType
-        from django.utils import timezone
-        
-        LogEntry.objects.create(
-            actor=request.user,
-            verb='viewed',
-            action=0,
-            timestamp=timezone.now(),
-            content_type=ContentType.objects.get_for_model(user),
-            object_pk=str(user.pk),
-            object_repr=str(user),
-            changes=f"Usuário {request.user} visualizou os detalhes do usuário {user.username}"
-        )
-    except Exception:
-        # Silenciosamente ignora erros no auditlog para não afetar a funcionalidade
-        pass
+    # O auditlog automático já deve registrar o acesso via o middleware
+    # Removemos o registro manual que pode estar causando problemas
     
     # Determinar o perfil específico do usuário
     profile_data = {}

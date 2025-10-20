@@ -170,15 +170,18 @@
                     <!-- Administração (apenas para superuser e gestores) -->
                     {% if request.user.is_superuser or request.user|has_group:'gestores' %}
                     <li class="menu-title mt-4"><span>Administração</span></li>
-                    
+
                     {% if request.user.is_superuser %}
                     <li><a href="{% url 'accounts:listar_usuarios' %}"><i data-lucide="users" class="w-5 h-5"></i> Gerenciar Usuários</a></li>
                     <li><a href="{% url 'accounts:signup_gestor' %}"><i data-lucide="shield-plus" class="w-5 h-5"></i> Novo Gestor</a></li>
                     {% endif %}
-                    
+
                     <li><a href="{% url 'accounts:signup_profissional' %}"><i data-lucide="user-plus" class="w-5 h-5"></i> Novo Profissional</a></li>
                     <li><a href="{% url 'accounts:signup_pais' %}"><i data-lucide="users" class="w-5 h-5"></i> Novo Responsável</a></li>
+
+                    <li><a href="{% url 'manager:audit_log' %}"><i data-lucide="file-text" class="w-5 h-5"></i> Logs de Atividade</a></li>
                     {% endif %}
+                    
 
                     <!-- Block extra para outros templates adicionarem itens -->
                     {% block sidebar_extra %}{% endblock %}

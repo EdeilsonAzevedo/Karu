@@ -9,6 +9,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import transaction
 
+# ADICIONE ESTE IMPORT PARA AUDITORIA
+from auditlog.context import set_actor
+
 from .models import GestorProfile, PaisProfile, ProfissionalSaudeProfile
 
 User = get_user_model()
@@ -56,6 +59,10 @@ class GestorSignupForm(forms.Form):
         label="Status", choices=[("Ativo", "Ativo"), ("Inativo", "Inativo")], required=False
     )
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
     def clean_email(self):
         return normalize_email(self.cleaned_data["email"])
 
@@ -94,19 +101,37 @@ class GestorSignupForm(forms.Form):
             user_type=User.UserType.GESTOR,  
         )
         user.set_password(raw_pw)
-        user.save()
+
+        # ADICIONE AUDITORIA PARA CRIAÇÃO DO USUÁRIO
+        if hasattr(self, 'request') and self.request and self.request.user.is_authenticated:
+            with set_actor(self.request.user):
+                user.save()
+        else:
+            user.save()
 
         # Adiciona ao grupo correspondente
         gestores_group, _ = Group.objects.get_or_create(name="gestores")
         user.groups.add(gestores_group)
 
-        GestorProfile.objects.create(
-            user=user,
-            cpf=cpf,
-            telefone=phone,
-            unidade=unit,
-            cargo=cargo,
-        )
+        # ADICIONE AUDITORIA PARA CRIAÇÃO DO PERFIL
+        if hasattr(self, 'request') and self.request and self.request.user.is_authenticated:
+            with set_actor(self.request.user):
+                GestorProfile.objects.create(
+                    user=user,
+                    cpf=cpf,
+                    telefone=phone,
+                    unidade=unit,
+                    cargo=cargo,
+                )
+        else:
+            GestorProfile.objects.create(
+                user=user,
+                cpf=cpf,
+                telefone=phone,
+                unidade=unit,
+                cargo=cargo,
+            )
+
         return user
 
 class ProfissionalSignupForm(forms.Form):
@@ -125,6 +150,10 @@ class ProfissionalSignupForm(forms.Form):
     status = forms.ChoiceField(
         label="Status", choices=[("Ativo", "Ativo"), ("Inativo", "Inativo")], required=False
     )
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
 
     def clean_email(self):
         return normalize_email(self.cleaned_data["email"])
@@ -180,22 +209,43 @@ class ProfissionalSignupForm(forms.Form):
             user_type=User.UserType.PROFISSIONAL_SAUDE,  
         )
         user.set_password(raw_pw)
-        user.save()
+
+        # ADICIONE AUDITORIA PARA CRIAÇÃO DO USUÁRIO
+        if hasattr(self, 'request') and self.request and self.request.user.is_authenticated:
+            with set_actor(self.request.user):
+                user.save()
+        else:
+            user.save()
 
         # Adiciona ao grupo correspondente
         profissionais_group, _ = Group.objects.get_or_create(name="profissionais_saude")
         user.groups.add(profissionais_group)
 
-        ProfissionalSaudeProfile.objects.create(
-            user=user,
-            cpf=cpf,
-            categoria=self.cleaned_data["category"],
-            especialidade=(self.cleaned_data.get("specialty") or "").strip(),
-            conselho=(self.cleaned_data.get("council") or None) or None,
-            numero_registro=(self.cleaned_data.get("reg_number") or None) or None,
-            unidade=unit,
-            telefone=phone,
-        )
+        # ADICIONE AUDITORIA PARA CRIAÇÃO DO PERFIL
+        if hasattr(self, 'request') and self.request and self.request.user.is_authenticated:
+            with set_actor(self.request.user):
+                ProfissionalSaudeProfile.objects.create(
+                    user=user,
+                    cpf=cpf,
+                    categoria=self.cleaned_data["category"],
+                    especialidade=(self.cleaned_data.get("specialty") or "").strip(),
+                    conselho=(self.cleaned_data.get("council") or None) or None,
+                    numero_registro=(self.cleaned_data.get("reg_number") or None) or None,
+                    unidade=unit,
+                    telefone=phone,
+                )
+        else:
+            ProfissionalSaudeProfile.objects.create(
+                user=user,
+                cpf=cpf,
+                categoria=self.cleaned_data["category"],
+                especialidade=(self.cleaned_data.get("specialty") or "").strip(),
+                conselho=(self.cleaned_data.get("council") or None) or None,
+                numero_registro=(self.cleaned_data.get("reg_number") or None) or None,
+                unidade=unit,
+                telefone=phone,
+            )
+
         return user
 
 class PaisSignupForm(forms.Form):
@@ -207,6 +257,10 @@ class PaisSignupForm(forms.Form):
     status = forms.ChoiceField(
         label="Status", choices=[("Ativo", "Ativo"), ("Inativo", "Inativo")], required=False
     )
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
 
     def clean_email(self):
         return normalize_email(self.cleaned_data["email"])
@@ -244,15 +298,31 @@ class PaisSignupForm(forms.Form):
             user_type=User.UserType.PAIS,  
         )
         user.set_password(raw_pw)
-        user.save()
+
+        # ADICIONE AUDITORIA PARA CRIAÇÃO DO USUÁRIO
+        if hasattr(self, 'request') and self.request and self.request.user.is_authenticated:
+            with set_actor(self.request.user):
+                user.save()
+        else:
+            user.save()
 
         # Adiciona ao grupo correspondente
         pais_group, _ = Group.objects.get_or_create(name="pais")
         user.groups.add(pais_group)
 
-        PaisProfile.objects.create(
-            user=user,
-            cpf=cpf,
-            telefone=phone,
-        )
+        # ADICIONE AUDITORIA PARA CRIAÇÃO DO PERFIL
+        if hasattr(self, 'request') and self.request and self.request.user.is_authenticated:
+            with set_actor(self.request.user):
+                PaisProfile.objects.create(
+                    user=user,
+                    cpf=cpf,
+                    telefone=phone,
+                )
+        else:
+            PaisProfile.objects.create(
+                user=user,
+                cpf=cpf,
+                telefone=phone,
+            )
+
         return user
