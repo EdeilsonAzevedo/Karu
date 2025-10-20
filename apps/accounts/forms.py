@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+# ADICIONE ESTE IMPORT PARA AUDITORIA
+from auditlog.context import set_actor
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm
@@ -8,9 +10,6 @@ from django.core import exceptions
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import transaction
-
-# ADICIONE ESTE IMPORT PARA AUDITORIA
-from auditlog.context import set_actor
 
 from .models import GestorProfile, PaisProfile, ProfissionalSaudeProfile
 

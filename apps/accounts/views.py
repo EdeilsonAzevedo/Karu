@@ -8,8 +8,6 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
-from auditlog.context import set_actor
-from django.db import transaction
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
 
