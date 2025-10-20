@@ -47,6 +47,40 @@
         .theme-toggle {
             transition: all 0.3s ease;
         }
+
+        /* Estilos para inputs com erro */
+        .input-error {
+            border-color: hsl(var(--er));
+            border-width: 2px;
+        }
+
+        .input-error:focus {
+            outline-color: hsl(var(--er));
+        }
+
+        /* Animação suave para alertas */
+        .alert {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Gradiente para títulos */
+        .text-gradient {
+            background: linear-gradient(135deg, hsl(var(--p)) 0%, hsl(var(--s)) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -62,7 +96,7 @@
         <div class="drawer-content flex flex-col min-h-screen bg-base-200">
 
             <!-- Navbar -->
-            <div class="navbar bg-base-100 border-b border-base-300 px-4 shadow-sm">
+            <div class="navbar bg-base-100 border-b border-base-300 px-4 shadow-sm sticky top-0 z-40">
                 <div class="navbar-start">
                     <!-- Menu Toggle -->
                     <label for="main-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
@@ -71,7 +105,7 @@
 
                     <!-- Logo -->
                     <a href="{% url 'home' %}" class="flex items-center space-x-3 ml-2">
-                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-lg">
                             <i data-lucide="heart" class="w-6 h-6 text-white"></i>
                         </div>
                         <div>
@@ -82,6 +116,31 @@
                 </div>
 
                 <div class="navbar-end">
+                    <!-- User Info (desktop) -->
+                    {% if request.user.is_authenticated %}
+                    <div class="hidden md:flex items-center gap-2 mr-4">
+                        <div class="text-right">
+                            <p class="text-sm font-semibold">{{ request.user.name|default:request.user.email }}</p>
+                            <p class="text-xs text-base-content/60">
+                                {% if request.user.is_superuser %}
+                                    Administrador
+                                {% elif request.user|has_group:'gestores' %}
+                                    Gestor
+                                {% elif request.user|has_group:'profissionais' %}
+                                    Profissional
+                                {% else %}
+                                    Responsável
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="avatar placeholder">
+                            <div class="bg-primary text-primary-content rounded-full w-10">
+                                <span class="text-lg">{{ request.user.name.0|default:"U" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Theme Toggle -->
                     <div class="mr-2">
                         <button id="theme-toggle" class="btn btn-ghost btn-circle theme-toggle" title="Alternar tema">
@@ -89,7 +148,6 @@
                             <i data-lucide="moon" class="w-5 h-5 moon-icon hidden"></i>
                         </button>
                     </div>
-
                 </div>
             </div>
 
@@ -100,17 +158,17 @@
 
                 <!-- Messages/Alerts -->
                 {% if messages %}
-                <div class="px-4 py-2">
+                <div class="px-4 py-2 max-w-7xl mx-auto w-full">
                     {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} mb-2 shadow-sm">
+                    <div class="alert alert-{{ message.tags }} mb-2 shadow-lg">
                         {% if message.tags == 'success' %}
-                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
                         {% elif message.tags == 'error' %}
-                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        <i data-lucide="alert-circle" class="w-5 h-5"></i>
                         {% elif message.tags == 'warning' %}
-                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                         {% else %}
-                        <i data-lucide="info" class="w-4 h-4"></i>
+                        <i data-lucide="info" class="w-5 h-5"></i>
                         {% endif %}
                         <span>{{ message }}</span>
                     </div>
@@ -123,9 +181,17 @@
             </main>
 
             <!-- Footer -->
-            <footer class="footer footer-center p-4 bg-base-200 text-base-content mt-auto">
-                <div>
-                    <p class="text-sm opacity-70">© 2025 Karu - Sistema de Monitoramento Neonatal</p>
+            <footer class="footer footer-center p-4 bg-base-100 text-base-content mt-auto border-t border-base-300">
+                <div class="flex flex-col md:flex-row items-center gap-2">
+                    <p class="text-sm text-base-content/70">© 2025 Karu - Sistema de Monitoramento Neonatal</p>
+                    <div class="flex gap-2 text-xs text-base-content/50">
+                        <span>•</span>
+                        <a href="#" class="hover:text-primary transition-colors">Sobre</a>
+                        <span>•</span>
+                        <a href="#" class="hover:text-primary transition-colors">Suporte</a>
+                        <span>•</span>
+                        <a href="#" class="hover:text-primary transition-colors">Privacidade</a>
+                    </div>
                 </div>
             </footer>
         </div>
@@ -138,7 +204,7 @@
                 <!-- Sidebar Header -->
                 <div class="flex justify-between items-center mb-6 p-2">
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-lg">
                             <i data-lucide="heart" class="w-4 h-4 text-white"></i>
                         </div>
                         <span class="text-lg font-semibold text-primary">Menu Principal</span>
@@ -148,15 +214,44 @@
                     </label>
                 </div>
 
+                <!-- User Info Mobile -->
+                {% if request.user.is_authenticated %}
+                <div class="md:hidden mb-6 p-3 bg-base-200 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="avatar placeholder">
+                            <div class="bg-primary text-primary-content rounded-full w-12">
+                                <span class="text-xl">{{ request.user.name.0|default:"U" }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="font-semibold">{{ request.user.name|default:request.user.email }}</p>
+                            <p class="text-sm text-base-content/60">
+                                {% if request.user.is_superuser %}
+                                    Administrador
+                                {% elif request.user|has_group:'gestores' %}
+                                    Gestor
+                                {% elif request.user|has_group:'profissionais' %}
+                                    Profissional
+                                {% else %}
+                                    Responsável
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Navigation Menu -->
                 <ul class="menu text-base space-y-1">
-                    <!-- Menu items podem ser adicionados conforme necessário -->
+                    <li><a href="{% url 'home' %}"><i data-lucide="home" class="w-5 h-5"></i> Início</a></li>
+                    
+                    <li class="menu-title mt-4"><span>Gestão de Pacientes</span></li>
+                    <li><a href="{% url 'patients:list' %}"><i data-lucide="search" class="w-5 h-5"></i> Buscar Recém-Nascidos</a></li>
+                    <li><a href="{% url 'patients:create' %}"><i data-lucide="baby" class="w-5 h-5"></i> Nova Criança</a></li>
+                    
+                    <li class="menu-title mt-4"><span>Sistema</span></li>
                     <li><a href="#"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
                         <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
-                    <li><a href="{% url 'patients:list' %}"><i data-lucide="search" class="w-5 h-5"></i> Buscar
-                            Recém-Nascidos</a></li>
-                    <li><a href="{% url 'patients:create' %}"><i data-lucide="user-plus" class="w-5 h-5"></i> Nova
-                            Criança</a></li>
                     <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios
                         <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
                     <li><a href="{% url 'manager:audit_log' %}"><i data-lucide="file-text" class="w-5 h-5"></i> Logs de Atividade</a></li>
@@ -183,8 +278,11 @@
                     <!-- Block extra para outros templates adicionarem itens -->
                     {% block sidebar_extra %}{% endblock %}
 
+                    <!-- Divider -->
+                    <div class="divider my-2"></div>
+
                     <!-- Logout -->
-                    <li class="mt-4">
+                    <li>
                         <form id="logout-form" method="post" action="{% url 'logout' %}">
                             {% csrf_token %}
                             <button type="submit" class="w-full flex items-center gap-2 text-error hover:bg-error/10">
@@ -194,6 +292,12 @@
                         </form>
                     </li>
                 </ul>
+
+                <!-- Sidebar Footer -->
+                <div class="absolute bottom-4 left-4 right-4 p-3 bg-base-200 rounded-lg text-center">
+                    <p class="text-xs text-base-content/60">Versão 1.0.0</p>
+                    <p class="text-xs text-base-content/40">Desenvolvido com ❤️</p>
+                </div>
             </div>
         </div>
     </div>
@@ -225,12 +329,24 @@
             const moonIcon = document.querySelector('.moon-icon');
 
             if (theme === 'dark') {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
+                sunIcon?.classList.add('hidden');
+                moonIcon?.classList.remove('hidden');
             } else {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
+                sunIcon?.classList.remove('hidden');
+                moonIcon?.classList.add('hidden');
             }
+        }
+
+        // Auto-dismiss alerts
+        function autoDismissAlerts() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s ease-out';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                }, 5000);
+            });
         }
 
         // Inicializar quando o DOM estiver carregado
@@ -242,13 +358,34 @@
             initTheme();
 
             // Configurar toggle de tema
-            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+
+            // Auto-dismiss alerts
+            autoDismissAlerts();
 
             // Auto-close drawer on mobile when clicking menu item
             document.querySelectorAll('.drawer-side .menu a').forEach(link => {
                 link.addEventListener('click', () => {
                     if (window.innerWidth < 768) {
-                        document.getElementById('main-drawer').checked = false;
+                        const drawer = document.getElementById('main-drawer');
+                        if (drawer) drawer.checked = false;
+                    }
+                });
+            });
+
+            // Smooth scroll para âncoras
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const href = this.getAttribute('href');
+                    if (href !== '#') {
+                        e.preventDefault();
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
                     }
                 });
             });
