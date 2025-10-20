@@ -158,7 +158,7 @@ def list_users(request):
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
-    tipos_disponiveis = UserModel.UserType.choices # type: ignore
+    tipos_disponiveis = UserModel.UserType.choices  # type: ignore
 
     context = {
         "page_obj": page_obj,

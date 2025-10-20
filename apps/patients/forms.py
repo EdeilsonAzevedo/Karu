@@ -1,5 +1,6 @@
+import datetime
+
 from django import forms
-import datetime 
 
 from .models import (
     ClinicalEvaluation,
@@ -11,32 +12,55 @@ from .models import (
     Record,
 )
 
-
 # Em seu arquivo forms.py
-from django import forms
-import datetime
-from .models import Patient # Certifique-se de que a importação está correta
+
 
 class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
         fields = [
-            "first_name", "last_name", "date_of_birth", "sex", "cpf",
-            "birth_certificate_number", "guardian_name", "contact_phone",
-            "address_street", "address_number", "address_complement",
-            "address_neighborhood", "address_city", "address_state",
-            "address_zip_code", "gestational_age_weeks", "gestational_age_days",
-            "birth_weight", "birth_length", "head_circumference",
+            "first_name",
+            "last_name",
+            "date_of_birth",
+            "sex",
+            "cpf",
+            "birth_certificate_number",
+            "guardian_name",
+            "contact_phone",
+            "address_street",
+            "address_number",
+            "address_complement",
+            "address_neighborhood",
+            "address_city",
+            "address_state",
+            "address_zip_code",
+            "gestational_age_weeks",
+            "gestational_age_days",
+            "birth_weight",
+            "birth_length",
+            "head_circumference",
         ]
         labels = {
-            "first_name": "Nome", "last_name": "Sobrenome", "date_of_birth": "Data de Nascimento",
-            "sex": "Sexo", "cpf": "CPF", "birth_certificate_number": "Nº da Certidão de Nascimento",
-            "guardian_name": "Nome do Responsável", "contact_phone": "Telefone de Contato",
-            "address_street": "Logradouro", "address_number": "Número", "address_complement": "Complemento",
-            "address_neighborhood": "Bairro", "address_city": "Cidade", "address_state": "Estado",
-            "address_zip_code": "CEP", "gestational_age_weeks": "IG (semanas)",
-            "gestational_age_days": "IG (dias)", "birth_weight": "Peso ao nascer (g)",
-            "birth_length": "Comprimento ao nascer (cm)", "head_circumference": "PC ao nascer (cm)",
+            "first_name": "Nome",
+            "last_name": "Sobrenome",
+            "date_of_birth": "Data de Nascimento",
+            "sex": "Sexo",
+            "cpf": "CPF",
+            "birth_certificate_number": "Nº da Certidão de Nascimento",
+            "guardian_name": "Nome do Responsável",
+            "contact_phone": "Telefone de Contato",
+            "address_street": "Logradouro",
+            "address_number": "Número",
+            "address_complement": "Complemento",
+            "address_neighborhood": "Bairro",
+            "address_city": "Cidade",
+            "address_state": "Estado",
+            "address_zip_code": "CEP",
+            "gestational_age_weeks": "IG (semanas)",
+            "gestational_age_days": "IG (dias)",
+            "birth_weight": "Peso ao nascer (g)",
+            "birth_length": "Comprimento ao nascer (cm)",
+            "head_circumference": "PC ao nascer (cm)",
         }
         widgets = {
             "date_of_birth": forms.DateInput(attrs={"type": "date"}),
@@ -57,7 +81,7 @@ class PatientForm(forms.ModelForm):
         return only_digits
 
     def clean_date_of_birth(self):
-        date_of_birth = self.cleaned_data.get('date_of_birth')
+        date_of_birth = self.cleaned_data.get("date_of_birth")
         if date_of_birth and date_of_birth > datetime.date.today():
             raise forms.ValidationError("A data de nascimento não pode ser no futuro.")
         return date_of_birth
@@ -65,12 +89,16 @@ class PatientForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(PatientForm, self).__init__(*args, **kwargs)
 
-        self.label_suffix = " *" # Adiciona o asterisco aos campos obrigatórios
+        self.label_suffix = " *"  # Adiciona o asterisco aos campos obrigatórios
 
-        optional_fields = ['address_complement']
+        optional_fields = ["address_complement"]
 
-        input_classes = "input input-bordered w-full transition-all duration-300 focus:input-primary"
-        select_classes = "select select-bordered w-full transition-all duration-300 focus:select-primary"
+        input_classes = (
+            "input input-bordered w-full transition-all duration-300 focus:input-primary"
+        )
+        select_classes = (
+            "select select-bordered w-full transition-all duration-300 focus:select-primary"
+        )
 
         for field_name, field in self.fields.items():
             # Define campos como não-obrigatórios e remove o asterisco do label
@@ -106,16 +134,20 @@ class RecordForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(RecordForm, self).__init__(*args, **kwargs)
-        self.label_suffix = " *" 
-        optional_fields = ['notes']
+        self.label_suffix = " *"
+        optional_fields = ["notes"]
 
-        input_classes = "input input-bordered w-full transition-all duration-300 focus:input-primary"
-        textarea_classes = "textarea textarea-bordered w-full transition-all duration-300 focus:textarea-primary"
+        input_classes = (
+            "input input-bordered w-full transition-all duration-300 focus:input-primary"
+        )
+        textarea_classes = (
+            "textarea textarea-bordered w-full transition-all duration-300 focus:textarea-primary"
+        )
         for field_name, field in self.fields.items():
             if field_name in optional_fields:
                 field.required = False
                 field.label_suffix = ""
-                
+
             if isinstance(field.widget, forms.Textarea):
                 field.widget.attrs.update({"class": textarea_classes})
             else:
@@ -148,10 +180,10 @@ class DischargeRecordForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(DischargeRecordForm, self).__init__(*args, **kwargs)
         self.label_suffix = " *"
-        
-        self.fields['chronological_age_days'].required = False
-        self.fields['corrected_age_weeks'].required = False
-        
+
+        self.fields["chronological_age_days"].required = False
+        self.fields["corrected_age_weeks"].required = False
+
         input_classes = (
             "input input-bordered w-full transition-all duration-300 focus:input-primary"
         )
@@ -175,12 +207,12 @@ class ClinicalEvaluationForm(forms.ModelForm):
             "type": forms.HiddenInput(),
         }
         labels = {"status": ""}
-        
+
     def clean(self):
         cleaned_data = super().clean()
-        
+
         status = cleaned_data.get("status")
-        
+
         # Se o campo de conteúdo (status) não foi preenchido, removemos o erro 'required'
         # que o Django pode ter gerado no nível do modelo, tornando-o sempre válido.
         if not status:
@@ -211,22 +243,17 @@ class InterdisciplinaryEvaluationForm(forms.ModelForm):
             ),
         }
         labels = {"notes": ""}
-        
+
     def clean(self):
         cleaned_data = super().clean()
-        
+
         notes = cleaned_data.get("notes")
-        
+
         # Se o campo de conteúdo (notes) não foi preenchido, o form é válido, mas vazio.
         if not notes:
             pass
-            
+
         return cleaned_data
-    
-    def __init__(self, *args, **kwargs):
-        super(InterdisciplinaryEvaluationForm, self).__init__(*args, **kwargs)
-        self.fields['area'].required = False
-        self.fields['notes'].required = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
