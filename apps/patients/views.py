@@ -53,6 +53,7 @@ def patient_list(request):
 
     return render(request, "patients/list.html", {"patients": qs})
 
+
 @transaction.atomic
 def patient_create(request):
     if request.method != "POST":
@@ -61,11 +62,15 @@ def patient_create(request):
         record_form = RecordForm(instance=Record(record_type="discharge"))
         discharge_form = DischargeRecordForm()
         clinical_forms = {
-            ctype.value: ClinicalEvaluationForm(prefix=f"clinic-{ctype.value}", initial={"type": ctype.value})
+            ctype.value: ClinicalEvaluationForm(
+                prefix=f"clinic-{ctype.value}", initial={"type": ctype.value}
+            )
             for ctype in ClinicalEvaluationType
         }
         team_forms = {
-            area.value: InterdisciplinaryEvaluationForm(prefix=f"team-{area.value}", initial={"area": area.value})
+            area.value: InterdisciplinaryEvaluationForm(
+                prefix=f"team-{area.value}", initial={"area": area.value}
+            )
             for area in InterdisciplinaryEvaluationArea
         }
 
@@ -83,17 +88,21 @@ def patient_create(request):
             for area in InterdisciplinaryEvaluationArea
         }
 
-        all_forms_valid = all([
-            patient_form.is_valid(),
-            record_form.is_valid(),
-            discharge_form.is_valid(),
-            all(f.is_valid() for f in clinical_forms.values()),
-            all(f.is_valid() for f in team_forms.values()),
-        ])
-        
+        all_forms_valid = all(
+            [
+                patient_form.is_valid(),
+                record_form.is_valid(),
+                discharge_form.is_valid(),
+                all(f.is_valid() for f in clinical_forms.values()),
+                all(f.is_valid() for f in team_forms.values()),
+            ]
+        )
+
         print(patient_form.errors, record_form.errors, discharge_form.errors)
-        for k, f in clinical_forms.items(): print("clinic", k, f.errors)
-        for k, f in team_forms.items(): print("team", k, f.errors)
+        for k, f in clinical_forms.items():
+            print("clinic", k, f.errors)
+        for k, f in team_forms.items():
+            print("team", k, f.errors)
 
         if all_forms_valid:
             patient = patient_form.save()
