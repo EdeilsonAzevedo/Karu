@@ -70,80 +70,110 @@
             </div>
         </div>
 
-        <div class="card bg-base-200 shadow-xl">
-            <div class="card-body">
-                <div class="overflow-x-auto">
-                    <table class="table table-zebra">
-                        <thead>
-                            <tr>
-                                <th>Quando</th>
-                                <th>Usuário</th>
-                                <th>Ação</th>
-                                <th>Detalhes da Alteração</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for log in page_obj %}
-                            <tr>
-                                <td>
-                                    <div class="font-bold">{{ log.timestamp|date:"d/m/Y" }}</div>
-                                    <div class="text-sm opacity-60">{{ log.timestamp|time:"H:i:s" }}</div>
-                                </td>
-                                <td>
-                                    {% if log.actor %}
-                                    <div class="flex items-center gap-3">
-                                        <div class="avatar placeholder">
-                                            <div class="bg-primary text-primary-content rounded-full w-8">
-                                                <span class="text-xs">{{ log.actor.first_name|first }}{{
-                                                    log.actor.last_name|first }}</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="font-bold">{{ log.actor.get_full_name|default:log.actor.username
-                                                }}</div>
-                                            <div class="text-sm opacity-50">Usuário</div>
-                                        </div>
+        <div class="overflow-x-auto">
+            <table class="table table-zebra">
+                <thead>
+                    <tr>
+                        <th>Quando</th>
+                        <th>Usuário</th>
+                        <th>Ação</th>
+                        <th>Detalhes da Alteração</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in page_obj %}
+                    <tr>
+                        <td>
+                            <div class="font-bold">{{ log.timestamp|date:"d/m/Y" }}</div>
+                            <div class="text-sm opacity-60">{{ log.timestamp|time:"H:i:s" }}</div>
+                        </td>
+                        <td>
+                            {% if log.actor %}
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="bg-primary text-primary-content rounded-full w-8">
+                                        <span class="text-xs">
+                                            {% if log.actor.first_name and log.actor.last_name %}
+                                                {{ log.actor.first_name|first }}{{ log.actor.last_name|first }}
+                                            {% else %}
+                                                {{ log.actor.username|first|upper }}
+                                            {% endif %}
+                                        </span>
                                     </div>
-                                    {% else %}
-                                    <span class="text-base-content/70 font-semibold">Sistema</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="badge 
-                                        {% if log.action == 0 %}badge-info{% endif %}
-                                        {% if log.action == 1 %}badge-warning{% endif %}
-                                        {% if log.action == 2 %}badge-error{% endif %}
-                                        gap-2 capitalize">
-                                        {{ log.get_action_display }}
+                                </div>
+                                <div>
+                                    <div class="font-bold">
+                                        {% if log.actor.get_full_name %}
+                                            {{ log.actor.get_full_name }}
+                                        {% else %}
+                                            {{ log.actor.username }}
+                                        {% endif %}
                                     </div>
-                                </td>
-                                <td>
-                                    <div class="font-bold text-base-content/90">{{ log.object_repr }}</div>
+                                    <div class="text-sm opacity-50">{{ log.actor.username }}</div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-base-content/70 font-semibold">Sistema</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="badge 
+                                {% if log.action == 0 %}badge-info{% endif %}
+                                {% if log.action == 1 %}badge-success{% endif %}
+                                {% if log.action == 2 %}badge-warning{% endif %}
+                                {% if log.action == 3 %}badge-error{% endif %}
+                                gap-2 capitalize">
+                                <i data-lucide="
+                                {% if log.action == 0 %}eye{% endif %}
+                                {% if log.action == 1 %}plus{% endif %}
+                                {% if log.action == 2 %}edit{% endif %}
+                                {% if log.action == 3 %}trash-2{% endif %}
+                                " class="w-3 h-3"></i>
+                                {{ log.get_action_display }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-bold text-base-content/90 mb-1">
+                                {% if log.content_type.name == 'user' %}
+                                    <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
+                                {% elif log.content_type.name == 'gestor profile' %}
+                                    <i data-lucide="briefcase" class="w-4 h-4 inline mr-1"></i>
+                                {% elif log.content_type.name == 'profissional saude profile' %}
+                                    <i data-lucide="stethoscope" class="w-4 h-4 inline mr-1"></i>
+                                {% elif log.content_type.name == 'pais profile' %}
+                                    <i data-lucide="heart" class="w-4 h-4 inline mr-1"></i>
+                                {% endif %}
+                                {{ log.object_repr }}
+                            </div>
 
-                                    <div x-data="{ expanded: false }" class="text-sm opacity-70">
+                            <div x-data="{ expanded: false }" class="text-sm">
+                                <div class="whitespace-pre-wrap font-mono text-xs bg-base-300 p-2 rounded" :class="expanded ? '' : 'line-clamp-3'">
+                                    {{ log|format_changes|linebreaksbr }}
+                                </div>
 
-                                        <div class="whitespace-pre-wrap" :class="expanded ? '' : 'line-clamp-4'">
-                                            {{ log|format_changes|linebreaksbr }}
-                                        </div>
-
-                                        <button @click="expanded = !expanded"
-                                            class="text-primary font-semibold mt-1 text-xs">
-                                            <span x-text="expanded ? 'Mostrar Menos' : 'Mostrar Mais'"></span>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center py-8">
-                                    <p class="text-lg text-base-content/60">Nenhum log encontrado para os filtros
-                                        aplicados.</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                {% if log.changes %}
+                                <button @click="expanded = !expanded" 
+                                        class="text-primary hover:text-primary-focus font-semibold mt-1 text-xs flex items-center gap-1">
+                                    <i data-lucide="chevron-down" class="w-3 h-3 transition-transform" :class="expanded ? 'rotate-180' : ''"></i>
+                                    <span x-text="expanded ? 'Mostrar Menos' : 'Mostrar Mais'"></span>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-8">
+                            <div class="flex flex-col items-center justify-center text-base-content/60">
+                                <i data-lucide="file-search" class="w-12 h-12 mb-2"></i>
+                                <p class="text-lg">Nenhum log encontrado para os filtros aplicados.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
                 <div class="flex justify-between items-center mt-6">
                     <div class="text-sm text-base-content/70">

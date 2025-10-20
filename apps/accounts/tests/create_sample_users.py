@@ -1,5 +1,4 @@
 import os
-
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -7,8 +6,7 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-
-from apps.accounts.models import GestorProfile, PaisProfile, ProfissionalSaudeProfile
+from apps.accounts.models import GestorProfile, ProfissionalSaudeProfile, PaisProfile
 
 User = get_user_model()
 
@@ -85,7 +83,7 @@ def create_sample_users():
             user_type='profissional_saude',
             is_active=True
         )
-        # ⚡ CORREÇÃO: Adiciona ao grupo correto
+        #Adiciona ao grupo correto
         enfermeiro_user.groups.add(groups_map['profissionais_saude'])
         
         ProfissionalSaudeProfile.objects.create(
