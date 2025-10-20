@@ -1,5 +1,4 @@
 from django.urls import path
-
 from .views import (
     area_pais,
     area_profissional,
@@ -9,6 +8,8 @@ from .views import (
     signup_gestor,
     signup_pais,
     signup_profissional,
+    user_detail,
+    user_deactivate,
 )
 
 app_name = "accounts"
@@ -21,4 +22,6 @@ urlpatterns = [
     path("signup/profissional/", signup_profissional, name="signup_profissional"),
     path("signup/pais/", signup_pais, name="signup_pais"),
     path("usuarios/", list_users, name="listar_usuarios"),
+    path("usuarios/<int:pk>/detalhes/", user_detail, name="user_detail"),
+    path("usuarios/<int:pk>/desativar/", user_deactivate, name="user_deactivate"),
 ]

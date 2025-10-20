@@ -31,12 +31,18 @@
                             <label class="label"><span class="label-text">Tipo de Ação</span></label>
                             <select name="action_type" class="select select-bordered select-sm">
                                 <option value="">Todas</option>
-                                <option value="create" {% if request.GET.action_type == 'create' %}selected{% endif %}>
-                                    Criação</option>
-                                <option value="update" {% if request.GET.action_type == 'update' %}selected{% endif %}>
-                                    Atualização</option>
-                                <option value="delete" {% if request.GET.action_type == 'delete' %}selected{% endif %}>
-                                    Exclusão</option>
+                                <option value="0" {% if request.GET.action_type == '0' %}selected{% endif %}>
+                                    Visualização
+                                </option>
+                                <option value="1" {% if request.GET.action_type == '1' %}selected{% endif %}>
+                                    Criação
+                                </option>
+                                <option value="2" {% if request.GET.action_type == '2' %}selected{% endif %}>
+                                    Atualização
+                                </option>
+                                <option value="3" {% if request.GET.action_type == '3' %}selected{% endif %}>
+                                    Exclusão
+                                </option>
                             </select>
                         </div>
                         <div class="form-control">

@@ -3,9 +3,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from auditlog.registry import auditlog
+from auditlog.models import AuditlogHistoryField
 
 
 class User(AbstractUser):
+    history = AuditlogHistoryField()
     class UserType(models.TextChoices):
         GESTOR = "gestor", _("Gestor")
         PROFISSIONAL_SAUDE = "profissional_saude", _("Profissional de Saúde")
@@ -19,6 +22,7 @@ class User(AbstractUser):
 
 
 class GestorProfile(models.Model):
+    history = AuditlogHistoryField()
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="gestor"
     )
@@ -34,6 +38,7 @@ class GestorProfile(models.Model):
 
 
 class ProfissionalSaudeProfile(models.Model):
+    history = AuditlogHistoryField()
     class Categoria(models.TextChoices):
         MEDICO = "Médico", _("Médico")
         ENFERMEIRO = "Enfermeiro", _("Enfermeiro")
@@ -74,6 +79,7 @@ class ProfissionalSaudeProfile(models.Model):
 
 
 class PaisProfile(models.Model):
+    history = AuditlogHistoryField()
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="pais"
     )

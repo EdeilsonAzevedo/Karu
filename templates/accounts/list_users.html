@@ -242,12 +242,7 @@
                                         Tipo
                                     </div>
                                 </th>
-                                <th class="text-center">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <i data-lucide="activity" class="w-4 h-4"></i>
-                                        Status
-                                    </div>
-                                </th>
+                                
                                 <th class="text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         <i data-lucide="settings" class="w-4 h-4"></i>
@@ -343,27 +338,35 @@
                                         </label>
                                         <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300 z-10">
                                             <li>
-                                                <a href="#" class="gap-2">
+                                                <a href="#" onclick="showUserDetail('{{ user.id }}')" class="gap-2">
                                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                                     Ver Detalhes
                                                 </a>
                                             </li>
                                             <li>
-                                                <a href="#" class="gap-2">
+                                                <a href="#" class="gap-2" onclick="alert('Funcionalidade em desenvolvimento')">
                                                     <i data-lucide="edit" class="w-4 h-4"></i>
                                                     Editar
                                                 </a>
                                             </li>
+                                            {% if user.is_active and user.id != request.user.id %}
                                             <li>
-                                                <a href="#" class="gap-2 text-error">
+                                                <a href="#" onclick="confirmDeactivate('{{ user.id }}', '{{ user.username }}', '{{ user.get_full_name|default:user.username }}')" class="gap-2 text-error">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                     Desativar
                                                 </a>
                                             </li>
+                                            {% else %}
+                                            <li>
+                                                <span class="gap-2 text-base-content/40 cursor-not-allowed">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    Desativar
+                                                </span>
+                                            </li>
+                                            {% endif %}
                                         </ul>
                                     </div>
                                 </td>
-                            </tr>
                             {% empty %}
                             <tr>
                                 <td colspan="6" class="text-center py-16">
@@ -437,7 +440,29 @@
     </div>
 </main>
 
+<dialog id="user_modal" class="modal">
+</dialog>
+
+<dialog id="confirm_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirmar Desativação</h3>
+        <p class="py-4" id="confirm_message">
+            Tem certeza que deseja desativar este usuário?
+        </p>
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn btn-ghost">Cancelar</button>
+            </form>
+            <button class="btn btn-error gap-2" id="confirm_deactivate">
+                <i data-lucide="user-x" class="w-4 h-4"></i>
+                Sim, Desativar
+            </button>
+        </div>
+    </div>
+</dialog>
+
 <!-- JavaScript para máscara de CPF -->
+<<!-- JavaScript para máscara de CPF e funcionalidades de usuário -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const cpfInput = document.getElementById('cpf');
@@ -453,5 +478,133 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Variáveis globais para controle
+let currentUserId = null;
+
+// Modal para detalhes do usuário
+const user_modal = document.getElementById('user_modal');
+const confirm_modal = document.getElementById('confirm_modal');
+
+function showUserDetail(userId) {
+    fetch(`/accounts/usuarios/${userId}/detalhes/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao carregar detalhes');
+        }
+        return response.json();
+    })
+    .then(data => {
+        user_modal.innerHTML = data.html;
+        user_modal.showModal();
+        
+        // Fechar modal ao clicar fora
+        user_modal.addEventListener('click', (e) => {
+            if (e.target === user_modal) {
+                user_modal.close();
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showAlert('Erro ao carregar detalhes do usuário', 'error');
+    });
+}
+
+function confirmDeactivate(userId, username, fullName) {
+    currentUserId = userId;
+    const message = `Tem certeza que deseja desativar o usuário "${fullName}" (${username})?`;
+    document.getElementById('confirm_message').textContent = message;
+    confirm_modal.showModal();
+    
+    // Fechar modal ao clicar fora
+    confirm_modal.addEventListener('click', (e) => {
+        if (e.target === confirm_modal) {
+            confirm_modal.close();
+        }
+    });
+}
+
+// Configurar botão de confirmação
+document.getElementById('confirm_deactivate').addEventListener('click', function() {
+    if (currentUserId) {
+        deactivateUser(currentUserId);
+        confirm_modal.close();
+    }
+});
+
+function deactivateUser(userId) {
+    fetch(`/accounts/usuarios/${userId}/desativar/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            // Recarrega a página após 1.5 segundos
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showAlert(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showAlert('Erro ao desativar usuário', 'error');
+    });
+}
+
+// Função para mostrar alertas
+function showAlert(message, type = 'info') {
+    // Criar elemento de alerta
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} shadow-lg mb-4 animate-fade-in`;
+    alertDiv.innerHTML = `
+        <div>
+            <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Adicionar ao início do main
+    const main = document.querySelector('main');
+    main.insertBefore(alertDiv, main.firstChild);
+    
+    // Remover após 5 segundos
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+    
+    // Atualizar ícones
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// Função auxiliar para pegar o token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 </script>
 {% endblock content %}

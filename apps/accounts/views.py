@@ -6,6 +6,12 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_http_methods
+from django.template.loader import render_to_string
+from auditlog.models import LogEntry
+from django.utils import timezone
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
 
@@ -120,7 +126,7 @@ def signup_pais(request):
 def list_users(request):
     UserModel = get_user_model()
 
-    users = UserModel.objects.all().prefetch_related("groups")
+    users = UserModel.objects.filter(is_active=True).prefetch_related("groups")
 
     name = request.GET.get("nome", "").strip()
     if name:
@@ -146,23 +152,16 @@ def list_users(request):
     # Ordenação
     users = users.order_by("username").distinct()
 
-    contadores = UserModel.objects.values("user_type").annotate(count=Count("id"))
-
-    contadores_dict = {item["user_type"]: item["count"] for item in contadores}
-
-    gestores_count = contadores_dict.get("gestor", 0)
-    profissionais_count = contadores_dict.get("profissional_saude", 0)
-    pais_count = contadores_dict.get("pais", 0)
+    gestores_count = users.filter(user_type='gestor').count()
+    profissionais_count = users.filter(user_type='profissional_saude').count()
+    pais_count = users.filter(user_type='pais').count()
 
     paginator = Paginator(users, 20)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
-    tipos_disponiveis = UserModel.UserType.choices # type: ignore
-
     context = {
         "page_obj": page_obj,
-        "gropos_disponiveis": tipos_disponiveis,
         "filtros": {"nome": name, "cpf": cpf, "tipo": tipo},
         "total_resultados": paginator.count,
         "gestores_count": gestores_count,
@@ -171,3 +170,103 @@ def list_users(request):
     }
 
     return render(request, "accounts/list_users.html", context)
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name__in=['gestores', 'admin']).exists())
+def user_detail(request, pk):
+    """View para exibir detalhes do usuário em popup"""
+    user = get_object_or_404(get_user_model(), pk=pk)
+    
+    # REGISTRAR AÇÃO DE VISUALIZAÇÃO NO AUDITLOG
+    try:
+        from django.contrib.contenttypes.models import ContentType
+        from auditlog.models import LogEntry
+        from django.utils import timezone
+        
+        LogEntry.objects.create(
+            actor=request.user,
+            verb='viewed',
+            action=0,
+            timestamp=timezone.now(),
+            content_type=ContentType.objects.get_for_model(user),
+            object_pk=str(user.pk),
+            object_repr=str(user),
+            changes=f"Usuário {request.user} visualizou os detalhes do usuário {user.username}"
+        )
+    except Exception:
+        # Silenciosamente ignora erros no auditlog para não afetar a funcionalidade
+        pass
+    
+    # Determinar o perfil específico do usuário
+    profile_data = {}
+    if hasattr(user, 'gestor'):
+        profile_data = {
+            'tipo': 'Gestor',
+            'cpf': user.gestor.cpf,
+            'telefone': user.gestor.telefone,
+            'unidade': user.gestor.unidade,
+            'cargo': user.gestor.cargo,
+            'departamento': user.gestor.departamento,
+        }
+    elif hasattr(user, 'profissional'):
+        profile_data = {
+            'tipo': 'Profissional de Saúde',
+            'cpf': user.profissional.cpf,
+            'categoria': user.profissional.get_categoria_display(),
+            'especialidade': user.profissional.especialidade,
+            'conselho': user.profissional.conselho,
+            'registro': user.profissional.numero_registro,
+            'unidade': user.profissional.unidade,
+            'telefone': user.profissional.telefone,
+        }
+    elif hasattr(user, 'pais'):
+        profile_data = {
+            'tipo': 'Pais/Responsável',
+            'cpf': user.pais.cpf,
+            'telefone': user.pais.telefone,
+        }
+    
+    context = {
+        'user': user,
+        'profile_data': profile_data,
+    }
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string('accounts/includes/user_detail_modal.html', context)
+        return JsonResponse({'html': html})
+    
+    return render(request, 'accounts/user_detail.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name__in=['gestores', 'admin']).exists())
+@require_http_methods(["POST"])
+def user_deactivate(request, pk):
+    """View para desativar/remover usuário (soft delete)"""
+    user = get_object_or_404(get_user_model(), pk=pk)
+    
+    # Não permitir que usuários se desativem a si mesmos
+    if user == request.user:
+        return JsonResponse({
+            'success': False,
+            'message': 'Você não pode desativar sua própria conta.'
+        })
+    
+    # Não permitir desativar superusuários (a menos que seja outro superusuário)
+    if user.is_superuser and not request.user.is_superuser:
+        return JsonResponse({
+            'success': False,
+            'message': 'Não é permitido desativar superusuários.'
+        })
+    
+    user.is_active = False
+    user.save()
+    
+    messages.success(request, f'Usuário {user.username} foi desativado com sucesso.')
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'message': 'Usuário desativado com sucesso.'
+        })
+    
+    return redirect('accounts:listar_usuarios')

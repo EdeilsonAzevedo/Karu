@@ -68,8 +68,8 @@ class DischargeRecord(BaseModel):
     chronological_age_days = models.IntegerField(blank=True, null=True)
     corrected_age_weeks = models.IntegerField(blank=True, null=True)
     weight = models.DecimalField(max_digits=6, decimal_places=2)
-    length = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
-    head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
+    length = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True) 
+    head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     feeding_type = models.CharField(
         max_length=20,
         choices=[("breastfeeding", "SME"), ("mixed", "SM+Fórmula"), ("formula", "Fórmula")],

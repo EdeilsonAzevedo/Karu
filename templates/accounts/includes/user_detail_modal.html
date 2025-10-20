@@ -1,0 +1,222 @@
+<div class="modal-box max-w-2xl">
+    <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+    
+    <h3 class="font-bold text-lg mb-6 flex items-center gap-2">
+        <i data-lucide="user" class="w-5 h-5 text-primary"></i>
+        Detalhes do Usuário
+    </h3>
+    
+    <div class="space-y-6">
+        <!-- Informações Básicas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Nome Completo</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm">{{ user.first_name }} {{ user.last_name }}</p>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Username</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm font-mono">{{ user.username }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Email</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm">{{ user.email|default:"Não informado" }}</p>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Tipo de Usuário</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    {% if user.user_type == 'gestor' %}
+                        <div class="badge badge-primary gap-1">
+                            <i data-lucide="briefcase" class="w-3 h-3"></i>
+                            {{ profile_data.tipo }}
+                        </div>
+                    {% elif user.user_type == 'profissional_saude' %}
+                        <div class="badge badge-secondary gap-1">
+                            <i data-lucide="stethoscope" class="w-3 h-3"></i>
+                            {{ profile_data.tipo }}
+                        </div>
+                    {% elif user.user_type == 'pais' %}
+                        <div class="badge badge-info gap-1">
+                            <i data-lucide="heart" class="w-3 h-3"></i>
+                            {{ profile_data.tipo }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Status</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    {% if user.is_active %}
+                        <div class="badge badge-success gap-1">
+                            <i data-lucide="check-circle" class="w-3 h-3"></i>
+                            Ativo
+                        </div>
+                    {% else %}
+                        <div class="badge badge-error gap-1">
+                            <i data-lucide="x-circle" class="w-3 h-3"></i>
+                            Inativo
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+           <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Data de Cadastro</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm">{{ user.date_joined|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações Específicas do Perfil -->
+        <div class="divider"></div>
+        <h4 class="font-semibold text-lg flex items-center gap-2 mb-4">
+            <i data-lucide="id-card" class="w-4 h-4 text-primary"></i>
+            Informações do Perfil
+        </h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">CPF</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm font-mono">{{ profile_data.cpf|default:"Não informado" }}</p>
+                </div>
+            </div>
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Telefone</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm">{{ profile_data.telefone|default:"Não informado" }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if profile_data.tipo == 'Gestor' %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Unidade</span>
+                    </label>
+                    <div class="p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm">{{ profile_data.unidade|default:"Não informado" }}</p>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Cargo</span>
+                    </label>
+                    <div class="p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm">{{ profile_data.cargo|default:"Não informado" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if profile_data.departamento %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Departamento</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm">{{ profile_data.departamento }}</p>
+                </div>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        {% if profile_data.tipo == 'Profissional de Saúde' %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Categoria</span>
+                    </label>
+                    <div class="p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm">{{ profile_data.categoria|default:"Não informado" }}</p>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Especialidade</span>
+                    </label>
+                    <div class="p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm">{{ profile_data.especialidade|default:"Não informado" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            {% if profile_data.conselho %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Conselho</span>
+                    </label>
+                    <div class="p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm">{{ profile_data.conselho|default:"Não informado" }}</p>
+                    </div>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Nº Registro</span>
+                    </label>
+                    <div class="p-3 bg-base-200 rounded-lg">
+                        <p class="text-sm">{{ profile_data.registro|default:"Não informado" }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Unidade</span>
+                </label>
+                <div class="p-3 bg-base-200 rounded-lg">
+                    <p class="text-sm">{{ profile_data.unidade|default:"Não informado" }}</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="modal-action">
+        <button class="btn btn-ghost" onclick="user_modal.close()">Fechar</button>
+    </div>
+</div>
+
+<script>
+// Atualizar ícones do Lucide quando o modal for aberto
+if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+}
+</script>

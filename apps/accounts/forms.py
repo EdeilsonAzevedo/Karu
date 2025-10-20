@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.models import Group
 from django.core import exceptions
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -22,10 +22,8 @@ phone_br_validator = RegexValidator(
     "Telefone inválido. Use DDD + celular (ex.: 11 9XXXX-XXXX).",
 )
 
-
 def normalize_email(email: str) -> str:
     return (email or "").strip().lower()
-
 
 def ensure_password(temp_password: str | None) -> str:
     """Gera/valida a senha conforme as regras do Django."""
@@ -42,12 +40,9 @@ def ensure_password(temp_password: str | None) -> str:
         raise ValidationError({"temp_password": list(e.messages)})
     return pwd
 
-
 class LoginForm(AuthenticationForm):
-    """Mantido caso você queira customizar depois."""
-
+    """Mantido customizar depois."""
     pass
-
 
 class GestorSignupForm(forms.Form):
     name = forms.CharField(label="Nome completo", required=True)
@@ -80,7 +75,7 @@ class GestorSignupForm(forms.Form):
         return v
 
     @transaction.atomic
-    def save(self) -> AbstractUser:
+    def save(self) -> User:
         name = self.cleaned_data["name"].strip()
         cpf = self.cleaned_data["cpf"]
         email = self.cleaned_data["email"]
@@ -96,12 +91,14 @@ class GestorSignupForm(forms.Form):
             last_name="",
             email=email,
             is_active=active,
+            user_type=User.UserType.GESTOR,  
         )
         user.set_password(raw_pw)
         user.save()
 
-        g, _ = Group.objects.get_or_create(name="gestores")
-        user.groups.add(g)
+        # Adiciona ao grupo correspondente
+        gestores_group, _ = Group.objects.get_or_create(name="gestores")
+        user.groups.add(gestores_group)
 
         GestorProfile.objects.create(
             user=user,
@@ -111,7 +108,6 @@ class GestorSignupForm(forms.Form):
             cargo=cargo,
         )
         return user
-
 
 class ProfissionalSignupForm(forms.Form):
     name = forms.CharField(label="Nome completo", required=True)
@@ -166,7 +162,7 @@ class ProfissionalSignupForm(forms.Form):
         return cleaned
 
     @transaction.atomic
-    def save(self) -> AbstractUser:
+    def save(self) -> User:
         name = self.cleaned_data["name"].strip()
         cpf = self.cleaned_data["cpf"]
         email = self.cleaned_data["email"]
@@ -181,12 +177,14 @@ class ProfissionalSignupForm(forms.Form):
             last_name="",
             email=email,
             is_active=active,
+            user_type=User.UserType.PROFISSIONAL_SAUDE,  
         )
         user.set_password(raw_pw)
         user.save()
 
-        grp, _ = Group.objects.get_or_create(name="profissionais_saude")
-        user.groups.add(grp)
+        # Adiciona ao grupo correspondente
+        profissionais_group, _ = Group.objects.get_or_create(name="profissionais_saude")
+        user.groups.add(profissionais_group)
 
         ProfissionalSaudeProfile.objects.create(
             user=user,
@@ -199,7 +197,6 @@ class ProfissionalSignupForm(forms.Form):
             telefone=phone,
         )
         return user
-
 
 class PaisSignupForm(forms.Form):
     name = forms.CharField(label="Nome completo", required=True)
@@ -230,7 +227,7 @@ class PaisSignupForm(forms.Form):
         return v
 
     @transaction.atomic
-    def save(self) -> AbstractUser:
+    def save(self) -> User:
         name = self.cleaned_data["name"].strip()
         cpf = self.cleaned_data["cpf"]
         email = self.cleaned_data["email"]
@@ -244,12 +241,14 @@ class PaisSignupForm(forms.Form):
             last_name="",
             email=email,
             is_active=active,
+            user_type=User.UserType.PAIS,  
         )
         user.set_password(raw_pw)
         user.save()
 
-        grp, _ = Group.objects.get_or_create(name="pais")
-        user.groups.add(grp)
+        # Adiciona ao grupo correspondente
+        pais_group, _ = Group.objects.get_or_create(name="pais")
+        user.groups.add(pais_group)
 
         PaisProfile.objects.create(
             user=user,
