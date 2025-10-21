@@ -33,9 +33,10 @@ local_settings.py
 
 # =======================================
 # Migrations 
-migrations/
-*/migrations/*
-!*/migrations/__init__.py
+**/migrations/__pycache__/
+**/*.pyc
+*.db
+db.sqlite3
 
 # =======================================
 # Pytest / Coverage

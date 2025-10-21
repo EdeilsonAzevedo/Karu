@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+
 from apps.patients.models import DischargeRecord, Patient, Record
 from apps.patients.tests.factories import PatientFactory
 
@@ -122,27 +123,40 @@ def test_patient_create_get(client):
 def test_patient_create_post_success(client):
     """Testa a criação bem-sucedida de um paciente com todos os dados."""
     url = reverse("patients:create")
-    
+
     # Dados completos e válidos para todos os formulários da view
     form_data = {
         # PatientForm
-        "first_name": "Ana", "last_name": "Silva", "date_of_birth": "2025-09-15",
-        "sex": "F", "cpf": "44444444444", "birth_certificate_number": "CERT98765",
-        "guardian_name": "Mariana Silva", "contact_phone": "82988776655",
-        "address_street": "Rua Nova", "address_number": "456", "address_neighborhood": "Bairro Novo",
-        "address_city": "Maceió", "address_state": "AL", "address_zip_code": "57000123",
-        "gestational_age_weeks": 39, "gestational_age_days": 2,
-        "birth_weight": 3200.50, "birth_length": 48.5, "head_circumference": 34.0,
-
+        "first_name": "Ana",
+        "last_name": "Silva",
+        "date_of_birth": "2025-09-15",
+        "sex": "F",
+        "cpf": "44444444444",
+        "birth_certificate_number": "CERT98765",
+        "guardian_name": "Mariana Silva",
+        "contact_phone": "82988776655",
+        "address_street": "Rua Nova",
+        "address_number": "456",
+        "address_neighborhood": "Bairro Novo",
+        "address_city": "Maceió",
+        "address_state": "AL",
+        "address_zip_code": "57000123",
+        "gestational_age_weeks": 39,
+        "gestational_age_days": 2,
+        "birth_weight": 3200.50,
+        "birth_length": 48.5,
+        "head_circumference": 34.0,
         # RecordForm
-        "date": "2025-09-25", "location": "Hospital Teste", "professional": "Dr. House",
-
+        "date": "2025-09-25",
+        "location": "Hospital Teste",
+        "professional": "Dr. House",
         # DischargeRecordForm
-        "weight": 3800.00, "length": 51.0, "head_circumference": 36.5,
+        "weight": 3800.00,
+        "length": 51.0,
         "feeding_type": "breastfeeding",
-
         # Campos calculados (enviados via hidden input)
-        "chronological_age_days": 10, "corrected_age_weeks": 39,
+        "chronological_age_days": 10,
+        "corrected_age_weeks": 39,
     }
 
     response = client.post(url, form_data)

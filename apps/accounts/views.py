@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView, LogoutView
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
@@ -112,3 +114,60 @@ def signup_pais(request):
     else:
         form = PaisSignupForm()
     return render(request, "accounts/signup_pais.html", {"form": form})
+
+
+@login_required
+def list_users(request):
+    UserModel = get_user_model()
+
+    users = UserModel.objects.all().prefetch_related("groups")
+
+    name = request.GET.get("nome", "").strip()
+    if name:
+        users = users.filter(
+            Q(first_name__icontains=name)
+            | Q(last_name__icontains=name)
+            | Q(username__icontains=name)
+        )
+
+    cpf = request.GET.get("cpf", "").strip()
+    if cpf:
+        cpf_clear = cpf.replace(".", "").replace("-", "").replace(" ", "")
+        users = users.filter(
+            Q(gestor__cpf__icontains=cpf_clear)
+            | Q(profissional__cpf__icontains=cpf_clear)
+            | Q(pais__cpf__icontains=cpf_clear)
+        )
+
+    tipo = request.GET.get("tipo", "").strip()
+    if tipo:
+        users = users.filter(user_type=tipo)
+
+    # Ordenação
+    users = users.order_by("username").distinct()
+
+    contadores = UserModel.objects.values("user_type").annotate(count=Count("id"))
+
+    contadores_dict = {item["user_type"]: item["count"] for item in contadores}
+
+    gestores_count = contadores_dict.get("gestor", 0)
+    profissionais_count = contadores_dict.get("profissional_saude", 0)
+    pais_count = contadores_dict.get("pais", 0)
+
+    paginator = Paginator(users, 20)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    tipos_disponiveis = UserModel.UserType.choices  # type: ignore
+
+    context = {
+        "page_obj": page_obj,
+        "gropos_disponiveis": tipos_disponiveis,
+        "filtros": {"nome": name, "cpf": cpf, "tipo": tipo},
+        "total_resultados": paginator.count,
+        "gestores_count": gestores_count,
+        "profissionais_count": profissionais_count,
+        "pais_count": pais_count,
+    }
+
+    return render(request, "accounts/list_users.html", context)

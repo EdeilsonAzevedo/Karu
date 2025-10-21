@@ -3,111 +3,224 @@
 
 {% block title %}Novo Responsável · Karu{% endblock %}
 
-
-
-{% block sidebar_extra %}
-  {% if request.user.is_superuser or request.user|has_group:'gestores' %}
-    <li class="menu-title mt-4"><span>Administração</span></li>
-    <li><a href="{% url 'accounts:signup_profissional' %}"><i data-lucide="user-plus" class="w-5 h-5"></i> Novo Profissional</a></li>
-    <li><a href="{% url 'accounts:signup_pais' %}"><i data-lucide="users" class="w-5 h-5"></i> Novo Responsável</a></li>
-  {% endif %}
-  {% if request.user.is_superuser %}
-    <li><a href="{% url 'accounts:signup_gestor' %}"><i data-lucide="shield-plus" class="w-5 h-5"></i> Novo Gestor</a></li>
-  {% endif %}
-{% endblock %}
-
 {% block content %}
-  <div class="max-w-4xl mx-auto p-4">
-    {% if form.non_field_errors %}
-      <div class="alert alert-error mb-3">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>
-    {% endif %}
-    {% if form.errors %}
-      <div class="alert alert-error mb-3"><span>Verifique os campos destacados abaixo.</span></div>
-    {% endif %}
-
-    <form id="formPais" method="post" class="card bg-base-200 shadow">
-      {% csrf_token %}
-      <div class="card-body grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="form-control md:col-span-2">
-          <label class="label required"><span class="label-text">Nome completo</span></label>
-          <input name="name" class="input input-bordered" required
-                 value="{{ form.name.value|default_if_none:'' }}"
-                 aria-invalid="{{ form.name.errors|yesno:'true,false' }}" />
-          {% if form.name.errors %}<p class="text-error text-sm mt-1">{% for e in form.name.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+<main class="p-4 md:p-6 min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
+    <div class="max-w-4xl mx-auto">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-3 bg-primary/10 rounded-xl">
+                        <i data-lucide="users" class="w-8 h-8 text-primary"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                            Cadastrar Novo Responsável
+                        </h1>
+                        <p class="text-base-content/70 mt-1">
+                            Preencha os dados para criar um novo perfil de responsável no sistema.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <a href="{% url 'accounts:listar_usuarios' %}" class="btn btn-ghost gap-2">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Voltar
+                </a>
+            </div>
         </div>
 
-        <div class="form-control">
-          <label class="label required"><span class="label-text">CPF</span></label>
-          <input name="cpf" class="input input-bordered" required inputmode="numeric" pattern="^\d{11}$" maxlength="11"
-                 placeholder="Somente números" value="{{ form.cpf.value|default_if_none:'' }}"
-                 aria-invalid="{{ form.cpf.errors|yesno:'true,false' }}" />
-          <span class="text-xs opacity-70 mt-1">Digite exatamente 11 dígitos.</span>
-          {% if form.cpf.errors %}<p class="text-error text-sm mt-1">{% for e in form.cpf.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-        </div>
+        {% if form.non_field_errors %}
+            <div class="alert alert-error mb-6 shadow-lg">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                <div>
+                    {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+                </div>
+            </div>
+        {% endif %}
 
-        <div class="form-control">
-          <label class="label required"><span class="label-text">E-mail</span></label>
-          <input name="email" type="email" class="input input-bordered" required
-                 value="{{ form.email.value|default_if_none:'' }}"
-                 aria-invalid="{{ form.email.errors|yesno:'true,false' }}" />
-          {% if form.email.errors %}<p class="text-error text-sm mt-1">{% for e in form.email.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-        </div>
+        <form id="formPais" method="post" class="card bg-base-100 shadow-xl border border-base-300">
+            {% csrf_token %}
+            <div class="card-body">
+                <div class="mb-6">
+                    <h2 class="card-title flex items-center gap-2 text-lg">
+                        <i data-lucide="clipboard-list" class="w-5 h-5 text-primary"></i>
+                        Dados do Responsável
+                    </h2>
+                    <p class="text-sm text-base-content/60">Informações pessoais e credenciais de acesso.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                    
+                    <div class="form-control md:col-span-2">
+                        <label for="{{ form.name.id_for_label }}" class="label">
+                            <span class="label-text font-semibold">{{ form.name.label }} 
+                                {% if form.name.field.required %}<span class="text-error">*</span>{% endif %}
+                            </span>
+                        </label>
+                        <input type="text" 
+                               name="{{ form.name.name }}" 
+                               value="{{ form.name.value|default_if_none:'' }}"
+                               id="{{ form.name.id_for_label }}"
+                               class="input input-bordered w-full"
+                               required>
+                        {% for error in form.name.errors %}
+                            <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
+                        {% endfor %}
+                    </div>
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Telefone</span></label>
-          <input name="phone" class="input input-bordered" placeholder="(DDD) 9XXXX-XXXX"
-                 value="{{ form.phone.value|default_if_none:'' }}"
-                 aria-invalid="{{ form.phone.errors|yesno:'true,false' }}" />
-          {% if form.phone.errors %}<p class="text-error text-sm mt-1">{% for e in form.phone.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-        </div>
+                    <div class="form-control">
+                        <label for="{{ form.cpf.id_for_label }}" class="label">
+                            <span class="label-text font-semibold">{{ form.cpf.label }} 
+                                {% if form.cpf.field.required %}<span class="text-error">*</span>{% endif %}
+                            </span>
+                        </label>
+                        <input type="text"
+                               name="{{ form.cpf.name }}"
+                               value="{{ form.cpf.value|default_if_none:'' }}"
+                               id="{{ form.cpf.id_for_label }}"
+                               class="input input-bordered w-full"
+                               placeholder="Apenas números"
+                               inputmode="numeric"
+                               pattern="^\d{11}$"
+                               maxlength="11"
+                               required>
+                        <span class="label-text-alt text-base-content/60 mt-1">Digite exatamente 11 dígitos.</span>
+                        {% for error in form.cpf.errors %}
+                            <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
+                        {% endfor %}
+                    </div>
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Senha temporária</span></label>
-          <div class="relative">
-            <input id="pais_temp_password" name="temp_password" type="password"
-                   class="input input-bordered w-full pr-12"
-                   placeholder="Gerada automaticamente se vazio"
-                   aria-invalid="{{ form.temp_password.errors|yesno:'true,false' }}" />
-            <button id="pais_toggle_pw" type="button"
-                    class="btn btn-ghost btn-xs absolute right-1 top-1/2 -translate-y-1/2">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-          {% if form.temp_password.errors %}<p class="text-error text-sm mt-1">{% for e in form.temp_password.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-        </div>
+                    <div class="form-control">
+                        <label for="{{ form.email.id_for_label }}" class="label">
+                            <span class="label-text font-semibold">{{ form.email.label }} 
+                                {% if form.email.field.required %}<span class="text-error">*</span>{% endif %}
+                            </span>
+                        </label>
+                        <input type="email"
+                               name="{{ form.email.name }}"
+                               value="{{ form.email.value|default_if_none:'' }}"
+                               id="{{ form.email.id_for_label }}"
+                               class="input input-bordered w-full"
+                               required>
+                        {% for error in form.email.errors %}
+                            <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
+                        {% endfor %}
+                    </div>
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Status</span></label>
-          <select name="status" class="select select-bordered">
-            <option {% if form.status.value == "Ativo" %}selected{% endif %}>Ativo</option>
-            <option {% if form.status.value == "Inativo" %}selected{% endif %}>Inativo</option>
-          </select>
-          {% if form.status.errors %}<p class="text-error text-sm mt-1">{% for e in form.status.errors %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
-        </div>
+                    <div class="form-control">
+                        <label for="{{ form.phone.id_for_label }}" class="label">
+                            <span class="label-text font-semibold">{{ form.phone.label }}</span>
+                        </label>
+                        <input type="text"
+                               name="{{ form.phone.name }}"
+                               value="{{ form.phone.value|default_if_none:'' }}"
+                               id="{{ form.phone.id_for_label }}"
+                               class="input input-bordered w-full"
+                               placeholder="(DDD) 9XXXX-XXXX">
+                        {% for error in form.phone.errors %}
+                            <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
+                        {% endfor %}
+                    </div>
 
-        <div class="md:col-span-3 flex justify-end gap-2 mt-2">
-          <button type="reset" class="btn btn-ghost">Limpar</button>
-          <button type="submit" class="btn btn-primary">Cadastrar Responsável</button>
-        </div>
-      </div>
-    </form>
-  </div>
+                    <div class="form-control">
+                        <label for="{{ form.temp_password.id_for_label }}" class="label">
+                            <span class="label-text font-semibold">{{ form.temp_password.label }}</span>
+                        </label>
+                        <div class="relative">
+                            <input type="password"
+                                   name="{{ form.temp_password.name }}"
+                                   id="{{ form.temp_password.id_for_label }}"
+                                   class="input input-bordered w-full pr-12"
+                                   placeholder="Gerada automaticamente se vazio"
+                                   minlength="8">
+                            <button id="pais_toggle_pw" type="button" class="btn btn-ghost btn-sm absolute inset-y-0 right-0 my-auto mr-1">
+                                <i data-lucide="eye" class="w-5 h-5" id="pais_pw_icon"></i>
+                            </button>
+                        </div>
+                        <span class="label-text-alt text-base-content/60 mt-1">Se deixar em branco, será gerada automaticamente.</span>
+                        <div id="pais-password-error-message" class="label hidden">
+                            <span class="label-text-alt text-error font-semibold">A senha deve ter no mínimo 8 caracteres.</span>
+                        </div>
+                        {% for error in form.temp_password.errors %}
+                            <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-control">
+                        <label for="{{ form.status.id_for_label }}" class="label">
+                            <span class="label-text font-semibold">{{ form.status.label }}</span>
+                        </label>
+                        <select name="{{ form.status.name }}" id="{{ form.status.id_for_label }}" class="select select-bordered w-full">
+                            {% for value, text in form.status.field.choices %}
+                                <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>
+                                    {{ text }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% for error in form.status.errors %}
+                            <div class="label"><span class="label-text-alt text-error">{{ error }}</span></div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-actions justify-end p-6 bg-base-200/50 border-t border-base-300">
+                <button type="reset" class="btn btn-ghost gap-2">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    Limpar
+                </button>
+                <button id="pais-submit-button" type="submit" class="btn btn-primary gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    Cadastrar Responsável
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  function attachPasswordToggle(inputId, btnId) {
-    const input = document.getElementById(inputId);
-    const btn   = document.getElementById(btnId);
-    if (!input || !btn) return;
-    const eye   = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
-    const eyeOff= '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-6.94"/><path d="M1 1l22 22"/><circle cx="12" cy="12" r="3"/></svg>';
-    btn.addEventListener('click', () => {
-      const show = input.type === 'password';
-      input.type = show ? 'text' : 'password';
-      btn.innerHTML = show ? eyeOff : eye;
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Validação de senha em tempo real ---
+        const passwordInput = document.getElementById('{{ form.temp_password.id_for_label }}');
+        const errorMessage = document.getElementById('pais-password-error-message');
+        const submitButton = document.getElementById('pais-submit-button');
+
+        if (passwordInput && errorMessage && submitButton) {
+            passwordInput.addEventListener('input', function() {
+                const currentLength = passwordInput.value.length;
+                const minLength = parseInt(passwordInput.getAttribute('minlength'), 10);
+
+                // Se o campo não estiver vazio e for menor que o mínimo
+                if (currentLength > 0 && currentLength < minLength) {
+                    passwordInput.classList.add('input-error');
+                    errorMessage.classList.remove('hidden');
+                    submitButton.disabled = true;
+                } else {
+                    passwordInput.classList.remove('input-error');
+                    errorMessage.classList.add('hidden');
+                    submitButton.disabled = false;
+                }
+            });
+        }
+
+        // --- Lógica para mostrar/esconder senha ---
+        const toggleButton = document.getElementById('pais_toggle_pw');
+        const icon = document.getElementById('pais_pw_icon');
+
+        if (toggleButton && passwordInput && icon) {
+            toggleButton.addEventListener('click', function() {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                icon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                if(typeof lucide !== 'undefined') {
+                    lucide.createIcons(); 
+                }
+            });
+        }
     });
-  }
-  attachPasswordToggle('pais_temp_password', 'pais_toggle_pw');
 </script>
 {% endblock %}

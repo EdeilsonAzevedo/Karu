@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     area_pais,
     area_profissional,
+    list_users,
     only_authenticated,
     only_gestores,
     signup_gestor,
@@ -19,4 +20,5 @@ urlpatterns = [
     path("signup/gestor/", signup_gestor, name="signup_gestor"),
     path("signup/profissional/", signup_profissional, name="signup_profissional"),
     path("signup/pais/", signup_pais, name="signup_pais"),
+    path("usuarios/", list_users, name="listar_usuarios"),
 ]
