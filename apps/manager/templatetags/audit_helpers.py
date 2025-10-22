@@ -1,3 +1,5 @@
+import json
+
 from auditlog.models import LogEntry
 from django import template
 
@@ -13,7 +15,23 @@ def format_changes(log_entry):
         return ""
 
     action = log_entry.action
-    changes = log_entry.changes_dict
+
+    # Tentar parsear as mudanças do campo changes
+    try:
+        # Para registros manuais, o campo changes pode ser uma string JSON
+        if isinstance(log_entry.changes, str):
+            changes_dict = json.loads(log_entry.changes)
+            # Converter para o formato esperado pelo código existente
+            changes = {}
+            for change in changes_dict:
+                for field, values in change.items():
+                    changes[field] = values
+        else:
+            # Para registros automáticos, usar changes_dict normal
+            changes = log_entry.changes_dict
+    except (json.JSONDecodeError, AttributeError, TypeError):
+        # Fallback para changes_dict normal
+        changes = getattr(log_entry, "changes_dict", {})
 
     # Se a ação for DELETAR, mostre uma mensagem simples.
     if action == LogEntry.Action.DELETE:
@@ -21,19 +39,32 @@ def format_changes(log_entry):
 
     # Se a ação for ATUALIZAR, mostre apenas os campos que realmente mudaram
     if action == LogEntry.Action.UPDATE:
-        lines = ["Foram realizadas as seguintes alterações:"]
+        lines = []
         changes_count = 0
 
         for field, (old, new) in changes.items():
-            # Pula campos técnicos e que não mudaram realmente
-            if field in ["id", "created_at", "updated_at", "is_activate", "last_login"]:
-                continue
+            # Pula campos que não mudaram realmente
             if old == new:
+                continue
+
+            # Mensagem especial para ativação/desativação
+            if field == "is_active":
+                # Usar o object_repr diretamente como nome
+                usuario_nome = log_entry.object_repr
+
+                if new is True or str(new).lower() == "true":
+                    lines.append(
+                        f"• A conta de {usuario_nome} foi ativada (acesso restaurado ao sistema)"
+                    )
+                else:
+                    lines.append(
+                        f"• A conta de {usuario_nome} foi desativada (acesso ao sistema removido)"
+                    )
+                changes_count += 1
                 continue
 
             # Traduz nomes de campos comuns
             field_name = traduzir_campo(field)
-
             lines.append(f'• {field_name}: de "{formatar_valor(old)}" para "{formatar_valor(new)}"')
             changes_count += 1
 
@@ -83,13 +114,13 @@ def formatar_valor(valor):
     """Formata valores para exibição mais amigável"""
     if valor is None or valor == "":
         return "não informado"
-    elif valor is True:
+    elif valor is True or str(valor).lower() == "true":
         return "Ativo"
-    elif valor is False:
+    elif valor is False or str(valor).lower() == "false":
         return "Inativo"
     elif isinstance(valor, str) and len(valor) > 50:
         return f"{valor[:50]}..."
-    return valor
+    return str(valor)
 
 
 def identificar_tipo_objeto(object_repr):
@@ -104,9 +135,21 @@ def identificar_tipo_objeto(object_repr):
 
 def formatar_criacao_usuario(log_entry, changes):
     """Formata criação de usuário de forma amigável"""
-    nome = changes.get("first_name", ("", ""))[1] or changes.get("name", ("", ""))[1]
-    email = changes.get("email", ("", ""))[1]
-    username = changes.get("username", ("", ""))[1]
+    nome = (
+        changes.get("first_name", ("", ""))[1]
+        if isinstance(changes.get("first_name"), (list, tuple))
+        else changes.get("first_name", "")
+    )
+    email = (
+        changes.get("email", ("", ""))[1]
+        if isinstance(changes.get("email"), (list, tuple))
+        else changes.get("email", "")
+    )
+    username = (
+        changes.get("username", ("", ""))[1]
+        if isinstance(changes.get("username"), (list, tuple))
+        else changes.get("username", "")
+    )
 
     if nome and email:
         return f"Usuário criado: {nome} ({email})"
@@ -122,12 +165,27 @@ def formatar_criacao_usuario(log_entry, changes):
 
 def formatar_criacao_paciente(log_entry, changes):
     """Formata criação de paciente de forma amigável"""
-    nome = (
-        changes.get("first_name", ("", ""))[1]
-        or changes.get("name", ("", ""))[1]
-        or changes.get("full_name", ("", ""))[1]
+    nome = ""
+    if "first_name" in changes:
+        nome = (
+            changes["first_name"][1]
+            if isinstance(changes["first_name"], (list, tuple))
+            else changes["first_name"]
+        )
+    elif "name" in changes:
+        nome = changes["name"][1] if isinstance(changes["name"], (list, tuple)) else changes["name"]
+    elif "full_name" in changes:
+        nome = (
+            changes["full_name"][1]
+            if isinstance(changes["full_name"], (list, tuple))
+            else changes["full_name"]
+        )
+
+    cpf = (
+        changes.get("cpf", ("", ""))[1]
+        if isinstance(changes.get("cpf"), (list, tuple))
+        else changes.get("cpf", "")
     )
-    cpf = changes.get("cpf", ("", ""))[1]
 
     if nome and cpf:
         return f"Paciente cadastrado: {nome} (CPF: {cpf})"
@@ -143,9 +201,11 @@ def formatar_criacao_generica(log_entry, changes):
     """Formata criação genérica de forma amigável"""
     # Tenta encontrar um campo de nome para personalizar a mensagem
     for field in ["name", "first_name", "full_name", "title", "description"]:
-        if field in changes and changes[field][1]:
-            nome = changes[field][1]
-            if len(str(nome)) < 100:  # Não usar campos muito longos
+        if field in changes:
+            nome = (
+                changes[field][1] if isinstance(changes[field], (list, tuple)) else changes[field]
+            )
+            if nome and len(str(nome)) < 100:
                 return f"Registro criado: {nome}"
 
     return f"Novo registro criado: {log_entry.object_repr}"

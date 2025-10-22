@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <!-- Stats Cards - CORES ATUALIZADAS -->
+        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <!-- Card Gestores - ROXO (Primary) -->
             <a href="?tipo=gestor" class="stats shadow-lg bg-gradient-to-br from-primary to-primary-focus text-primary-content cursor-pointer hover:scale-105 transition-transform">
@@ -213,7 +213,7 @@
                     </div>
                 </div>
 
-                <!-- Table - BADGES COM CORES ATUALIZADAS -->
+                <!-- Table -->
                 <div class="overflow-x-auto">
                     <table class="table table-zebra w-full">
                         <thead>
@@ -343,23 +343,26 @@
                                         </label>
                                         <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300 z-10">
                                             <li>
-                                                <a href="#" class="gap-2">
+                                                <button onclick="showUserDetails({{ user.id }})" class="gap-2">
                                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                                     Ver Detalhes
-                                                </a>
+                                                </button>
                                             </li>
+                                            {% if user.is_active %}
                                             <li>
-                                                <a href="#" class="gap-2">
-                                                    <i data-lucide="edit" class="w-4 h-4"></i>
-                                                    Editar
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" class="gap-2 text-error">
-                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                <button onclick="showDeactivateModal('{{ user.get_full_name|default:user.username }}', '{{ user.username }}', {{ user.id }})" class="gap-2 text-error hover:bg-error/10">
+                                                    <i data-lucide="user-x" class="w-4 h-4"></i>
                                                     Desativar
-                                                </a>
+                                                </button>
                                             </li>
+                                            {% else %}
+                                            <li>
+                                                <button onclick="showActivateModal('{{ user.get_full_name|default:user.username }}', '{{ user.username }}', {{ user.id }})" class="gap-2 text-success hover:bg-success/10">
+                                                    <i data-lucide="user-check" class="w-4 h-4"></i>
+                                                    Ativar
+                                                </button>
+                                            </li>
+                                            {% endif %}
                                         </ul>
                                     </div>
                                 </td>
@@ -437,7 +440,69 @@
     </div>
 </main>
 
-<!-- JavaScript para máscara de CPF -->
+<!-- Modal de Detalhes do Usuário -->
+<dialog id="userDetailsModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-4xl">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <h3 class="font-bold text-lg mb-4">Detalhes do Usuário</h3>
+        <div id="userDetailsContent">
+            <!-- Conteúdo será carregado via AJAX -->
+        </div>
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn">Fechar</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<!-- Modal de Confirmação de Desativação -->
+<dialog id="deactivateModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirmar Desativação</h3>
+        <p class="py-4" id="deactivateMessage">
+            Tem certeza que deseja desativar este usuário?
+        </p>
+        <div class="modal-action">
+            <form method="dialog" class="flex gap-2">
+                <button class="btn btn-ghost">Cancelar</button>
+            </form>
+            <form id="deactivateForm" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error">Sim, Desativar</button>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Modal de Confirmação de Ativação -->
+<dialog id="activateModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirmar Ativação</h3>
+        <p class="py-4" id="activateMessage">
+            Tem certeza que deseja ativar este usuário?
+        </p>
+        <div class="modal-action">
+            <form method="dialog" class="flex gap-2">
+                <button class="btn btn-ghost">Cancelar</button>
+            </form>
+            <form id="activateForm" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Sim, Ativar</button>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- JavaScript para máscara de CPF e modais -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const cpfInput = document.getElementById('cpf');
@@ -450,6 +515,113 @@ document.addEventListener('DOMContentLoaded', function() {
                 value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
                 e.target.value = value;
             }
+        });
+    }
+});
+
+// Função para mostrar detalhes do usuário em modal
+function showUserDetails(userId) {
+    // Mostrar loading
+    document.getElementById('userDetailsContent').innerHTML = `
+        <div class="flex justify-center items-center py-8">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <span class="ml-2">Carregando...</span>
+        </div>
+    `;
+    document.getElementById('userDetailsModal').showModal();
+    
+    fetch(`/accounts/usuarios/${userId}/detalhes/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro na resposta do servidor: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(html => {
+        document.getElementById('userDetailsContent').innerHTML = html;
+        // Re-inicializar ícones após carregar o conteúdo
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao carregar detalhes:', error);
+        document.getElementById('userDetailsContent').innerHTML = `
+            <div class="alert alert-error">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                <div>
+                    <h4 class="font-bold">Erro ao carregar detalhes</h4>
+                    <p>Não foi possível carregar as informações do usuário.</p>
+                    <p class="text-sm opacity-70">${error.message}</p>
+                </div>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+}
+
+// Função para mostrar modal de desativação
+function showDeactivateModal(userName, userCpf, userId) {
+    console.log('Abrindo modal de desativação para usuário:', userId);
+    
+    document.getElementById('deactivateMessage').textContent = 
+        `Tem certeza que deseja desativar o usuário "${userName}" (${userCpf})?`;
+    
+    const form = document.getElementById('deactivateForm');
+    const newAction = `/accounts/usuarios/${userId}/desativar/`;
+    form.action = newAction;
+    console.log('Form action definido para:', newAction);
+    
+    // Fechar o dropdown menu
+    const dropdown = document.querySelector('.dropdown.open');
+    if (dropdown) {
+        dropdown.classList.remove('open');
+    }
+    
+    document.getElementById('deactivateModal').showModal();
+}
+
+// Função para mostrar modal de ativação
+function showActivateModal(userName, userCpf, userId) {
+    console.log('Abrindo modal de ativação para usuário:', userId);
+    
+    document.getElementById('activateMessage').textContent = 
+        `Tem certeza que deseja ativar o usuário "${userName}" (${userCpf})?`;
+    
+    const form = document.getElementById('activateForm');
+    const newAction = `/accounts/usuarios/${userId}/ativar/`;
+    form.action = newAction;
+    console.log('Form action definido para:', newAction);
+    
+    // Fechar o dropdown menu
+    const dropdown = document.querySelector('.dropdown.open');
+    if (dropdown) {
+        dropdown.classList.remove('open');
+    }
+    
+    document.getElementById('activateModal').showModal();
+}
+
+// Adicionar event listeners para debug dos forms
+document.addEventListener('DOMContentLoaded', function() {
+    const deactivateForm = document.getElementById('deactivateForm');
+    const activateForm = document.getElementById('activateForm');
+    
+    if (deactivateForm) {
+        deactivateForm.addEventListener('submit', function(e) {
+            console.log('Submetendo form de desativação:', this.action);
+        });
+    }
+    
+    if (activateForm) {
+        activateForm.addEventListener('submit', function(e) {
+            console.log('Submetendo form de ativação:', this.action);
         });
     }
 });
