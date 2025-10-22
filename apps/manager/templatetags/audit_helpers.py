@@ -23,30 +23,30 @@ def format_changes(log_entry):
     if action == LogEntry.Action.UPDATE:
         lines = ["Foram realizadas as seguintes alterações:"]
         changes_count = 0
-        
+
         for field, (old, new) in changes.items():
             # Pula campos técnicos e que não mudaram realmente
             if field in ["id", "created_at", "updated_at", "is_activate", "last_login"]:
                 continue
             if old == new:
                 continue
-                
+
             # Traduz nomes de campos comuns
             field_name = traduzir_campo(field)
-            
+
             lines.append(f'• {field_name}: de "{formatar_valor(old)}" para "{formatar_valor(new)}"')
             changes_count += 1
-        
+
         if changes_count == 0:
             return "Foram feitas alterações menores no registro."
-        
+
         return "\n".join(lines)
 
     # Se a ação for CRIAR, mostre informações resumidas
     if action == LogEntry.Action.CREATE:
         # Tenta identificar o tipo de objeto para mensagem personalizada
         object_type = identificar_tipo_objeto(log_entry.object_repr)
-        
+
         if object_type == "usuário":
             return formatar_criacao_usuario(log_entry, changes)
         elif object_type == "paciente":
@@ -61,7 +61,7 @@ def traduzir_campo(field_name):
     """Traduz nomes de campos técnicos para português amigável"""
     traducoes = {
         "first_name": "Nome",
-        "last_name": "Sobrenome", 
+        "last_name": "Sobrenome",
         "full_name": "Nome completo",
         "name": "Nome",
         "email": "E-mail",
@@ -74,9 +74,9 @@ def traduzir_campo(field_name):
         "password": "Senha",
         "user": "Usuário vinculado",
         "created_at": "Data de criação",
-        "updated_at": "Última atualização"
+        "updated_at": "Última atualização",
     }
-    return traducoes.get(field_name, field_name.replace('_', ' ').title())
+    return traducoes.get(field_name, field_name.replace("_", " ").title())
 
 
 def formatar_valor(valor):
@@ -104,10 +104,10 @@ def identificar_tipo_objeto(object_repr):
 
 def formatar_criacao_usuario(log_entry, changes):
     """Formata criação de usuário de forma amigável"""
-    nome = changes.get('first_name', ('', ''))[1] or changes.get('name', ('', ''))[1]
-    email = changes.get('email', ('', ''))[1]
-    username = changes.get('username', ('', ''))[1]
-    
+    nome = changes.get("first_name", ("", ""))[1] or changes.get("name", ("", ""))[1]
+    email = changes.get("email", ("", ""))[1]
+    username = changes.get("username", ("", ""))[1]
+
     if nome and email:
         return f"Usuário criado: {nome} ({email})"
     elif nome:
@@ -122,9 +122,13 @@ def formatar_criacao_usuario(log_entry, changes):
 
 def formatar_criacao_paciente(log_entry, changes):
     """Formata criação de paciente de forma amigável"""
-    nome = changes.get('first_name', ('', ''))[1] or changes.get('name', ('', ''))[1] or changes.get('full_name', ('', ''))[1]
-    cpf = changes.get('cpf', ('', ''))[1]
-    
+    nome = (
+        changes.get("first_name", ("", ""))[1]
+        or changes.get("name", ("", ""))[1]
+        or changes.get("full_name", ("", ""))[1]
+    )
+    cpf = changes.get("cpf", ("", ""))[1]
+
     if nome and cpf:
         return f"Paciente cadastrado: {nome} (CPF: {cpf})"
     elif nome:
@@ -138,10 +142,10 @@ def formatar_criacao_paciente(log_entry, changes):
 def formatar_criacao_generica(log_entry, changes):
     """Formata criação genérica de forma amigável"""
     # Tenta encontrar um campo de nome para personalizar a mensagem
-    for field in ['name', 'first_name', 'full_name', 'title', 'description']:
+    for field in ["name", "first_name", "full_name", "title", "description"]:
         if field in changes and changes[field][1]:
             nome = changes[field][1]
             if len(str(nome)) < 100:  # Não usar campos muito longos
                 return f"Registro criado: {nome}"
-    
+
     return f"Novo registro criado: {log_entry.object_repr}"
