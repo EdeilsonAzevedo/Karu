@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -14,8 +15,19 @@ class User(AbstractUser):
     user_type = models.CharField(
         max_length=32,
         choices=UserType.choices,
-        default=UserType.PAIS,
     )
+
+    @property
+    def is_gestor(self):
+        return self.user_type == self.UserType.GESTOR
+
+    @property
+    def is_profissional(self):
+        return self.user_type == self.UserType.PROFISSIONAL_SAUDE
+
+    @property
+    def is_pais(self):
+        return self.user_type == self.UserType.PAIS
 
 
 class GestorProfile(models.Model):
@@ -28,6 +40,18 @@ class GestorProfile(models.Model):
     cargo = models.CharField(max_length=100, blank=True)
     departamento = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if self.user.user_type and self.user.user_type != User.UserType.GESTOR:
+            raise ValidationError("O usuário deste perfil não é do tipo Gestor.")
+
+    def save(self, *args, **kwargs):
+        if not self.user.user_type:
+            self.user.user_type = User.UserType.GESTOR
+            self.user.save(update_fields=["user_type"])
+        elif self.user.user_type != User.UserType.GESTOR:
+            raise ValidationError("O usuário deste perfil não é do tipo Gestor.")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} · CPF {self.cpf} · {self.unidade}"
@@ -64,6 +88,18 @@ class ProfissionalSaudeProfile(models.Model):
             )
         ]
 
+    def clean(self):
+        if self.user.user_type and self.user.user_type != User.UserType.PROFISSIONAL_SAUDE:
+            raise ValidationError("O usuário deste perfil não é do tipo Profissional de Saúde.")
+
+    def save(self, *args, **kwargs):
+        if not self.user.user_type:
+            self.user.user_type = User.UserType.PROFISSIONAL_SAUDE
+            self.user.save(update_fields=["user_type"])
+        elif self.user.user_type != User.UserType.PROFISSIONAL_SAUDE:
+            raise ValidationError("O usuário deste perfil não é do tipo Profissional de Saúde.")
+        super().save(*args, **kwargs)
+
     def __str__(self):
         reg = (
             f"{self.conselho}-{self.numero_registro}"
@@ -80,6 +116,18 @@ class PaisProfile(models.Model):
     cpf = models.CharField(max_length=11, unique=True)
     telefone = models.CharField(max_length=20, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if self.user.user_type and self.user.user_type != User.UserType.PAIS:
+            raise ValidationError("O usuário deste perfil não é do tipo Pais/Responsáveis.")
+
+    def save(self, *args, **kwargs):
+        if not self.user.user_type:
+            self.user.user_type = User.UserType.PAIS
+            self.user.save(update_fields=["user_type"])
+        elif self.user.user_type != User.UserType.PAIS:
+            raise ValidationError("O usuário deste perfil não é do tipo Pais/Responsáveis.")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} · CPF {self.cpf}"

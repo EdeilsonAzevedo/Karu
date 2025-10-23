@@ -34,7 +34,7 @@
                                 <option value="create" {% if request.GET.action_type == 'create' %}selected{% endif %}>
                                     Criação</option>
                                 <option value="update" {% if request.GET.action_type == 'update' %}selected{% endif %}>
-                                    Atualização</option>
+                                    Alteração</option>
                                 <option value="delete" {% if request.GET.action_type == 'delete' %}selected{% endif %}>
                                     Exclusão</option>
                             </select>
@@ -70,9 +70,9 @@
                     <table class="table table-zebra">
                         <thead>
                             <tr>
-                                <th>Quando</th>
+                                <th>Data/Hora</th>
                                 <th>Usuário</th>
-                                <th>Ação</th>
+                                <th>Tipo de Ação</th>
                                 <th>Detalhes da Alteração</th>
                             </tr>
                         </thead>
@@ -88,50 +88,88 @@
                                     <div class="flex items-center gap-3">
                                         <div class="avatar placeholder">
                                             <div class="bg-primary text-primary-content rounded-full w-8">
-                                                <span class="text-xs">{{ log.actor.first_name|first }}{{
-                                                    log.actor.last_name|first }}</span>
+                                                <span class="text-xs">
+                                                    {% if log.actor.first_name %}
+                                                        {{ log.actor.first_name|first }}{{ log.actor.last_name|first }}
+                                                    {% else %}
+                                                        {{ log.actor.username|first|upper }}
+                                                    {% endif %}
+                                                </span>
                                             </div>
                                         </div>
                                         <div>
-                                            <div class="font-bold">{{ log.actor.get_full_name|default:log.actor.username
-                                                }}</div>
-                                            <div class="text-sm opacity-50">Usuário</div>
+                                            <div class="font-bold">
+                                                {% if log.actor.get_full_name %}
+                                                    {{ log.actor.get_full_name }}
+                                                {% else %}
+                                                    {{ log.actor.username }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-sm opacity-50">
+                                                {% if log.actor.user_type == 'gestor' %}
+                                                    {% with gestor=log.actor.gestorprofile %}
+                                                        Gestor - {{ gestor.unidade|default:"Unidade não informada" }}
+                                                    {% endwith %}
+                                                {% elif log.actor.user_type == 'profissional_saude' %}
+                                                    {% with profissional=log.actor.profissionalsaudeprofile %}
+                                                        {{ profissional.get_categoria_display }} - {{ profissional.unidade|default:"Unidade não informada" }}
+                                                    {% endwith %}
+                                                {% elif log.actor.user_type == 'pais' %}
+                                                    Pais/Responsável
+                                                {% else %}
+                                                    Usuário
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                     {% else %}
-                                    <span class="text-base-content/70 font-semibold">Sistema</span>
+                                    <div class="flex items-center gap-3">
+                                        <div class="avatar placeholder">
+                                            <div class="bg-neutral text-neutral-content rounded-full w-8">
+                                                <span class="text-xs">⚙️</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold">Sistema</div>
+                                            <div class="text-sm opacity-50">Processo automático</div>
+                                        </div>
+                                    </div>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <div class="badge 
-                                        {% if log.action == 0 %}badge-info{% endif %}
-                                        {% if log.action == 1 %}badge-warning{% endif %}
-                                        {% if log.action == 2 %}badge-error{% endif %}
-                                        gap-2 capitalize">
-                                        {{ log.get_action_display }}
-                                    </div>
+                                    {% if log.action == 0 %}
+                                        <div class="badge badge-info gap-2">Criação</div>
+                                    {% elif log.action == 1 %}
+                                        <div class="badge badge-warning gap-2">Alteração</div>
+                                    {% elif log.action == 2 %}
+                                        <div class="badge badge-error gap-2">Exclusão</div>
+                                    {% else %}
+                                        <div class="badge badge-neutral gap-2">{{ log.get_action_display }}</div>
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <div class="font-bold text-base-content/90">{{ log.object_repr }}</div>
+                                    <div class="font-bold text-base-content/90 mb-1">{{ log.object_repr }}</div>
 
                                     <div x-data="{ expanded: false }" class="text-sm opacity-70">
-
-                                        <div class="whitespace-pre-wrap" :class="expanded ? '' : 'line-clamp-4'">
+                                        <div class="whitespace-pre-wrap bg-base-300 rounded-lg p-3" :class="expanded ? '' : 'line-clamp-3'">
                                             {{ log|format_changes|linebreaksbr }}
                                         </div>
 
-                                        <button @click="expanded = !expanded"
-                                            class="text-primary font-semibold mt-1 text-xs">
-                                            <span x-text="expanded ? 'Mostrar Menos' : 'Mostrar Mais'"></span>
-                                        </button>
+                                        {% with changes_text=log|format_changes %}
+                                            {% if changes_text|length > 150 %}
+                                            <button @click="expanded = !expanded" 
+                                                    class="text-primary hover:text-primary-focus font-semibold mt-2 text-xs transition-colors">
+                                                <span x-text="expanded ? 'Mostrar Menos' : 'Mostrar Mais'"></span>
+                                            </button>
+                                            {% endif %}
+                                        {% endwith %}
                                     </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
                                 <td colspan="4" class="text-center py-8">
-                                    <p class="text-lg text-base-content/60">Nenhum log encontrado para os filtros
-                                        aplicados.</p>
+                                    <p class="text-lg text-base-content/60">Nenhum log encontrado para os filtros aplicados.</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -141,23 +179,18 @@
 
                 <div class="flex justify-between items-center mt-6">
                     <div class="text-sm text-base-content/70">
-                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count
-                        }} registros.
+                        Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} registros.
                     </div>
                     {% if page_obj.paginator.num_pages > 1 %}
                     <div class="join">
                         {% if page_obj.has_previous %}
                         <a href="?page=1&{{ query_params }}" class="join-item btn btn-sm">«</a>
-                        <a href="?page={{ page_obj.previous_page_number }}&{{ query_params }}"
-                            class="join-item btn btn-sm">‹</a>
+                        <a href="?page={{ page_obj.previous_page_number }}&{{ query_params }}" class="join-item btn btn-sm">‹</a>
                         {% endif %}
-                        <button class="join-item btn btn-sm btn-active">Página {{ page_obj.number }} de {{
-                            page_obj.paginator.num_pages }}</button>
+                        <button class="join-item btn btn-sm btn-active">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</button>
                         {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}&{{ query_params }}"
-                            class="join-item btn btn-sm">›</a>
-                        <a href="?page={{ page_obj.paginator.num_pages }}&{{ query_params }}"
-                            class="join-item btn btn-sm">»</a>
+                        <a href="?page={{ page_obj.next_page_number }}&{{ query_params }}" class="join-item btn btn-sm">›</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}&{{ query_params }}" class="join-item btn btn-sm">»</a>
                         {% endif %}
                     </div>
                     {% endif %}
