@@ -1,0 +1,240 @@
+<div class="space-y-6">
+    <!-- Informações Básicas -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Informações da Conta -->
+        <div class="space-y-4">
+            <h4 class="font-bold text-lg flex items-center gap-2">
+                <i data-lucide="user" class="w-4 h-4 text-primary"></i>
+                Informações da Conta
+            </h4>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="label label-text font-semibold p-0">Nome Completo</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1">{{ usuario.get_full_name|default:"Não informado" }}</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label label-text font-semibold p-0">CPF</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1 font-mono">{{ usuario.username }}</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label label-text font-semibold p-0">Email</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1">{{ usuario.email|default:"Não informado" }}</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label label-text font-semibold p-0">Tipo de Usuário</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1">{{ usuario.get_user_type_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status e Datas -->
+        <div class="space-y-4">
+            <h4 class="font-bold text-lg flex items-center gap-2">
+                <i data-lucide="activity" class="w-4 h-4 text-primary"></i>
+                Status da Conta
+            </h4>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="label label-text font-semibold p-0">Status</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1">
+                            {% if usuario.is_active %}
+                                <span class="text-success font-semibold">Ativo</span>
+                            {% else %}
+                                <span class="text-error font-semibold">Inativo</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label label-text font-semibold p-0">Superusuário</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1">
+                            {% if usuario.is_superuser %}
+                                <span class="text-warning font-semibold">Sim</span>
+                            {% else %}
+                                <span class="text-base-content">Não</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label label-text font-semibold p-0">Último Login</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1">
+                            {% if usuario.last_login %}
+                                {{ usuario.last_login|date:"d/m/Y H:i" }}
+                            {% else %}
+                                Nunca
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="label label-text font-semibold p-0">Data de Cadastro</label>
+                    <div class="input input-bordered w-full bg-base-200 flex items-center">
+                        <span class="flex-1">{{ usuario.date_joined|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informações do Perfil -->
+    {% if info_adicional %}
+    <div class="pt-6 border-t border-base-300">
+        <h4 class="font-bold text-lg flex items-center gap-2 mb-4">
+            <i data-lucide="info" class="w-4 h-4 text-primary"></i>
+            Informações do Perfil
+        </h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- CPF -->
+            <div>
+                <label class="label label-text font-semibold p-0">CPF</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1 font-mono">{{ usuario.username }}</span>
+                </div>
+            </div>
+            
+            <!-- Telefone -->
+            {% if info_adicional.telefone %}
+            <div>
+                <label class="label label-text font-semibold p-0">Telefone</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.telefone }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Categoria (apenas para profissionais) -->
+            {% if info_adicional.categoria %}
+            <div>
+                <label class="label label-text font-semibold p-0">Categoria</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.categoria }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Especialidade (apenas para profissionais) -->
+            {% if info_adicional.especialidade %}
+            <div>
+                <label class="label label-text font-semibold p-0">Especialidade</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.especialidade }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Conselho (apenas para profissionais) -->
+            {% if info_adicional.conselho %}
+            <div>
+                <label class="label label-text font-semibold p-0">Conselho</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.conselho }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Número de Registro (apenas para profissionais) -->
+            {% if info_adicional.numero_registro %}
+            <div>
+                <label class="label label-text font-semibold p-0">Nº Registro</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.numero_registro }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Unidade (para gestores e profissionais) -->
+            {% if info_adicional.unidade %}
+            <div>
+                <label class="label label-text font-semibold p-0">Unidade</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.unidade }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Cargo (apenas para gestores) -->
+            {% if info_adicional.cargo %}
+            <div>
+                <label class="label label-text font-semibold p-0">Cargo</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.cargo }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Departamento (apenas para gestores) -->
+            {% if info_adicional.departamento %}
+            <div>
+                <label class="label label-text font-semibold p-0">Departamento</label>
+                <div class="input input-bordered w-full bg-base-200 flex items-center">
+                    <span class="flex-1">{{ info_adicional.departamento }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="pt-6 border-t border-base-300">
+        <div class="alert alert-warning">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            <span>Nenhum perfil adicional encontrado para este usuário.</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Lista de filhos para pais/responsáveis -->
+    {% if info_adicional.filhos %}
+    <div class="pt-6 border-t border-base-300">
+        <h4 class="font-bold text-lg flex items-center gap-2 mb-4">
+            <i data-lucide="heart" class="w-4 h-4 text-primary"></i>
+            Filhos Cadastrados
+        </h4>
+        
+        <div class="space-y-3">
+            {% for filho in info_adicional.filhos %}
+            <div class="bg-base-200 rounded-lg p-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h5 class="font-semibold">{{ filho.nome }}</h5>
+                        <p class="text-sm text-base-content/70">
+                            Nascimento: {{ filho.data_nascimento|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <div class="badge badge-info">
+                        {{ filho.data_nascimento|timesince }} de idade
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Inicializar ícones Lucide no modal
+if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+}
+</script>

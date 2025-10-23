@@ -1,13 +1,18 @@
+from auditlog.models import LogEntry
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
+
+User = get_user_model()
 
 
 class MyLoginView(LoginView):
@@ -171,3 +176,181 @@ def list_users(request):
     }
 
     return render(request, "accounts/list_users.html", context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name="gestores").exists())
+def detalhes_usuario(request, user_id):
+    """Exibe os detalhes completos de um usuário (para modal)"""
+    try:
+        user = get_object_or_404(get_user_model(), id=user_id)
+
+        # Coletar informações específicas do tipo de usuário
+        info_adicional = {}
+
+        # Verificar se o usuário tem perfil de gestor
+        if hasattr(user, "gestor"):
+            perfil = user.gestor
+            info_adicional = {
+                "tipo": "Gestor",
+                "unidade": perfil.unidade,
+                "cargo": perfil.cargo,
+                "departamento": perfil.departamento,
+                "telefone": perfil.telefone,
+                "data_criacao": perfil.created_at,
+            }
+        # Verificar se o usuário tem perfil de profissional
+        elif hasattr(user, "profissional"):
+            perfil = user.profissional
+            info_adicional = {
+                "tipo": "Profissional de Saúde",
+                "categoria": perfil.get_categoria_display(),
+                "especialidade": perfil.especialidade,
+                "conselho": perfil.conselho,
+                "numero_registro": perfil.numero_registro,
+                "unidade": perfil.unidade,
+                "telefone": perfil.telefone,
+                "data_criacao": perfil.created_at,
+            }
+        # Verificar se o usuário tem perfil de pais
+        elif hasattr(user, "pais"):
+            perfil = user.pais
+            info_adicional = {
+                "tipo": "Pais/Responsável",
+                "telefone": perfil.telefone,
+                "data_criacao": perfil.created_at,
+            }
+            # Adicionar filhos se existirem
+            if hasattr(perfil, "filhos"):
+                info_adicional["filhos"] = list(perfil.filhos.all())
+
+        context = {
+            "usuario": user,
+            "info_adicional": info_adicional,
+        }
+
+        # Se for requisição AJAX, retorna apenas o conteúdo do modal
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            html = render_to_string("accounts/_detalhes_usuario_content.html", context)
+            return HttpResponse(html)
+
+        # Se não for AJAX, retorna a página completa (fallback)
+        return render(request, "accounts/detalhes_usuario.html", context)
+
+    except Exception as e:
+        # Log do erro para debug
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro ao carregar detalhes do usuário {user_id}: {str(e)}")
+
+        # Retorna uma mensagem de erro
+        error_message = f"Erro ao carregar detalhes do usuário: {str(e)}"
+
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return HttpResponse(f'<div class="alert alert-error"><p>{error_message}</p></div>')
+
+        messages.error(request, error_message)
+        return redirect("accounts:listar_usuarios")
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name="gestores").exists())
+def desativar_usuario(request, user_id):
+    """Desativa um usuário, removendo seu acesso ao sistema"""
+    try:
+        if request.method == "POST":
+            user = get_object_or_404(User, id=user_id)
+
+            # Não permitir que usuários desativem a si mesmos
+            if user == request.user:
+                messages.error(request, "Você não pode desativar sua própria conta.")
+                return redirect("accounts:listar_usuarios")
+
+            # Não permitir que gestores desativem superusuários
+            if user.is_superuser and not request.user.is_superuser:
+                messages.error(
+                    request, "Apenas superusuários podem desativar outros superusuários."
+                )
+                return redirect("accounts:listar_usuarios")
+
+            # Salvar estado anterior
+            was_active = user.is_active
+
+            # Desativar o usuário
+            user.is_active = False
+            user.save()
+
+            # Criar registro manual no auditlog
+            content_type = ContentType.objects.get_for_model(User)
+
+            LogEntry.objects.create(
+                content_type=content_type,
+                object_pk=str(user.pk),
+                object_id=user.id,
+                object_repr=str(user),
+                action=LogEntry.Action.UPDATE,
+                changes=f'[{{"is_active": ["{was_active}", "False"]}}]',
+                actor=request.user,
+                remote_addr=request.META.get("REMOTE_ADDR"),
+            )
+
+            messages.success(
+                request,
+                f"Usuário {user.get_full_name() or user.username} (CPF: {user.username}) foi desativado com sucesso.",
+            )
+
+        return redirect("accounts:listar_usuarios")
+
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro ao desativar usuário {user_id}: {str(e)}")
+        messages.error(request, f"Erro ao desativar usuário: {str(e)}")
+        return redirect("accounts:listar_usuarios")
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name="gestores").exists())
+def ativar_usuario(request, user_id):
+    """Ativa um usuário, restaurando seu acesso ao sistema"""
+    try:
+        if request.method == "POST":
+            user = get_object_or_404(User, id=user_id)
+
+            # Salvar estado anterior
+            was_active = user.is_active
+
+            # Ativar o usuário
+            user.is_active = True
+            user.save()
+
+            # Criar registro manual no auditlog
+            content_type = ContentType.objects.get_for_model(User)
+
+            LogEntry.objects.create(
+                content_type=content_type,
+                object_pk=str(user.pk),
+                object_id=user.id,
+                object_repr=str(user),
+                action=LogEntry.Action.UPDATE,
+                changes=f'[{{"is_active": ["{was_active}", "True"]}}]',
+                actor=request.user,
+                remote_addr=request.META.get("REMOTE_ADDR"),
+            )
+
+            messages.success(
+                request,
+                f"Usuário {user.get_full_name() or user.username} (CPF: {user.username}) foi ativado com sucesso.",
+            )
+
+        return redirect("accounts:listar_usuarios")
+
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro ao ativar usuário {user_id}: {str(e)}")
+        messages.error(request, f"Erro ao ativar usuário: {str(e)}")
+        return redirect("accounts:listar_usuarios")
