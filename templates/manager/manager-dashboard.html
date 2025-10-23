@@ -270,8 +270,7 @@
         
         microrregiao: "{% static 'manager/microrregioes_saude_al.geojson' %}", 
         
-        // Reutilizamos o mesmo arquivo da microrregião para a macro
-        macrorregiao: "{% static 'manager/microrregioes_saude_al.geojson' %}" 
+        macrorregiao: "{% static 'manager/macrorregioes_saude_al.geojson' %}"
     };
 
     // --- Mapeamento de Métricas (Antigo 'mapConfigs') ---
@@ -506,10 +505,6 @@
             </a>`;
         }).join('');
     }
-
-    // (Cole aqui suas funções 'updateProfessionalsList', 'initializeDischargeChart', 
-    // 'updateYearChart', e 'updateAltasTotals' que você já tem. 
-    // Elas não precisam de modificação para o mapa)
 
     function updateProfessionalsList(professionals) {
         const container = document.getElementById('top-professionals-container');
