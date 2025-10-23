@@ -3,6 +3,9 @@ from django.urls import path
 from .views import (
     area_pais,
     area_profissional,
+    ativar_usuario,
+    desativar_usuario,
+    detalhes_usuario,
     list_users,
     only_authenticated,
     only_gestores,
@@ -21,4 +24,7 @@ urlpatterns = [
     path("signup/profissional/", signup_profissional, name="signup_profissional"),
     path("signup/pais/", signup_pais, name="signup_pais"),
     path("usuarios/", list_users, name="listar_usuarios"),
+    path("usuarios/<int:user_id>/detalhes/", detalhes_usuario, name="detalhes_usuario"),
+    path("usuarios/<int:user_id>/desativar/", desativar_usuario, name="desativar_usuario"),
+    path("usuarios/<int:user_id>/ativar/", ativar_usuario, name="ativar_usuario"),
 ]
