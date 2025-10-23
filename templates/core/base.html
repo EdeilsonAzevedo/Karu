@@ -120,18 +120,6 @@
                     {% if request.user.is_authenticated %}
                     <div class="hidden md:flex items-center gap-2 mr-4">
                         <div class="text-right">
-                            <p class="text-sm font-semibold">{{ request.user.name|default:request.user.email }}</p>
-                            <p class="text-xs text-base-content/60">
-                                {% if request.user.is_superuser %}
-                                    Administrador
-                                {% elif request.user|has_group:'gestores' %}
-                                    Gestor
-                                {% elif request.user|has_group:'profissionais' %}
-                                    Profissional
-                                {% else %}
-                                    Responsável
-                                {% endif %}
-                            </p>
                         </div>
                         <div class="avatar placeholder">
                             <div class="bg-primary text-primary-content rounded-full w-10">

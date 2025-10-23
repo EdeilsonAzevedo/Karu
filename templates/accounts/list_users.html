@@ -6,7 +6,6 @@
 <main class="p-4 md:p-6 min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
     <div class="max-w-7xl mx-auto">
         
-        <!-- Header Section -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <div class="flex items-center gap-3 mb-2">
@@ -59,9 +58,7 @@
             </div>
         </div>
 
-        <!-- Stats Cards - CORES ATUALIZADAS -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <!-- Card Gestores - ROXO (Primary) -->
             <a href="?tipo=gestor" class="stats shadow-lg bg-gradient-to-br from-primary to-primary-focus text-primary-content cursor-pointer hover:scale-105 transition-transform">
                 <div class="stat">
                     <div class="stat-figure text-primary-content/30">
@@ -76,7 +73,6 @@
                 </div>
             </a>
 
-            <!-- Card Profissionais - ROSA (Secondary) -->
             <a href="?tipo=profissional_saude" class="stats shadow-lg bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content cursor-pointer hover:scale-105 transition-transform">
                 <div class="stat">
                     <div class="stat-figure text-secondary-content/30">
@@ -240,7 +236,6 @@
                     </div>
                 </div>
 
-                <!-- Table - BADGES COM CORES ATUALIZADAS -->
                 <div class="overflow-x-auto">
                     <table class="table table-zebra w-full">
                         <thead>
@@ -299,15 +294,12 @@
                                                 {% endif %}
                                             ">
                                                 <span class="text-lg font-bold">
-                                                    {{ user.username|slice:":2"|upper }}
+                                                    {{ user.get_full_name|slice:":2"|upper }}
                                                 </span>
                                             </div>
                                         </div>
                                         <div>
-                                            <div class="font-bold text-base">{{ user.username }}</div>
-                                            <div class="text-sm opacity-60">
-                                                {{ user.get_full_name|default:"Nome não informado" }}
-                                            </div>
+                                            <div class="font-bold text-base">{{ user.get_full_name }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -328,7 +320,6 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <!-- BADGES COM CORES ATUALIZADAS -->
                                     {% if user.user_type == 'gestor' %}
                                         <div class="badge badge-primary gap-2">
                                             <i data-lucide="briefcase" class="w-3 h-3"></i>
