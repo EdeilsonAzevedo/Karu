@@ -250,8 +250,7 @@
                     <li><a href="{% url 'patients:create' %}"><i data-lucide="baby" class="w-5 h-5"></i> Nova Criança</a></li>
                     
                     <li class="menu-title mt-4"><span>Sistema</span></li>
-                    <li><a href="#"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
-                        <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
+                    <li><a href="{% url 'manager:dashboard' %}"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a></li>
                     <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios
                         <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
                     <li><a href="{% url 'manager:audit_log' %}"><i data-lucide="file-text" class="w-5 h-5"></i> Logs de Atividade</a></li>
