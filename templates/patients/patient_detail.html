@@ -401,41 +401,162 @@
 
                             <div class="space-y-4">
                                 {% for record in consultation_records %}
-                                    <div class="bg-base-100 shadow rounded-lg p-4 hover:shadow-lg transition-shadow">
-                                        <div class="flex justify-between items-start mb-3">
-                                            <div class="flex-1">
-                                                <div class="font-semibold text-lg">{{ record.get_record_type_display }}</div>
-                                                {% if record.professional %}
-                                                    <div class="text-sm text-base-content/70">{{ record.professional }}</div>
+                                    {# Usando 'collapse' básico + 'label' + 'group' para estilo e ícone customizado #}
+                                    <div class="collapse bg-base-100 shadow rounded-lg group"> 
+                                        <input type="checkbox" class="peer" id="record-{{ record.id }}" /> 
+                                        
+                                        {# --- TÍTULO MELHORADO (SEMPRE VISÍVEL) --- #}
+                                        <label for="record-{{ record.id }}" class="collapse-title flex justify-between items-center cursor-pointer hover:bg-base-200 transition-colors duration-200 ease-in-out">
+                                            {# Coluna Esquerda: Tipo, Profissional e Resumo #}
+                                            <div class="flex-1 space-y-1 pr-4"> 
+                                                {# Linha 1: Tipo e Profissional #}
+                                                <div class="font-semibold text-md text-primary-focus">
+                                                    {{ record.get_record_type_display }}
+                                                    {% if record.professional %}
+                                                        <span class="text-sm font-normal text-base-content/70">- {{ record.professional }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                {# Linha 2: Resumo Importante (Peso, Aleitamento, Alerta) #}
+                                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                                                    {% if record.record_type == 'consultation' and record.consultation_details %}
+                                                        {% with details=record.consultation_details %}
+                                                            {% if details.weight %}
+                                                                <span class="flex items-center gap-1"><i data-lucide="activity" class="w-3 h-3 text-secondary"></i> <strong>Peso:</strong> {{ details.weight }}g</span>
+                                                            {% endif %}
+                                                            {% if details.feeding_type %}
+                                                                <span class="badge badge-sm {% if details.feeding_type == 'exclusive' %}badge-success{% elif details.feeding_type == 'mixed' %}badge-info{% else %}badge-warning{% endif %}">{{ details.get_feeding_type_display }}</span>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    {% endif %}
+
+                                                    {# Badge de Contagem de Alertas #}
+                                                    {% if record.present_warning_count > 0 %}
+                                                        <span class="badge badge-error badge-sm flex items-center gap-1">
+                                                            <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                                                            {{ record.present_warning_count }} Alerta{% if record.present_warning_count > 1 %}s{% endif %} {# Lógica de Plural #}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            {# Coluna Direita: Data e Ícone de Seta #}
+                                            <div class="flex items-center gap-2 pl-2">
+                                                <span class="text-sm font-normal text-base-content/80">{{ record.date|date:"d/m/Y" }}</span>
+                                                <i data-lucide="chevron-down" class="w-5 h-5 text-base-content/50 transition-transform duration-300 group-focus-within:rotate-180 peer-checked:rotate-180"></i> 
+                                            </div>
+                                        </label> 
+
+                                        {# --- CONTEÚDO EXPANSÍVEL --- #}
+                                        <div class="collapse-content bg-base-100 peer-checked:bg-base-100/95 text-sm">
+                                            <div class="pt-4 space-y-4 border-t">
+
+                                                {# Mostra detalhes apenas se for uma Consulta #}
+                                                {% if record.record_type == 'consultation' and record.consultation_details %}
+                                                    {% with details=record.consultation_details %}
+                                                        {# 1. Medidas Antropométricas #}
+                                                        <h4 class="font-semibold text-primary">Medidas Antropométricas</h4>
+                                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2">
+                                                            <p><strong>Peso:</strong> {{ details.weight|default:"N/A" }}g {% if not details.weighed_without_diaper %}(com fralda){% endif %}</p>
+                                                            <p><strong>Comprimento:</strong> {{ details.length|default:"N/A" }}cm</p>
+                                                            <p><strong>PC:</strong> {{ details.head_circumference|default:"N/A" }}cm</p>
+                                                        </div>
+                                                        <div class="divider my-1"></div>
+
+                                                        {# 2. Aleitamento e Amamentação #}
+                                                        <h4 class="font-semibold text-primary">Aleitamento e Amamentação</h4>
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                                                            <p><strong>Tipo:</strong> {{ details.get_feeding_type_display|default:"Não informado" }}</p>
+                                                            <p><strong>Obs. Mamada:</strong> {{ details.get_breastfeeding_observation_display|default:"Não informado" }}</p>
+                                                            <p><strong>Intervalo:</strong> {{ details.feeding_interval|default:"Não informado" }}</p>
+                                                            <p><strong>Fraldas/24h:</strong> {{ details.diapers_in_24h|default:"N/A" }}</p>
+                                                            <p><strong>Usa Mamadeira/Chupeta:</strong> {% if details.uses_pacifier is True %}Sim{% elif details.uses_pacifier is False %}Não{% else %}N/A{% endif %}</p>
+                                                        </div>
+                                                        <div class="divider my-1"></div>
+
+                                                        {# 3. Posição Canguru #}
+                                                        <h4 class="font-semibold text-primary">Posição Canguru</h4>
+                                                        <p><strong>Horas/dia:</strong> {{ details.kangaroo_hours_per_day|default:"Não informado" }}h</p>
+                                                        {% if details.kangaroo_difficulties %}<p><strong>Dificuldades:</strong> {{ details.kangaroo_difficulties|linebreaksbr }}</p>{% endif %}
+                                                        <div class="divider my-1"></div>
+
+                                                        {# 4. Sinais de Alerta #}
+                                                        <h4 class="font-semibold text-primary">Sinais Clínicos de Alerta</h4>
+                                                        <ul class="list-disc list-inside ml-4">
+                                                            {% for sign in record.warning_signs.all %}
+                                                                {% if sign.is_present %}
+                                                                    {# Mostra apenas os sinais que estão marcados como presentes #}
+                                                                    <li class="text-error font-medium">{{ sign.get_type_display }}</li>
+                                                                {% endif %}
+                                                            {% empty %}
+                                                                {# Esta mensagem só aparece se NÃO houver NENHUM objeto ClinicalWarningSign associado #}
+                                                                <li>Nenhum sinal registrado para esta consulta.</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                        {# Observação: Se existirem objetos ClinicalWarningSign, mas NENHUM estiver 'is_present=True', a lista acima ficará vazia, sem a mensagem "Nenhum sinal presente". Adicionar essa mensagem exigiria lógica na view ou JavaScript. #}
+
+                                                        {% if details.warning_signs_observations %}<p class="mt-2"><strong>Obs. Adicionais:</strong> {{ details.warning_signs_observations|linebreaksbr }}</p>{% endif %}
+                                                        <div class="divider my-1"></div>
+
+                                                        {# 5. Avaliações Clínicas e da Equipe (Se houver) #}
+                                                        {% if record.clinical_evaluations.exists %}
+                                                            <h4 class="font-semibold text-primary">Avaliações Clínicas</h4>
+                                                            <ul class="list-disc list-inside ml-4">
+                                                                {% for eval in record.clinical_evaluations.all %}
+                                                                <li><strong>{{ eval.get_type_display }}:</strong> {{ eval.get_status_display }}</li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        {% endif %}
+                                                        {% if record.team_evaluations.exists %}
+                                                            <h4 class="font-semibold text-primary mt-2">Avaliações da Equipe</h4>
+                                                            <ul class="list-disc list-inside ml-4">
+                                                                {% for eval in record.team_evaluations.all %}
+                                                                <li><strong>{{ eval.get_area_display }}:</strong> {{ eval.notes|default:"Sem anotações."|linebreaksbr }}</li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        {% endif %}
+                                                        {% if record.clinical_evaluations.exists or record.team_evaluations.exists %}<div class="divider my-1"></div>{% endif %}
+
+                                                        {# 6. Observações Gerais da Consulta #}
+                                                        {% if record.notes %}
+                                                            <h4 class="font-semibold text-primary">Observações Gerais</h4>
+                                                            <p>{{ record.notes|linebreaksbr }}</p>
+                                                            <div class="divider my-1"></div>
+                                                        {% endif %}
+
+                                                        {# 7. Orientações e Conduta #}
+                                                        <h4 class="font-semibold text-primary">Orientações e Conduta</h4>
+                                                        {% if details.guidance_given %}<p><strong>Orientações:</strong> {{ details.guidance_given|linebreaksbr }}</p>{% endif %}
+                                                        {% if details.return_plan %}<p><strong>Plano de Retorno:</strong> {{ details.return_plan }}</p>{% endif %}
+                                                        {% if details.next_appointment_date %}<p><strong>Próximo Retorno:</strong> {{ details.next_appointment_date|date:"d/m/Y" }}</p>{% endif %}
+
+                                                    {% endwith %}
+                                                
+                                                {# Se não for uma consulta, mostra apenas as notas gerais #}
+                                                {% else %}
+                                                    {% if record.notes %}
+                                                        <h4 class="font-semibold text-primary">Observações Gerais</h4>
+                                                        <p>{{ record.notes|linebreaksbr }}</p>
+                                                    {% else %}
+                                                        <p class="text-base-content/60">Nenhum detalhe adicional disponível para este tipo de registro.</p>
+                                                    {% endif %}
                                                 {% endif %}
-                                                <div class="text-sm text-base-content/60 mt-1">{{ record.date|date:"d/m/Y" }}</div>
-                                            </div>
-                                            <div class="dropdown dropdown-end">
-                                                <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
-                                                    <i data-lucide="more-vertical" class="w-5 h-5"></i>
-                                                </label>
-                                                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-60 border border-base-300">
-                                                    <li><a href="{% comment %}{% url 'patients:consultation_edit' patient.pk record.pk %}{% endcomment %}"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
-                                                    <li><a href="{% comment %}{% url 'patients:consultation_delete' patient.pk record.pk %}{% endcomment %}" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
-                                                </ul>
+
+                                                {# Dropdown de Ações no final #}
+                                                <div class="mt-4 pt-4 border-t flex justify-end">
+                                                    <div class="dropdown dropdown-top dropdown-end">
+                                                        <label tabindex="0" class="btn btn-outline btn-xs">
+                                                            <i data-lucide="settings-2" class="w-4 h-4"></i> Ações
+                                                        </label>
+                                                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                                            <li><a><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
+                                                            <li><a class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        
-                                        <div class="divider my-2"></div>
-                                        
-                                        <div class="space-y-2 text-sm mb-4">
-                                            {% if record.record_type == 'consultation' and record.consultation_details %}
-                                                <p><strong>Canguru:</strong> {{ record.consultation_details.kangaroo_hours_per_day|default:"N/A" }}h/dia | <strong>Aleitamento:</strong> {{ record.consultation_details.get_feeding_type_display|default:"N/A" }}</p>
-                                            {% endif %}
-                                            {% if record.notes %}
-                                                <p class="text-base-content/70">{{ record.notes|truncatewords:20 }}</p>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <a href="{% comment %}{% url 'patients:consultation_detail' patient.pk record.pk %}{% endcomment %}" class="btn btn-primary btn-sm w-full">
-                                            <i data-lucide="file-text" class="w-4 h-4"></i> Ver Consulta Completa
-                                        </a>
-                                    </div>
+                                    </div> {# Fim do collapse #}
                                 {% empty %}
                                     <div class="text-center py-16">
                                         <div class="flex flex-col items-center gap-4">
@@ -446,7 +567,7 @@
                                         </div>
                                     </div>
                                 {% endfor %}
-                            </div>
+                            </div> {# Fim do space-y-4 #}
                         </div>
                     </div>
                 </div>

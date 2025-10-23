@@ -31,7 +31,8 @@ IS_CI = os.getenv("CI", "false").lower() == "true"
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+# DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -158,7 +159,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = "pt-br"
-DATE_INPUT_FORMATS = ['%d/%m/%Y','%d-%m-%Y',]
+DATE_INPUT_FORMATS = [
+    "%d/%m/%Y",
+    "%d-%m-%Y",
+]
 
 TIME_ZONE = "America/Sao_Paulo"
 

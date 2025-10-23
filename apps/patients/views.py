@@ -18,12 +18,10 @@ from .models import (
     ClinicalEvaluation,
     ClinicalEvaluationType,
     ClinicalWarningSign,
-    Exam,
     InterdisciplinaryEvaluation,
     InterdisciplinaryEvaluationArea,
     Patient,
     Record,
-    Vaccine,
 )
 
 
@@ -450,8 +448,8 @@ def patient_detail(request, pk):
         "consultation_details", "warning_signs", "clinical_evaluations", "team_evaluations"
     )
 
-    patient_exams = Exam.objects.filter(record__patient=patient).order_by("-date")
-    patient_vaccines = Vaccine.objects.filter(record__patient=patient).order_by("-date")
+    patient_exams = patient.exams.all().order_by("-date")
+    patient_vaccines = patient.vaccines.all().order_by("-date")
 
     professional_strings = (
         patient.records.exclude(professional__isnull=True)
@@ -472,6 +470,14 @@ def patient_detail(request, pk):
     today = timezone.now().date()
     age_timedelta = today - patient.date_of_birth
     age_in_days = age_timedelta.days
+    for record in consultation_records:
+        present_warning_count = 0
+        # Acessar .all() aqui é eficiente por causa do prefetch_related
+        for sign in record.warning_signs.all():
+            if sign.is_present:
+                present_warning_count += 1
+        # Anexa a contagem diretamente ao objeto record
+        record.present_warning_count = present_warning_count
 
     # Lógica de idade corrigida no header
     days_from_gestation = (patient.gestational_age_weeks * 7) + (patient.gestational_age_days or 0)

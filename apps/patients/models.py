@@ -115,7 +115,7 @@ class InterdisciplinaryEvaluation(BaseModel):
 
 
 class Exam(BaseModel):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="exams")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="exams")
     type = models.CharField(max_length=50)
     result = models.TextField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
@@ -123,7 +123,7 @@ class Exam(BaseModel):
 
 
 class Vaccine(BaseModel):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="vaccines")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="vaccines")
     name = models.CharField(max_length=50)
     date = models.DateField()
     lot = models.CharField(max_length=50, blank=True, null=True)
