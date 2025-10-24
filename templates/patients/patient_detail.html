@@ -327,9 +327,9 @@
                         <div class="card-body">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="card-title text-primary"><i data-lucide="clipboard-list" class="w-5 h-5"></i> Histórico de Exames</h3>
-                                <a href="{% comment %}{% url 'patients:exam_create' patient.pk %}{% endcomment %}" class="btn btn-primary btn-sm">
+                                <button class="btn btn-info btn-sm" onclick="loadExamFormAndOpenModal()">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
-                                </a>
+                                </button>
                             </div>
                             <div class="space-y-3">
                                 {% for exam in patient_exams %}
@@ -346,7 +346,7 @@
                                             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300">
                                                 <li><a href="{% comment %}{% url 'patients:exam_edit' patient.pk exam.pk %}{% endcomment %}"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
                                                 <li><a href="{% comment %}{% url 'patients:exam_result' patient.pk exam.pk %}{% endcomment %}"><i data-lucide="eye" class="w-4 h-4"></i> Ver Resultado</a></li>
-                                                <li><a href="{% comment %}{% url 'patients:exam_delete' patient.pk exam.pk %}{% endcomment %}" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
+                                                <li><a href="#" onclick="deleteItem('{% url 'patients:exam_delete' patient.pk exam.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                             </ul>
                                         </div>
                                     </div>
@@ -364,9 +364,9 @@
                         <div class="card-body">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="card-title text-info"><i data-lucide="syringe" class="w-5 h-5"></i> Vacinas Administradas</h3>
-                                <a href="{% comment %}{% url 'patients:vaccine_create' patient.pk %}{% endcomment %}" class="btn btn-info btn-sm">
+                                <button class="btn btn-info btn-sm" onclick="loadVaccineFormAndOpenModal()">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
-                                </a>
+                                </button>
                             </div>
                             <div class="space-y-3">
                                 {% for vaccine in patient_vaccines %}
@@ -381,7 +381,7 @@
                                         </label>
                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300">
                                             <li><a href="{% comment %}{% url 'patients:vaccine_edit' patient.pk vaccine.pk %}{% endcomment %}"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
-                                            <li><a href="{% comment %}{% url 'patients:vaccine_delete' patient.pk vaccine.pk %}{% endcomment %}" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
+                                            <li><a href="#" onclick="deleteItem('{% url 'patients:vaccine_delete' patient.pk vaccine.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -550,7 +550,7 @@
                                                         </label>
                                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                                             <li><a><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
-                                                            <li><a class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
+                                                            <li><a href="#" onclick="deleteItem('{% url 'patients:consultation_delete' patient.pk record.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                                         </ul>
                                                     </div>
                                                 </div>
@@ -574,6 +574,29 @@
             </div>
         </div>
     </div>
+    <dialog id="exam_modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-primary mb-4">Adicionar Novo Exame</h3>
+            <div id="exam-form-content">
+                <span class="loading loading-spinner"></span> Carregando...
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <dialog id="vaccine_modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-info mb-4">Adicionar Nova Vacina</h3>
+            <div id="vaccine-form-content">
+                <span class="loading loading-spinner"></span> Carregando...
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -672,6 +695,127 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+function loadExamFormAndOpenModal() {
+        // Busca o conteúdo do formulário da view GET
+        fetch("{% url 'patients:exam_add' patient.pk %}") 
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('exam-form-content').innerHTML = html;
+                exam_modal.showModal(); // Abre o modal do DaisyUI
+                // Re-inicializa ícones se houver algum no form carregado
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); } 
+            });
+    }
+
+    function loadVaccineFormAndOpenModal() {
+        fetch("{% url 'patients:vaccine_add' patient.pk %}")
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('vaccine-form-content').innerHTML = html;
+                vaccine_modal.showModal();
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            });
+    }
+    function submitExamForm() {
+        const form = document.getElementById('ajax-exam-form');
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                // Django precisa do token CSRF no header para POST via fetch
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken') 
+            }
+        })
+        .then(response => {
+            // A view nos dá um redirect (status 302) se o form for válido.
+            // O fetch vê isso como 'ok' e 'redirected: true'.
+            if (response.ok || response.redirected) {
+                // SUCESSO! Recarrega a página inteira.
+                window.location.reload();
+            } else {
+                // Falha na validação. Recarrega o conteúdo do formulário com os erros.
+                return response.text();
+            }
+        })
+        .then(html => {
+            if (html) {
+                // Mostra o formulário com os erros de validação (ex: "Este campo é obrigatório")
+                document.getElementById('exam-form-content').innerHTML = html;
+            }
+        })
+        .catch(error => console.error('Erro ao submeter formulário:', error));
+    }
+
+    function submitVaccineForm() {
+        const form = document.getElementById('ajax-vaccine-form');
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => {
+            if (response.ok || response.redirected) {
+                // SUCESSO! Recarrega a página.
+                window.location.reload();
+            } else {
+                // Falha na validação.
+                return response.text();
+            }
+        })
+        .then(html => {
+            if (html) {
+                // Mostra o formulário com os erros
+                document.getElementById('vaccine-form-content').innerHTML = html;
+            }
+        })
+        .catch(error => console.error('Erro ao submeter formulário:', error));
+    }
+    // Função para ler o cookie CSRF (necessário para POST)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Função genérica para exclusão
+    function deleteItem(url) {
+        // 1. Pede confirmação ao usuário
+        if (confirm("Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.")) {
+
+            // 2. Envia uma requisição POST segura
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken, // Envia o token de segurança
+                }
+            })
+            .then(response => {
+                if (response.ok || response.redirected) {
+                    // 3. Recarrega a página para mostrar a lista atualizada
+                    window.location.reload();
+                } else {
+                    alert("Ocorreu um erro ao tentar excluir o item.");
+                }
+            })
+            .catch(error => console.error('Erro:', error));
+        }
+    }
 </script>
 
 {% endblock %}

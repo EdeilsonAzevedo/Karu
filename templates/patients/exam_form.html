@@ -1,0 +1,10 @@
+<form id="ajax-exam-form" method="POST" action="{% url 'patients:exam_add' patient.pk %}">
+    {% csrf_token %}
+    <div class="space-y-4">
+        {{ form.as_p }}
+    </div>
+    <div class="modal-action">
+        <button type="button" class="btn btn-ghost" onclick="exam_modal.close()">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="submitExamForm()">Salvar Exame</button>
+    </div>
+</form>

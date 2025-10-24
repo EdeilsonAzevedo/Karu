@@ -3,25 +3,31 @@ from datetime import timedelta
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from .forms import (
     ClinicalEvaluationForm,
     ClinicalWarningSignForm,
     ConsultationRecordForm,
     DischargeRecordForm,
+    ExamForm,
     InterdisciplinaryEvaluationForm,
     PatientForm,
     RecordForm,
+    VaccineForm,
 )
 from .models import (
     ClinicalEvaluation,
     ClinicalEvaluationType,
     ClinicalWarningSign,
+    Exam,
     InterdisciplinaryEvaluation,
     InterdisciplinaryEvaluationArea,
     Patient,
     Record,
+    Vaccine,
 )
 
 
@@ -588,3 +594,81 @@ def consultation_create(request, pk):
         "corrected_age_remaining_days": corrected_age_remaining_days,
     }
     return render(request, "patients/consultation_form.html", context)
+
+
+def exam_add(request, pk):
+    patient = get_object_or_404(Patient, pk=pk)
+    if request.method == "POST":
+        form = ExamForm(request.POST)
+        if form.is_valid():
+            exam = form.save(commit=False)
+            exam.patient = patient  # Associa ao paciente correto
+            exam.save()
+            # Redireciona de volta para a página de detalhes após salvar
+            return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-exames")
+    else:  # GET
+        form = ExamForm()
+
+    # Renderiza apenas o formulário (útil para carregar no modal via HTMX/JS)
+    # Ou renderiza uma página completa se preferir começar sem AJAX
+    return render(request, "patients/exam_form.html", {"form": form, "patient": patient})
+
+
+# Nova view para adicionar Vacina
+def vaccine_add(request, pk):
+    patient = get_object_or_404(Patient, pk=pk)
+    if request.method == "POST":
+        form = VaccineForm(request.POST)
+        if form.is_valid():
+            vaccine = form.save(commit=False)
+            vaccine.patient = patient  # Associa ao paciente
+            vaccine.save()
+            return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-vacinas")
+    else:  # GET
+        form = VaccineForm()
+
+    return render(request, "patients/vaccine_form.html", {"form": form, "patient": patient})
+
+
+@require_POST  # Garante que esta view só aceita requisições POST
+def exam_delete(request, pk, exam_pk):
+    # Garante que o paciente existe e que o exame pertence a ele
+    patient = get_object_or_404(Patient, pk=pk)
+    exam = get_object_or_404(Exam, pk=exam_pk, patient=patient)
+
+    exam.delete()
+
+    # Redireciona de volta para a página de detalhes, direto para a aba de exames
+    return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-exames")
+
+
+@require_POST  # Garante que esta view só aceita requisições POST
+def vaccine_delete(request, pk, vaccine_pk):
+    # Garante que o paciente existe e que a vacina pertence a ele
+    patient = get_object_or_404(Patient, pk=pk)
+    vaccine = get_object_or_404(Vaccine, pk=vaccine_pk, patient=patient)
+
+    vaccine.delete()
+
+    # Redireciona de volta para a página de detalhes, direto para a aba de vacinas
+    return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-vacinas")
+
+
+@require_POST
+def consultation_delete(request, pk, record_pk):
+    # Garante que o paciente existe
+    patient = get_object_or_404(Patient, pk=pk)
+
+    # Garante que o registro (consulta) existe, pertence ao paciente e é do tipo consulta
+    record = get_object_or_404(Record, pk=record_pk, patient=patient, record_type="consultation")
+
+    # O Django irá deletar o 'Record' e, graças ao 'on_delete=models.CASCADE'
+    # nos seus modelos, ele também deletará automaticamente:
+    # - O ConsultationRecord associado
+    # - Os ClinicalWarningSigns associados
+    # - As ClinicalEvaluations associadas
+    # - As InterdisciplinaryEvaluations associadas
+    record.delete()
+
+    # Redireciona de volta para a página de detalhes, direto para a aba de histórico
+    return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-historico")
