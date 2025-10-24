@@ -5,44 +5,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('patients', '0001_initial'),
+        ("patients", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dischargerecord',
-            name='chronological_age_days',
+            model_name="dischargerecord",
+            name="chronological_age_days",
             field=models.PositiveIntegerField(blank=True, default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='dischargerecord',
-            name='corrected_age_weeks',
+            model_name="dischargerecord",
+            name="corrected_age_weeks",
             field=models.PositiveIntegerField(blank=True, default=0),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='dischargerecord',
-            name='head_circumference',
+            model_name="dischargerecord",
+            name="head_circumference",
             field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=5),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='dischargerecord',
-            name='length',
+            model_name="dischargerecord",
+            name="length",
             field=models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=5),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='patient',
-            name='cpf',
-            field=models.CharField(blank=True, help_text='Somente números, sem pontos ou traços.', max_length=14, null=True, unique=True, validators=[django.core.validators.RegexValidator(message='CPF deve ter 11 dígitos numéricos.', regex='^\\d{11}$')]),
+            model_name="patient",
+            name="cpf",
+            field=models.CharField(
+                blank=True,
+                help_text="Somente números, sem pontos ou traços.",
+                max_length=14,
+                null=True,
+                unique=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        message="CPF deve ter 11 dígitos numéricos.", regex="^\\d{11}$"
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='patient',
-            name='last_name',
+            model_name="patient",
+            name="last_name",
             field=models.CharField(blank=True, default=0, max_length=100),
             preserve_default=False,
         ),

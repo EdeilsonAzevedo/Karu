@@ -38,6 +38,10 @@ class Patient(BaseModel):
     
     is_active = models.BooleanField("Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo.")
 
+    is_active = models.BooleanField(
+        "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
+    )
+
     address_street = models.CharField("Logradouro", max_length=255, blank=True)
     address_number = models.CharField("Número", max_length=20, blank=True)
     address_complement = models.CharField("Complemento", max_length=100, blank=True)

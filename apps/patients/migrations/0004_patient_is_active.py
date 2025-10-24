@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('patients', '0003_alter_dischargerecord_chronological_age_days_and_more'),
+        ("patients", "0003_alter_dischargerecord_chronological_age_days_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='patient',
-            name='is_active',
-            field=models.BooleanField(default=True, help_text='Indica se o paciente está em acompanhamento ativo.', verbose_name='Ativo'),
+            model_name="patient",
+            name="is_active",
+            field=models.BooleanField(
+                default=True,
+                help_text="Indica se o paciente está em acompanhamento ativo.",
+                verbose_name="Ativo",
+            ),
         ),
     ]

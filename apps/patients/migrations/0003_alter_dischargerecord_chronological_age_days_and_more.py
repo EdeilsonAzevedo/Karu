@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('patients', '0002_alter_dischargerecord_chronological_age_days_and_more'),
+        ("patients", "0002_alter_dischargerecord_chronological_age_days_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dischargerecord',
-            name='chronological_age_days',
+            model_name="dischargerecord",
+            name="chronological_age_days",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='dischargerecord',
-            name='corrected_age_weeks',
+            model_name="dischargerecord",
+            name="corrected_age_weeks",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='patient',
-            name='last_name',
+            model_name="patient",
+            name="last_name",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
     ]
