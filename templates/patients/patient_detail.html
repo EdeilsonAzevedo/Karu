@@ -327,7 +327,7 @@
                         <div class="card-body">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="card-title text-primary"><i data-lucide="clipboard-list" class="w-5 h-5"></i> Histórico de Exames</h3>
-                                <button class="btn btn-info btn-sm" onclick="loadExamFormAndOpenModal()">
+                                <button class="btn btn-primary btn-sm" onclick="loadExamFormAndOpenModal('{% url 'patients:exam_add' patient.pk %}')">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
                                 </button>
                             </div>
@@ -344,7 +344,7 @@
                                                 <i data-lucide="more-vertical" class="w-5 h-5"></i>
                                             </label>
                                             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300">
-                                                <li><a href="{% comment %}{% url 'patients:exam_edit' patient.pk exam.pk %}{% endcomment %}"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
+                                                <li><a href="#" onclick="loadExamFormAndOpenModal('{% url 'patients:exam_edit' patient.pk exam.pk %}')"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
                                                 <li><a href="{% comment %}{% url 'patients:exam_result' patient.pk exam.pk %}{% endcomment %}"><i data-lucide="eye" class="w-4 h-4"></i> Ver Resultado</a></li>
                                                 <li><a href="#" onclick="deleteItem('{% url 'patients:exam_delete' patient.pk exam.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                             </ul>
@@ -364,7 +364,7 @@
                         <div class="card-body">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="card-title text-info"><i data-lucide="syringe" class="w-5 h-5"></i> Vacinas Administradas</h3>
-                                <button class="btn btn-info btn-sm" onclick="loadVaccineFormAndOpenModal()">
+                                <button class="btn btn-info btn-sm" onclick="loadVaccineFormAndOpenModal('{% url 'patients:vaccine_add' patient.pk %}')">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
                                 </button>
                             </div>
@@ -380,7 +380,7 @@
                                             <i data-lucide="more-vertical" class="w-5 h-5"></i>
                                         </label>
                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300">
-                                            <li><a href="{% comment %}{% url 'patients:vaccine_edit' patient.pk vaccine.pk %}{% endcomment %}"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
+                                            <li><a href="#" onclick="loadVaccineFormAndOpenModal('{% url 'patients:vaccine_edit' patient.pk vaccine.pk %}')"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
                                             <li><a href="#" onclick="deleteItem('{% url 'patients:vaccine_delete' patient.pk vaccine.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                         </ul>
                                     </div>
@@ -549,7 +549,7 @@
                                                             <i data-lucide="settings-2" class="w-4 h-4"></i> Ações
                                                         </label>
                                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                                            <li><a><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
+                                                            <li><a href="{% url 'patients:consultation_edit' patient.pk record.pk %}"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
                                                             <li><a href="#" onclick="deleteItem('{% url 'patients:consultation_delete' patient.pk record.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                                         </ul>
                                                     </div>
@@ -695,20 +695,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
-function loadExamFormAndOpenModal() {
-        // Busca o conteúdo do formulário da view GET
-        fetch("{% url 'patients:exam_add' patient.pk %}") 
+    function loadExamFormAndOpenModal(url) { 
+        fetch(url) 
             .then(response => response.text())
             .then(html => {
                 document.getElementById('exam-form-content').innerHTML = html;
-                exam_modal.showModal(); // Abre o modal do DaisyUI
-                // Re-inicializa ícones se houver algum no form carregado
-                if (typeof lucide !== 'undefined') { lucide.createIcons(); } 
+                exam_modal.showModal();
+                if (typeof lucide !== 'undefined') { lucide.createIcons(); }
             });
     }
 
-    function loadVaccineFormAndOpenModal() {
-        fetch("{% url 'patients:vaccine_add' patient.pk %}")
+    function loadVaccineFormAndOpenModal(url) { 
+        fetch(url) 
             .then(response => response.text())
             .then(html => {
                 document.getElementById('vaccine-form-content').innerHTML = html;

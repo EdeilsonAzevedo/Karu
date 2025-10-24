@@ -21,4 +21,11 @@ urlpatterns = [
         views.consultation_delete,
         name="consultation_delete",
     ),
+    path("<uuid:pk>/exam/<uuid:exam_pk>/edit/", views.exam_edit, name="exam_edit"),
+    path("<uuid:pk>/vaccine/<uuid:vaccine_pk>/edit/", views.vaccine_edit, name="vaccine_edit"),
+    path(
+        "<uuid:pk>/consultation/<uuid:record_pk>/edit/",
+        views.consultation_edit,
+        name="consultation_edit",
+    ),
 ]

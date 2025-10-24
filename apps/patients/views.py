@@ -22,6 +22,7 @@ from .models import (
     ClinicalEvaluation,
     ClinicalEvaluationType,
     ClinicalWarningSign,
+    ConsultationRecord,
     Exam,
     InterdisciplinaryEvaluation,
     InterdisciplinaryEvaluationArea,
@@ -596,6 +597,118 @@ def consultation_create(request, pk):
     return render(request, "patients/consultation_form.html", context)
 
 
+@transaction.atomic
+def consultation_edit(request, pk, record_pk):
+    # 1. Busca os objetos principais
+    patient = get_object_or_404(Patient, pk=pk)
+    record = get_object_or_404(Record, pk=record_pk, patient=patient, record_type="consultation")
+
+    # Busca o objeto de detalhes da consulta associado
+    try:
+        consultation_details = record.consultation_details
+    except ConsultationRecord.DoesNotExist:
+        # Se por algum motivo não existir, cria um novo (caso de segurança)
+        consultation_details = ConsultationRecord.objects.create(record=record)
+
+    if request.method == "POST":
+        # Instancia os formulários com os dados ENVIADOS (request.POST) e os dados EXISTENTES (instance=...)
+        record_form = RecordForm(request.POST, prefix="record", instance=record)
+        consultation_form = ConsultationRecordForm(
+            request.POST, prefix="consultation", instance=consultation_details
+        )
+
+        # Instancia os formulários de Sinais de Alerta
+        warning_sign_forms = []
+        for value, label in ClinicalWarningSign.WarningSignType.choices:
+            form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
+            warning_sign_forms.append(
+                {"form": form, "value": value, "label": label}
+            )  # Passa o label para o contexto de erro
+
+        # Valida todos os formulários
+        all_forms_valid = all(
+            [
+                record_form.is_valid(),
+                consultation_form.is_valid(),
+                all(item["form"].is_valid() for item in warning_sign_forms),
+            ]
+        )
+
+        if all_forms_valid:
+            # Salva as alterações nos formulários principais
+            record_form.save()
+            consultation_form.save()
+
+            # --- Lógica de Sincronização dos Sinais de Alerta ---
+            # 1. Apaga todos os sinais de alerta antigos associados a este registro
+            record.warning_signs.all().delete()
+
+            # 2. Cria novamente apenas os que foram marcados no formulário
+            for item in warning_sign_forms:
+                if item["form"].cleaned_data.get("is_present"):
+                    ClinicalWarningSign.objects.create(
+                        record=record, type=item["value"], is_present=True
+                    )
+
+            # Redireciona de volta para a página de detalhes
+            return redirect("patients:detail", pk=patient.pk)
+
+        else:
+            # Se a validação falhar, prepara o contexto para re-renderizar a página com os erros
+            context = {
+                "patient": patient,
+                "record_form": record_form,
+                "consultation_form": consultation_form,
+                "clinical_forms": warning_sign_forms,  # Reenvia os forms com erros
+                "is_editing": True,  # Flag para o template saber que está em modo de edição
+            }
+            # (A lógica de idade corrigida será adicionada no final)
+
+    else:
+        # Instancia os formulários pré-preenchidos com os dados existentes (instance=...)
+        record_form = RecordForm(prefix="record", instance=record)
+        consultation_form = ConsultationRecordForm(
+            prefix="consultation", instance=consultation_details
+        )
+
+        # Busca os sinais de alerta que já existem no banco para este registro
+        existing_signs = list(
+            record.warning_signs.filter(is_present=True).values_list("type", flat=True)
+        )
+
+        # Prepara os formulários de Sinais de Alerta, marcando os que já existem
+        clinical_forms_with_labels = []
+        for value, label in ClinicalWarningSign.WarningSignType.choices:
+            is_present = value in existing_signs  # Verifica se o sinal já estava salvo
+            form = ClinicalWarningSignForm(
+                prefix=f"warning_{value}",
+                initial={"type": value, "is_present": is_present},  # Pré-marca o checkbox
+            )
+            clinical_forms_with_labels.append({"form": form, "label": label})
+
+        context = {
+            "patient": patient,
+            "record_form": record_form,
+            "consultation_form": consultation_form,
+            "clinical_forms": clinical_forms_with_labels,
+            "is_editing": True,  # Flag para o template
+        }
+
+    # Adiciona dados de idade (necessário em ambos os casos, GET ou POST com erro)
+    today = timezone.now().date()
+    age_timedelta = today - patient.date_of_birth
+    age_in_days = age_timedelta.days
+    days_from_gestation = (patient.gestational_age_weeks * 7) + (patient.gestational_age_days or 0)
+    days_to_full_term = (40 * 7) - days_from_gestation
+    corrected_age_in_days = age_in_days - days_to_full_term
+    if corrected_age_in_days < 0:
+        corrected_age_in_days = 0
+    context["corrected_age_weeks"] = corrected_age_in_days // 7
+    context["corrected_age_remaining_days"] = corrected_age_in_days % 7
+
+    return render(request, "patients/consultation_form.html", context)
+
+
 def exam_add(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     if request.method == "POST":
@@ -609,9 +722,14 @@ def exam_add(request, pk):
     else:  # GET
         form = ExamForm()
 
+    action_url = reverse("patients:exam_add", kwargs={"pk": patient.pk})
     # Renderiza apenas o formulário (útil para carregar no modal via HTMX/JS)
     # Ou renderiza uma página completa se preferir começar sem AJAX
-    return render(request, "patients/exam_form.html", {"form": form, "patient": patient})
+    return render(
+        request,
+        "patients/exam_form.html",
+        {"form": form, "patient": patient, "action_url": action_url},
+    )
 
 
 # Nova view para adicionar Vacina
@@ -627,7 +745,12 @@ def vaccine_add(request, pk):
     else:  # GET
         form = VaccineForm()
 
-    return render(request, "patients/vaccine_form.html", {"form": form, "patient": patient})
+    action_url = reverse("patients:vaccine_add", kwargs={"pk": patient.pk})
+    return render(
+        request,
+        "patients/vaccine_form.html",
+        {"form": form, "patient": patient, "action_url": action_url},
+    )
 
 
 @require_POST  # Garante que esta view só aceita requisições POST
@@ -672,3 +795,52 @@ def consultation_delete(request, pk, record_pk):
 
     # Redireciona de volta para a página de detalhes, direto para a aba de histórico
     return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-historico")
+
+
+def exam_edit(request, pk, exam_pk):
+    patient = get_object_or_404(Patient, pk=pk)
+    exam = get_object_or_404(Exam, pk=exam_pk, patient=patient)
+
+    if request.method == "POST":
+        form = ExamForm(request.POST, instance=exam)  # Passa 'instance' para atualizar
+        if form.is_valid():
+            form.save()
+            return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-exames")
+    else:  # GET
+        form = ExamForm(instance=exam)  # Passa 'instance' para pré-preencher
+
+    # Prepara a URL de action para o template do formulário
+    action_url = reverse("patients:exam_edit", kwargs={"pk": patient.pk, "exam_pk": exam.pk})
+
+    return render(
+        request,
+        "patients/exam_form.html",
+        {
+            "form": form,
+            "patient": patient,
+            "action_url": action_url,  # Passa a URL para o template
+        },
+    )
+
+
+def vaccine_edit(request, pk, vaccine_pk):
+    patient = get_object_or_404(Patient, pk=pk)
+    vaccine = get_object_or_404(Vaccine, pk=vaccine_pk, patient=patient)
+
+    if request.method == "POST":
+        form = VaccineForm(request.POST, instance=vaccine)
+        if form.is_valid():
+            form.save()
+            return redirect(f"{reverse('patients:detail', kwargs={'pk': patient.pk})}#tab-vacinas")
+    else:  # GET
+        form = VaccineForm(instance=vaccine)
+
+    action_url = reverse(
+        "patients:vaccine_edit", kwargs={"pk": patient.pk, "vaccine_pk": vaccine.pk}
+    )
+
+    return render(
+        request,
+        "patients/vaccine_form.html",
+        {"form": form, "patient": patient, "action_url": action_url},
+    )
