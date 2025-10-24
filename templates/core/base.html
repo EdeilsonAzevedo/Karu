@@ -13,7 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.0/dist/full.min.css" rel="stylesheet" type="text/css" />
 
     <!-- Lucide Icons -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -238,6 +238,9 @@
                     <li><a href="{% url 'patients:create' %}"><i data-lucide="baby" class="w-5 h-5"></i> Nova Criança</a></li>
                     
                     <li class="menu-title mt-4"><span>Sistema</span></li>
+                    <li><a href="{% url 'manager:dashboard' %}"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</a></li>
+                    <li><a href="#"><i data-lucide="bar-chart" class="w-5 h-5"></i> Relatórios
+                        <span class="badge badge-warning badge-sm ml-auto">Em breve</span></a></li>
                     <li><a href="{% url 'manager:audit_log' %}"><i data-lucide="file-text" class="w-5 h-5"></i> Logs de Atividade</a></li>
                     
                     <!-- Administração (apenas para superuser e gestores) -->
