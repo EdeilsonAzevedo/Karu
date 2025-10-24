@@ -221,16 +221,6 @@
         currentLegend.addTo(map);
     }
 
-<<<<<<< HEAD
-    const publicApi = {
-        init: function (mapId, geoJsonUrls, countsUrl) {
-            if (map) {
-                console.warn("KaruMap WARN: Tentando inicializar um mapa já existente. Removendo o antigo.");
-                map.remove();
-            }
-            map = L.map(mapId).setView([-9.57, -36.75], 8.5); // Centro de Alagoas
-
-=======
     // --- API Pública (o que será exposto em window.KaruMap) ---
     const publicApi = {
 
@@ -258,84 +248,12 @@
             map = L.map(mapId).setView([-9.57, -36.75], 8.5); // Centro de Alagoas
 
             // 2. Adiciona o "tile layer" (mapa base)
->>>>>>> ae95887 (feat: mapas por micro e macroregioes, novas palhetas de cores, novos filtros)
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
                 subdomains: 'abcd',
                 maxZoom: 19
             }).addTo(map);
 
-<<<<<<< HEAD
-
-            const cacheBustedCountsUrl = new URL(countsUrl, window.location.origin);
-            cacheBustedCountsUrl.searchParams.append('_', new Date().getTime());
-
-            const p_municipio = fetch(geoJsonUrls.municipio).then(r => r.json());
-            const p_micro = fetch(geoJsonUrls.microrregiao).then(r => r.json());
-            const p_macro = fetch(geoJsonUrls.macrorregiao).then(r => r.json()); 
-            const p_counts = fetch(cacheBustedCountsUrl).then(r => r.json());
-
-            Promise.all([p_municipio, p_micro, p_macro, p_counts])
-                .then(([gMunicipios, gMicrorregioes, gMacrorregioes, counts]) => {
-
-                    geoJsonData.municipio = gMunicipios;
-                    geoJsonData.microrregiao = gMicrorregioes;
-                    geoJsonData.macrorregiao = gMacrorregioes;
-                    mapData = counts;
-
-                    console.log("KaruMap: Dados carregados.", mapData);
-
-                    if (onLoadCallback) {
-                        onLoadCallback();
-                    }
-                })
-                .catch(err => { /* ... (tratamento de erro) ... */ });
-
-            return publicApi;
-        },
-
-        onLoad: function (callback) {
-            if (mapData && Object.keys(mapData).length > 0) {
-                callback();
-            } else {
-                onLoadCallback = callback; 
-            }
-        },
-
-        updateView: function (level, metric) {
-            if (!map || !mapData || !geoJsonData || !geoJsonData[level]) {
-                console.warn(`KaruMap WARN: Tentando atualizar view para '${level}' antes do mapa/dados carregarem. Nível existe em geoJsonData?`, !!geoJsonData[level]);
-                return;
-            }
-
-            if (currentLayer) {
-                map.removeLayer(currentLayer);
-                currentLayer = null;
-            }
-            if (currentLegend) {
-                map.removeControl(currentLegend);
-                currentLegend = null;
-            }
-
-            currentPalette = METRIC_PALETTES[metric] || METRIC_PALETTES.total;
-            const values = Object.values(mapData[level] || {}).map(d => d[metric]);
-            const breaks = getBreaks(values);
-            w.KaruMap.currentBreaks = breaks;
-
-            try {
-                currentLayer = L.geoJSON(geoJsonData[level], {
-                    style: (feature) => styleFeature(feature, level, metric),
-                    onEachFeature: (feature, layer) => onEachFeature(feature, layer, level, metric)
-                });
-
-                currentLayer.addTo(map);
-            } catch (e) {
-                console.error(`KaruMap ERRO: Falha ao criar ou adicionar camada GeoJSON para '${level}'`, e);
-            }
-
-
-            // --- Atualizar a Legenda ---
-=======
             // 3. Carrega todos os dados (GeoJSON e Contagens)
             const p1 = fetch(geoJsonUrls.municipio).then(r => r.json());
             const p2 = fetch(geoJsonUrls.microrregiao).then(r => r.json());
@@ -413,7 +331,6 @@
 
             // --- 4. Atualizar a Legenda ---
             // updateLegend() agora usa 'currentPalette'
->>>>>>> ae95887 (feat: mapas por micro e macroregioes, novas palhetas de cores, novos filtros)
             updateLegend(breaks, metric);
         }
     };
