@@ -86,6 +86,12 @@
         opacity: 0.8;
         border: 1px solid #FFF;
     }
+
+    #children-cards-container {
+        scrollbar-width: none;
+
+        scrollbar-color: hsl(var(--bc) / 0.3) transparent;
+    }
 </style>
 
 <div class="min-h-screen bg-gradient-to-br from-base-200 to-base-300">
@@ -187,14 +193,17 @@
                                     <h3 class="text-lg font-semibold text-base-content">Crianças Monitoradas</h3>
                                     <div class="badge badge-primary" id="current-category-badge">Acompanhamento</div>
                                 </div>
-                                <div class="flex-1 overflow-y-auto" id="children-cards-container">
-                                    <div class="space-y-3" id="children-cards"></div>
-                                    <div class="mt-3" id="view-all-inline">
-                                        <a href="{% url 'patients:list' %}" class="btn btn-outline btn-block btn-sm">
-                                            <i data-lucide="list" class="w-4 h-4"></i>
-                                            Ver Todas as Crianças
-                                        </a>
+
+                                <div class="max-h-[500px] overflow-y-auto" id="children-cards-container">
+                                    <div class="space-y-3" id="children-cards">
                                     </div>
+                                </div>
+
+                                <div class="mt-3" id="view-all-inline">
+                                    <a href="{% url 'patients:list' %}" class="btn btn-outline btn-block btn-sm">
+                                        <i data-lucide="list" class="w-4 h-4"></i>
+                                        Ver Todas as Crianças
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -258,20 +267,19 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="{% static 'manager/karu_map.js' %}"></script> 
+<script src="{% static 'manager/karu_map.js' %}"></script>
 <script>
     // --- URLs (Ajustadas para o novo mapa) ---
     const API_URL = "{% url 'manager:api_dashboard_stats' %}";
     const COUNTS_URL = "{% url 'manager:api_map_counts' %}"; // API com dados agregados (total, alerta, critico)
-    
+
     // Objeto com TODAS as URLs GeoJSON necessárias
     const GEOJSON_URLS = {
         municipio: "{% static 'manager/alagoas_municipios.geojson' %}",
-        
-        microrregiao: "{% static 'manager/microrregioes_saude_al.geojson' %}", 
-        
-        // Reutilizamos o mesmo arquivo da microrregião para a macro
-        macrorregiao: "{% static 'manager/microrregioes_saude_al.geojson' %}" 
+
+        microrregiao: "{% static 'manager/microrregioes_saude_al.geojson' %}",
+
+        macrorregiao: "{% static 'manager/macrorregioes_saude_al.geojson' %}"
     };
 
     // --- Mapeamento de Métricas (Antigo 'mapConfigs') ---
@@ -308,10 +316,10 @@
         currentCategoryBadge = document.getElementById('current-category-badge');
 
         if (window.lucide) window.lucide.createIcons();
-        
+
         // Inicializa o mapa PRIMEIRO (ele que carrega os dados de contagem)
         await initializeMap();
-        
+
         // Busca o restante dos dados (stats, gráficos, profissionais)
         await fetchDashboardData();
 
@@ -321,7 +329,7 @@
 
         // O 'onLoad' garante que só vamos atualizar o mapa após os dados
         // (GeoJSON e Contagens) terem sido carregados pelo karu_map.js
-        mapHandle.onLoad(function() {
+        mapHandle.onLoad(function () {
             // Sincroniza a UI (cards, dropdowns) e atualiza o mapa
             // Isso também carrega a lista de crianças inicial
             syncUIAndMap(currentMapType());
@@ -358,7 +366,7 @@
             initializeDischargeChart();
             updateAltasTotals();
             if (data.last_update) setText('last-update', data.last_update);
-            
+
             // A atualização dos cards de crianças agora é feita pelo 'syncUIAndMap'
             // após o mapa carregar
 
@@ -374,8 +382,8 @@
         showLoading();
         // Usa o novo 'init' e passa o ID correto 'leaflet-map'
         mapHandle = window.KaruMap.init(
-            'leaflet-map', 
-            GEOJSON_URLS, 
+            'leaflet-map',
+            GEOJSON_URLS,
             COUNTS_URL
         );
         // O 'hideLoading' será chamado pelo 'updateMap'
@@ -384,38 +392,38 @@
     // Função central que atualiza o mapa
     function updateMap() {
         if (!mapHandle) return;
-        
+
         const level = mapLevelFilter.value;  // 'municipio', 'microrregiao', 'macrorregiao'
         const metric = mapMetricFilter.value; // 'total', 'critico', 'alerta', 'estavel'
 
         showLoading();
-        
+
         // Chama a função pública do novo karu_map.js
         mapHandle.updateView(level, metric);
-        
+
         // Atualiza também a lista de crianças
         updateChildrenCards(metric);
-        
+
         hideLoading();
     }
-    
+
     // Função chamada pelos STAT CARDS (antiga switchMap)
     function switchMap(metricType) {
         // 'acompanhamento' nos cards agora significa 'total'
         if (metricType === 'acompanhamento') {
             metricType = 'total';
         }
-        
+
         syncUIAndMap(metricType, true);
     }
-    
+
     // Sincroniza os dropdowns, localStorage e atualiza o mapa
     function syncUIAndMap(metric, updateUrl = false) {
         if (!metricConfigs[metric]) metric = 'total';
-        
+
         // 1. Atualiza o dropdown de métrica
         mapMetricFilter.value = metric;
-        
+
         // 2. Salva a preferência
         localStorage.setItem('selectedMapMetric', metric);
         if (updateUrl) {
@@ -423,33 +431,33 @@
             newUrl.searchParams.set('map', metric); // Mantém o param 'map'
             window.history.pushState({}, '', newUrl);
         }
-        
+
         // 3. Chama a função que redesenha o mapa
         updateMap();
     }
-    
+
     // Pega a métrica inicial (do URL ou localStorage)
     function currentMapType() {
         let metric = new URLSearchParams(window.location.search).get('map')
-                  || localStorage.getItem('selectedMapMetric')
-                  || 'total'; // Default
-        
+            || localStorage.getItem('selectedMapMetric')
+            || 'total'; // Default
+
         // Converte o valor antigo 'acompanhamento' para 'total'
         if (metric === 'acompanhamento') metric = 'total';
         if (!metricConfigs[metric]) metric = 'total';
-        
+
         return metric;
     }
-    
+
     function updateChildrenCards(metricType) {
 
         let childrenKey = metricType;
         if (metricType === 'total') {
-            childrenKey = 'acompanhamento'; 
+            childrenKey = 'acompanhamento';
         } else if (metricType === 'estavel') {
-            childrenKey = 'estaveis'; 
-        }
-        
+            childrenKey = 'estaveis';
+        }
+
         if (!childrenCardsContainer || !currentCategoryBadge) return;
 
         const children = (window.childrenData && window.childrenData[childrenKey]) ? window.childrenData[childrenKey] : [];
@@ -470,17 +478,17 @@
             const realStatus = child.real_status || 'estavel'; // 'estavel', 'alerta', 'critico'
             const detailUrl = detailUrlTemplate.replace('00000000-0000-0000-0000-000000000000', child.id || '');
 
-            const colorClass = realStatus === 'critico' ? 'error' 
-                             : realStatus === 'alerta' ? 'warning' 
-                             : 'primary';
-            
-            const badgeText = realStatus === 'critico' ? 'Crítico' 
-                            : realStatus === 'alerta' ? 'Alerta' 
-                            : 'Estável';
-            
-            const badgeClass = realStatus === 'critico' ? 'error' 
-                             : realStatus === 'alerta' ? 'warning' 
-                             : 'success';
+            const colorClass = realStatus === 'critico' ? 'error'
+                : realStatus === 'alerta' ? 'warning'
+                    : 'primary';
+
+            const badgeText = realStatus === 'critico' ? 'Crítico'
+                : realStatus === 'alerta' ? 'Alerta'
+                    : 'Estável';
+
+            const badgeClass = realStatus === 'critico' ? 'error'
+                : realStatus === 'alerta' ? 'warning'
+                    : 'success';
 
             return `
             <a href="${detailUrl}" class="card bg-base-100 shadow-sm hover:shadow-md card-children card-${realStatus} transition-all duration-200 cursor-pointer border border-gray-100 block no-underline"> 
@@ -506,10 +514,6 @@
             </a>`;
         }).join('');
     }
-
-    // (Cole aqui suas funções 'updateProfessionalsList', 'initializeDischargeChart', 
-    // 'updateYearChart', e 'updateAltasTotals' que você já tem. 
-    // Elas não precisam de modificação para o mapa)
 
     function updateProfessionalsList(professionals) {
         const container = document.getElementById('top-professionals-container');
@@ -587,6 +591,6 @@
         setText('altas-total', total);
         setText('altas-media', media);
     }
-    
+
 </script>
 {% endblock content %}
