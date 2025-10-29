@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-R">
+    <title>Relatório Karu - {{ level }}</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+
+        body {
+            font-family: sans-serif;
+            font-size: 7.5pt;
+            line-height: 1.3;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 14pt;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 10pt;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            page-break-inside: auto;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 3px 4px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        ul {
+            margin: 0;
+            padding: 0;
+            padding-left: 10px;
+            list-style-type: none;
+        }
+
+        li {
+            margin-bottom: 1px;
+            word-wrap: break-word;
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        #footerContent {
+            text-align: center;
+            font-size: 7pt;
+            color: #777;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+            font-size: 7pt;
+        }
+
+        td {
+            font-size: 7pt;
+        }
+
+        .wrap-text {
+            /* Esta é a parte mais importante: 
+       Força a coluna a ter uma largura máxima (ex: 25% da tabela).
+       Você pode ajustar este percentual se achar muito largo ou estreito.
+    */
+            width: 25%;
+
+            /* Regras de quebra de texto */
+            white-space: normal !important;
+            word-wrap: break-word;
+
+            /* Esta é a regra "agressiva". 
+       Ela quebra a palavra em qualquer lugar se for preciso.
+    */
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Relatório de Acompanhamento Neonatal - Karu</h1>
+    <h2>Nível: {{ level }}
+        {% if start_date and end_date %}
+        (Acompanhamentos Finalizados entre {{ start_date }} e {{ end_date }})
+        {% elif start_date %}
+        (Acompanhamentos Finalizados desde {{ start_date }})
+        {% elif end_date %}
+        (Acompanhamentos Finalizados até {{ end_date }})
+        {% endif %}
+    </h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Região</th>
+                <th>Ativos</th>
+                <th>Críticos</th>
+                <th>% Crít.</th>
+                <th>Alertas</th>
+                <th>% Alert.</th>
+                <th>Estáveis</th>
+                <th>Finaliz.</th>
+                <th>Média IG<br>(sem)</th>
+                <th>Média Peso<br>(g)</th>
+                <th>% AME</th>
+                <th>% Prem.<br>(32s)</th>
+                <th>% MBP<br>(1500g)</th>
+                <th>% EBP<br>(1000g)</th>
+                <th>Principais Sinais (Top 3)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in report_data %}
+            <tr>
+                <td>{{ item.regiao }}</td>
+                <td class="text-center">{{ item.ativos }}</td>
+                <td class="text-center">{{ item.critico }}</td>
+                <td class="text-center">{{ item.perc_critico|default:"-" }}%</td>
+                <td class="text-center">{{ item.alerta }}</td>
+                <td class="text-center">{{ item.perc_alerta|default:"-" }}%</td>
+                <td class="text-center">{{ item.estavel }}</td>
+                <td class="text-center">{{ item.finalizados_periodo }}</td>
+                <td class="text-center">{{ item.avg_gest_age|default:"-" }}</td>
+                <td class="text-center">{{ item.avg_birth_weight|default:"-" }}</td>
+
+                <td class="text-center">{{ item.perc_ame|default:"-" }}%</td>
+                <td class="text-center">{{ item.perc_ext_preterm|default:"-" }}%</td>
+                <td class="text-center">{{ item.perc_vlbw|default:"-" }}%</td>
+                <td class="text-center">{{ item.perc_elbw|default:"-" }}%</td>
+                <td class="wrap-text">
+                    {% if item.top_warning_signs %}
+                    <ul>
+                        {% for sign in item.top_warning_signs %}
+                        <li>{{ sign }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="15" class="text-center">Nenhum dado encontrado para este nível geográfico.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="footerContent">
+        Relatório gerado em {{ generation_date }} pelo Sistema Karu. Página <pdf:pagenumber /> de <pdf:pagecount />
+    </div>
+</body>
+
+</html>
