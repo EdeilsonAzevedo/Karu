@@ -4,7 +4,10 @@ from django.utils.translation import gettext_lazy as _
 
 from ..core.models import BaseModel
 
+contact_email = models.EmailField("Email de Contato", blank=True, null=True)
+
 cpf_validator = RegexValidator(regex=r"^\d{11}$", message="CPF deve ter 11 dígitos numéricos.")
+
 
 class Patient(BaseModel):
     first_name = models.CharField(max_length=100)
@@ -35,8 +38,10 @@ class Patient(BaseModel):
 
     guardian_name = models.CharField("Nome do Responsável", max_length=200, blank=True)
     contact_phone = models.CharField("Telefone de Contato", max_length=20, blank=True)
-    
-    is_active = models.BooleanField("Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo.")
+
+    is_active = models.BooleanField(
+        "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
+    )
 
     is_active = models.BooleanField(
         "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."

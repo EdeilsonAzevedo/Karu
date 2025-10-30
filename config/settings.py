@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "apps.patients",
     "apps.manager",
     "auditlog",
+    'apps.email',
+    'django_celery_results',
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -188,3 +190,44 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+DEBUG = True
+
+CELERY_WORKER_POOL = 'solo'  # Usa pool solo no Windows para evitar problemas de permissão
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Remove o warning de depreciação
+
+# CONFIGURAÇÕES DE EMAIL - 
+
+# Configurações de Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Ou seu provedor de email
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'seu_email@gmail.com'  # Configurar: Email do remetente
+EMAIL_HOST_PASSWORD = 'sua_senha_de_app'  # Configurar: Senha de app (não use senha normal)
+DEFAULT_FROM_EMAIL = 'seu_email@gmail.com'  # Configurar: Email do remetente
+DEFAULT_ALERT_EMAIL = 'email_destinatario@gmail.com'  # Configurar: Email para receber alertas
+
+# URL do site para links nos emails
+SITE_URL = 'http://localhost:8000/'  # Configurar: URL do seu site em produção
+
+# Configurações Celery (Redis)
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Configurar: URL do Redis se diferente
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'America/Sao_Paulo'
+CELERY_CACHE_BACKEND = 'django-cache'
+
+# Configurações de Alertas
+ALERT_SETTINGS = {
+    'weight_loss': {
+        'enabled': True,  # Ativar/desativar alertas de perda de peso
+        'recipients': ['email_destinatario@gmail.com'],  # Configurar: Emails para alertas de peso
+    },
+    'missed_appointment': {
+        'enabled': True,  # Ativar/desativar alertas de consultas atrasadas
+        'recipients': ['email_destinatario@gmail.com'],  # Configurar: Emails para alertas de consultas
+    }
+}

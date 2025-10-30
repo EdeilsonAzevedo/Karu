@@ -35,7 +35,9 @@ def format_changes(log_entry):
 
     # Se a ação for DELETAR, mostre uma mensagem simples.
     if action == LogEntry.Action.DELETE:
-        return f"O registro '{log_entry.object_repr}' foi excluído permanentemente."
+        # Remover tipos técnicos da mensagem de deleção
+        object_repr_clean = limpar_tipos_tecnicos(log_entry.object_repr)
+        return f"O registro '{object_repr_clean}' foi excluído permanentemente."
 
     # Se a ação for ATUALIZAR, mostre apenas os campos que realmente mudaram
     if action == LogEntry.Action.UPDATE:
@@ -49,8 +51,8 @@ def format_changes(log_entry):
 
             # Mensagem especial para ativação/desativação
             if field == "is_active":
-                # Usar o object_repr diretamente como nome
-                usuario_nome = log_entry.object_repr
+                # Usar o object_repr limpo
+                usuario_nome = limpar_tipos_tecnicos(log_entry.object_repr)
 
                 if new is True or str(new).lower() == "true":
                     lines.append(
@@ -60,6 +62,16 @@ def format_changes(log_entry):
                     lines.append(
                         f"• A conta de {usuario_nome} foi desativada (acesso ao sistema removido)"
                     )
+                changes_count += 1
+                continue
+
+            # TRADUZIR STATUS DOS ALERTAS
+            if field == "status":
+                field_name = traduzir_campo(field)
+                # Traduzir os valores de status
+                old_status = traduzir_status_alertas(old)
+                new_status = traduzir_status_alertas(new)
+                lines.append(f'• {field_name}: de "{old_status}" para "{new_status}"')
                 changes_count += 1
                 continue
 
@@ -75,17 +87,45 @@ def format_changes(log_entry):
 
     # Se a ação for CRIAR, mostre informações resumidas
     if action == LogEntry.Action.CREATE:
-        # Tenta identificar o tipo de objeto para mensagem personalizada
         object_type = identificar_tipo_objeto(log_entry.object_repr)
 
         if object_type == "usuário":
             return formatar_criacao_usuario(log_entry, changes)
         elif object_type == "paciente":
             return formatar_criacao_paciente(log_entry, changes)
+        elif object_type == "alerta":
+            return formatar_criacao_alerta(log_entry, changes)
         else:
             return formatar_criacao_generica(log_entry, changes)
 
     return "Ação registrada no sistema."  # Fallback genérico
+
+
+def limpar_tipos_tecnicos(texto):
+    """Remove tipos técnicos  do texto"""
+
+    if not texto:
+        return texto
+
+    # Remover padrões como (missed_appointment), (weight_loss), etc.
+    import re
+
+    texto_limpo = re.sub(r"\s*\([^)]*appointment[^)]*\)", "", texto)
+    texto_limpo = re.sub(r"\s*\([^)]*weight[^)]*\)", "", texto_limpo)
+    texto_limpo = re.sub(r"\s*\([^)]*loss[^)]*\)", "", texto_limpo)
+
+    # Remover status como - pending, - sent, - failed, etc.
+    texto_limpo = re.sub(
+        r"\s*-\s*(pending|sent|failed|cancelled|aguardando_envio|enviado|falha_envio|cancelado)",
+        "",
+        texto_limpo,
+        flags=re.IGNORECASE,
+    )
+
+    # Remover qualquer coisa entre parênteses que seja técnica
+    texto_limpo = re.sub(r"\s*\([^)]*\)", "", texto_limpo)
+
+    return texto_limpo.strip()
 
 
 def traduzir_campo(field_name):
@@ -106,6 +146,11 @@ def traduzir_campo(field_name):
         "user": "Usuário vinculado",
         "created_at": "Data de criação",
         "updated_at": "Última atualização",
+        "alert_type": "Tipo de Alerta",
+        "status": "Status",
+        "title": "Título",
+        "scheduled_for": "Agendado para",
+        "recipient_email": "Email do Destinatário",
     }
     return traducoes.get(field_name, field_name.replace("_", " ").title())
 
@@ -124,13 +169,34 @@ def formatar_valor(valor):
 
 
 def identificar_tipo_objeto(object_repr):
-    """Identifica o tipo de objeto baseado na representação"""
     repr_lower = object_repr.lower()
     if "user" in repr_lower or "usuário" in repr_lower or "@" in repr_lower:
         return "usuário"
     elif "patient" in repr_lower or "paciente" in repr_lower:
         return "paciente"
+    elif (
+        "alert" in repr_lower
+        or "alerta" in repr_lower
+        or "perda de peso" in repr_lower
+        or "consulta atrasada" in repr_lower
+    ):
+        return "alerta"
     return "registro"
+
+
+def traduzir_status_alertas(status):
+    """Traduz os status técnicos para português amigável"""
+    traducoes_status = {
+        "pending": "Aguardando Envio",
+        "sent": "Enviado",
+        "failed": "Falha no Envio",
+        "cancelled": "Cancelado",
+        "aguardando_envio": "Aguardando Envio",
+        "enviado": "Enviado",
+        "falha_envio": "Falha no Envio",
+        "cancelado": "Cancelado",
+    }
+    return traducoes_status.get(str(status).lower(), str(status))
 
 
 def formatar_criacao_usuario(log_entry, changes):
@@ -206,6 +272,26 @@ def formatar_criacao_generica(log_entry, changes):
                 changes[field][1] if isinstance(changes[field], (list, tuple)) else changes[field]
             )
             if nome and len(str(nome)) < 100:
-                return f"Registro criado: {nome}"
+                # Limpar tipos técnicos do nome
+                nome_limpo = limpar_tipos_tecnicos(nome)
+                return f"Registro criado: {nome_limpo}"
 
-    return f"Novo registro criado: {log_entry.object_repr}"
+    # Limpar tipos técnicos do object_repr
+    object_repr_clean = limpar_tipos_tecnicos(log_entry.object_repr)
+    return f"Novo registro criado: {object_repr_clean}"
+
+
+def formatar_criacao_alerta(log_entry, changes):
+    """Formata criação de alerta de forma amigável"""
+    titulo = (
+        changes.get("title", ("", ""))[1]
+        if isinstance(changes.get("title"), (list, tuple))
+        else changes.get("title", "")
+    )
+
+    # Limpar tipos técnicos do título
+    if titulo:
+        titulo_limpo = limpar_tipos_tecnicos(titulo)
+        return f"Alerta criado: {titulo_limpo}"
+    else:
+        return "Novo alerta criado no sistema"
