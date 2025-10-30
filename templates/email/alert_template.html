@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerta - Sistema Karu</title>
+</head>
+<body style="margin: 0; padding: 0; background: #f7fafc; font-family: Arial, sans-serif;">
+    <div style="max-width: 700px; margin: 20px auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <!-- Header -->
+        <div style="background: #dc2626; color: white; padding: 25px 30px; text-align: center;">
+            <h1 style="margin: 0 0 8px 0; font-size: 28px; font-weight: bold; color: white;">Sistema Karu</h1>
+            <p style="margin: 0; font-size: 16px; color: white;">Monitoramento Neonatal</p>
+        </div>
+
+        <!-- Banner de Alerta -->
+        <div style="background: #fef2f2; border-left: 6px solid #dc2626; padding: 20px 30px; margin: 0;">
+            <div style="color: #dc2626; font-size: 22px; font-weight: bold; margin: 0 0 10px 0;">{{ alert.title }}</div>
+            <p style="color: #7f1d1d; font-size: 16px; margin: 0; line-height: 1.5; font-weight: 600;">
+                {% if alert.alert_type == "weight_loss" %}
+                    Foi detectada perda de peso significativa que requer atenção imediata.
+                {% else %}
+                    Paciente não compareceu à consulta agendada. Ação necessária.
+                {% endif %}
+            </p>
+        </div>
+
+        <div style="padding: 30px;">
+            <!-- Informações do Paciente -->
+            <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+                <h3 style="color: #2d3748; font-size: 16px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase;">Informações do Paciente</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <div style="font-size: 13px; color: #4a5568; font-weight: 600; margin-bottom: 6px; text-transform: uppercase;">Nome</div>
+                        <div style="font-size: 16px; color: #1a202c; font-weight: bold;">{{ patient.first_name }} {{ patient.last_name|default:"" }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: #4a5568; font-weight: 600; margin-bottom: 6px; text-transform: uppercase;">Nascimento</div>
+                        <div style="font-size: 16px; color: #1a202c; font-weight: bold;">{{ patient.date_of_birth|date:"d/m/Y" }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: #4a5568; font-weight: 600; margin-bottom: 6px; text-transform: uppercase;">Tipo de Alerta</div>
+                        <div style="font-size: 16px; color: #1a202c; font-weight: bold;">{{ alert.get_alert_type_display }}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: #4a5568; font-weight: 600; margin-bottom: 6px; text-transform: uppercase;">Data do Alerta</div>
+                        <div style="font-size: 16px; color: #1a202c; font-weight: bold;">{% now "d/m/Y H:i" %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalhes do Alerta -->
+            <div style="background: #fff7ed; border-radius: 8px; padding: 20px; border: 1px solid #fed7aa; margin-bottom: 25px;">
+                <h3 style="color: #2d3748; font-size: 16px; font-weight: bold; margin: 0 0 15px 0; text-transform: uppercase;">Detecção do Alerta</h3>
+                
+                {% if alert.alert_type == "weight_loss" %}
+                <div style="display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ea580c;">
+                    <span style="color: #ea580c; margin-right: 12px; font-weight: bold; font-size: 18px;">•</span>
+                    <span style="color: #7c2d12; font-weight: 600; font-size: 15px;">Perda de peso significativa detectada em múltiplas medições</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ea580c;">
+                    <span style="color: #ea580c; margin-right: 12px; font-weight: bold; font-size: 18px;">•</span>
+                    <span style="color: #7c2d12; font-weight: 600; font-size: 15px;">Critérios: perda mínima de 30g e redução percentual ≥ 1.0%</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ea580c;">
+                    <span style="color: #ea580c; margin-right: 12px; font-weight: bold; font-size: 18px;">•</span>
+                    <span style="color: #7c2d12; font-weight: 600; font-size: 15px;">Monitoramento contínuo recomendado</span>
+                </div>
+                {% else %}
+                <div style="display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ea580c;">
+                    <span style="color: #ea580c; margin-right: 12px; font-weight: bold; font-size: 18px;">•</span>
+                    <span style="color: #7c2d12; font-weight: 600; font-size: 15px;">Paciente não compareceu à consulta agendada</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ea580c;">
+                    <span style="color: #ea580c; margin-right: 12px; font-weight: bold; font-size: 18px;">•</span>
+                    <span style="color: #7c2d12; font-weight: 600; font-size: 15px;">Acompanhamento necessário para reagendamento</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ea580c;">
+                    <span style="color: #ea580c; margin-right: 12px; font-weight: bold; font-size: 18px;">•</span>
+                    <span style="color: #7c2d12; font-weight: 600; font-size: 15px;">Verificar situação do paciente</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Botão para Prontuário -->
+            <div style="text-align: center; margin: 30px 0 20px 0; padding: 25px; background: #f1f5f9; border-radius: 10px; border: 2px dashed #cbd5e1;">
+                <a href="{{ site_url }}/patients/{{ patient.pk }}/" 
+                   style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 18px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Acessar Prontuário Completo
+                </a>
+                <p style="margin-top: 15px; color: #4a5568; font-size: 14px; font-weight: 600;">Clique para ver todos os detalhes e histórico completo do paciente</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #1a202c; color: #e2e8f0; text-align: center; padding: 25px 30px;">
+            <p style="margin: 5px 0; color: #e2e8f0;"><strong>Sistema Karu</strong></p>
+            <p style="margin: 5px 0; color: #e2e8f0;">Email automático - Não responder</p>
+            <p style="margin: 5px 0; color: #e2e8f0;">{% now "d/m/Y H:i" %}</p>
+        </div>
+    </div>
+</body>
+</html>

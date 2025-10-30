@@ -25,6 +25,16 @@ jobs:
         ports:
           - 5432:5432
 
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
     - uses: actions/checkout@v4
 
@@ -38,27 +48,44 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 -
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+    - name: Configure Poetry
+      run: poetry config virtualenvs.create false
+
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
         path: ~/.cache/pypoetry
         key: poetry-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          poetry-
 
     - name: Install dependencies
-      run: poetry install
+      run: poetry install --no-root
+
+    - name: Run migrations
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/karu_test
+        DJANGO_SETTINGS_MODULE: config.settings
+      run: |
+        poetry run python manage.py migrate
 
     - name: Run tests
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/karu_test
+        DJANGO_SETTINGS_MODULE: config.settings
+        CELERY_BROKER_URL: redis://localhost:6379/0
       run: |
-        poetry run pytest --cov=apps --cov-report=term-missing -v
+        poetry run pytest --cov=apps --cov-report=term-missing --cov-report=xml -v
 
-    - name: Lint
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Lint with Ruff
       run: poetry run ruff check apps
-      continue-on-error: true
 
-    - name: Lint & Format check
-      run: |
-        poetry run ruff check apps
-        poetry run ruff format --check apps
-      continue-on-error: true
+    - name: Check formatting with Ruff
+      run: poetry run ruff format --check apps
