@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('patients', '0003_remove_exam_record_remove_vaccine_record_and_more'),
-        ('patients', '0004_patient_is_active'),
+        ("patients", "0003_remove_exam_record_remove_vaccine_record_and_more"),
+        ("patients", "0004_patient_is_active"),
     ]
 
-    operations = [
-    ]
+    operations = []
