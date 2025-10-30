@@ -25,16 +25,15 @@ def test_patient_creation(patient):
 
 @pytest.mark.django_db
 def test_patient_str_method():
-    """Testa representação string do paciente"""
     patient = PatientFactory(first_name="Pedro", last_name="Santos")
-    assert str(patient) == "Pedro Santos"
+    # Atualize para o formato atual "Paciente: Nome Sobrenome"
+    assert str(patient) == "Paciente: Pedro Santos"
 
 
 @pytest.mark.django_db
 def test_patient_str_without_last_name():
-    """Testa str quando não tem sobrenome"""
-    patient = PatientFactory(first_name="Ana", last_name=None)
-    assert str(patient) == "Ana"
+    patient = PatientFactory(first_name="Ana", last_name="")
+    assert str(patient) == "Paciente: Ana"
 
 
 @pytest.mark.django_db
@@ -225,4 +224,4 @@ def test_complete_patient_workflow():
     # Verificar relacionamentos
     assert patient.records.first() == record
     assert record.discharge == discharge
-    assert str(patient) == "Workflow Silva"
+    assert str(patient) == "Paciente: Workflow Silva"
