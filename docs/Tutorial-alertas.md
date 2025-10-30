@@ -17,13 +17,17 @@ sudo apt install python3 python3-pip python3-venv
 ```
 
 ## Instalar todas as dependências Python necessárias
+```bash
 pip install celery redis django-celery-results django-celery-beat
+```
 
 LINUX:
 # Ubuntu/Debian
+```
 sudo apt install redis-server
 sudo systemctl start redis
 sudo systemctl enable redis
+```
 
 _________________________________________________________
 
