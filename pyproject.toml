@@ -24,6 +24,7 @@ dependencies = [
     "dj-database-url (>=3.0.1,<4.0.0)",
     "whitenoise (>=6.11.0,<7.0.0)",
     "python-dotenv (>=1.1.1,<2.0.0)",
+    "pandas (>=2.3.3,<3.0.0)",
 
 ]
 
