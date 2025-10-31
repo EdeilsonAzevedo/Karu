@@ -1,10 +1,13 @@
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ..core.models import BaseModel
+from .utils import convert_days_to_age_components
 
 cpf_validator = RegexValidator(regex=r"^\d{11}$", message="CPF deve ter 11 dígitos numéricos.")
+
 
 class Patient(BaseModel):
     first_name = models.CharField(max_length=100)
@@ -35,8 +38,10 @@ class Patient(BaseModel):
 
     guardian_name = models.CharField("Nome do Responsável", max_length=200, blank=True)
     contact_phone = models.CharField("Telefone de Contato", max_length=20, blank=True)
-    
-    is_active = models.BooleanField("Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo.")
+
+    is_active = models.BooleanField(
+        "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
+    )
 
     is_active = models.BooleanField(
         "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
@@ -49,6 +54,30 @@ class Patient(BaseModel):
     address_city = models.CharField("Cidade", max_length=100, blank=True)
     address_state = models.CharField("UF", max_length=2, blank=True)
     address_zip_code = models.CharField("CEP", max_length=9, blank=True)
+
+    def get_age_details(self) -> dict:
+        """
+        Calcula e retorna as idades cronológica e corrigida do paciente
+        de forma estruturada (meses, semanas, dias).
+        """
+        today = timezone.now().date()
+
+        # 1. Idade Cronológica
+        chronological_timedelta = today - self.date_of_birth
+        chronological_days = chronological_timedelta.days
+
+        # 2. Idade Corrigida
+        days_from_gestation = (self.gestational_age_weeks * 7) + (self.gestational_age_days or 0)
+        days_to_full_term = (40 * 7) - days_from_gestation
+        corrected_days = chronological_days - days_to_full_term
+
+        # 3. Usa o utilitário para formatar ambos
+        age_details = {
+            "chronological": convert_days_to_age_components(chronological_days),
+            "corrected": convert_days_to_age_components(corrected_days),
+        }
+
+        return age_details
 
     def __str__(self):
         if self.last_name:
