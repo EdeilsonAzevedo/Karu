@@ -1,0 +1,363 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Painel de Relatórios - Karu{% endblock %}
+
+{% block content %}
+<div class="p-4 md:p-8 max-w-7xl mx-auto">
+    
+    <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body">
+            <form id="report-form" action="{% url 'manager:generate_report' %}" method="GET" target="_blank">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control w-full">
+                        <label class="label" for="level"><span class="label-text font-semibold">Nível de Agrupamento</span></label>
+                        <select name="level" id="level" class="select select-bordered" required>
+                            <option value="municipio">Por Município</option>
+                            <option value="microrregiao">Por Microrregião</option>
+                            <option value="macrorregiao" selected>Por Macrorregião</option>
+                        </select>
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label" for="format"><span class="label-text font-semibold">Formato do Download</span></label>
+                        <select name="format" id="format" class="select select-bordered" required>
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="divider mt-6 mb-4">Período</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control w-full">
+                        <label class="label" for="start_date"><span class="label-text font-semibold">Data de Início</span></label>
+                        <input type="date" name="start_date" id="start_date" class="input input-bordered w-full" />
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label" for="end_date"><span class="label-text font-semibold">Data Final</span></label>
+                        <input type="date" name="end_date" id="end_date" class="input input-bordered w-full" />
+                    </div>
+                </div>
+                <div class="card-actions justify-end mt-8 gap-3">
+                    <button type="button" id="update-charts-btn" class="btn btn-secondary btn-lg w-full md:w-auto">
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                        Atualizar Gráficos
+                    </button>
+                    <button type="submit" class="btn btn-primary btn-lg w-full md:w-auto">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        Gerar e Baixar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="charts-loader" class="text-center p-10 hidden">
+        <span class="loading loading-lg loading-spinner text-primary"></span>
+        <p class="text-base-content/70 mt-2">Carregando dados...</p>
+    </div>
+    <div id="charts-error" class="alert alert-error mt-6 hidden">
+        <i data-lucide="alert-circle"></i>
+        <span></span>
+    </div>
+
+    <div id="charts-container" class="mt-8 hidden">
+        
+        <h3 class="text-xl font-semibold mb-4 text-base-content/90">Resumo Geral</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body items-center text-center p-4">
+                    <h2 class="text-3xl font-bold text-primary" id="kpi-total-ativos">0</h2>
+                    <p class="text-base-content/70">Pacientes Ativos</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body items-center text-center p-4">
+                    <h2 class="text-3xl font-bold text-error" id="kpi-total-criticos">0</h2>
+                    <p class="text-base-content/70">Casos Críticos</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body items-center text-center p-4">
+                    <h2 class="text-3xl font-bold text-warning" id="kpi-total-alertas">0</h2>
+                    <p class="text-base-content/70">Casos em Alerta</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body items-center text-center p-4">
+                    <h2 class="text-3xl font-bold text-success" id="kpi-total-finalizados">0</h2>
+                    <p class="text-base-content/70">Finalizados no Período</p>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-4 text-base-content/90">Destaques Regionais (Proporcional)</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body p-4">
+                    <p class="text-sm text-base-content/70">Região Mais Crítica</p>
+                    <h2 class="text-2xl font-bold text-error" id="kpi-top-critico-regiao">N/D</h2>
+                    <p class="text-lg font-semibold text-error/80" id="kpi-top-critico-perc">0.0%</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body p-4">
+                    <p class="text-sm text-base-content/70">Região com Mais Alertas</p>
+                    <h2 class="text-2xl font-bold text-warning" id="kpi-top-alerta-regiao">N/D</h2>
+                    <p class="text-lg font-semibold text-warning/80" id="kpi-top-alerta-perc">0.0%</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body p-4">
+                    <p class="text-sm text-base-content/70">Pior Taxa de AME</p>
+                    <h2 class="text-2xl font-bold text-secondary" id="kpi-bottom-ame-regiao">N/D</h2>
+                    <p class="text-lg font-semibold text-secondary/80" id="kpi-bottom-ame-perc">0.0%</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body p-4">
+                    <p class="text-sm text-base-content/70">Região com Maior Risco (Prem. <32s)</p>
+                    <h2 class="text-2xl font-bold text-info" id="kpi-top-risco-regiao">N/D</h2>
+                    <p class="text-lg font-semibold text-info/80" id="kpi-top-risco-perc">0.0%</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body p-4">
+                    <p class="text-sm text-base-content/70">Maior Taxa de MBP (<1500g)</p>
+                    <h2 class="text-2xl font-bold text-info" id="kpi-top-vlbw-regiao">N/D</h2>
+                    <p class="text-lg font-semibold text-info/80" id="kpi-top-vlbw-perc">0.0%</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-md border border-base-300">
+                <div class="card-body p-4">
+                    <p class="text-sm text-base-content/70">Maior Taxa de EBP (<1000g)</p>
+                    <h2 class="text-2xl font-bold text-info" id="kpi-top-elbw-regiao">N/D</h2>
+                    <p class="text-lg font-semibold text-info/80" id="kpi-top-elbw-perc">0.0%</p>
+                </div>
+            </div>
+        </div>
+
+
+        <h3 class="text-xl font-semibold mb-4 text-base-content/90">Gráficos Detalhados</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 card bg-base-100 shadow-xl border border-base-300">
+                <div class="card-body">
+                    <h3 class="card-title">Distribuição Geográfica (Nº Absoluto)</h3>
+                    <canvas id="geoChart"></canvas>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-xl border border-base-300">
+                <h3 class="card-title p-4">Status Geral dos Pacientes (Total)</h3>
+                <div class="card-body">
+                    
+                    <div class="max-h-64 flex justify-center items-center">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="lg:col-span-3 card bg-base-100 shadow-xl border border-base-300">
+                <div class="card-body">
+                    <h3 class="card-title">Taxas de Risco por Região (%)</h3>
+                    <canvas id="proportionalStatusChart"></canvas>
+                </div>
+            </div>
+            <div class="lg:col-span-3 card bg-base-100 shadow-xl border border-base-300">
+                <div class="card-body">
+                    <h3 class="card-title">Perfil de Risco (Média Geral)</h3>
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // IDs (Igual)
+        const API_URL = "{% url 'manager:api_report_charts' %}";
+        const form = document.getElementById('report-form');
+        const updateButton = document.getElementById('update-charts-btn');
+        const loader = document.getElementById('charts-loader');
+        const errorDiv = document.getElementById('charts-error');
+        const chartsContainer = document.getElementById('charts-container');
+
+        // Contextos (Igual)
+        let chartInstances = {
+            geo: null,
+            status: null,
+            risk: null,
+            proportional: null
+        };
+
+        // Função fetchAndDrawCharts (Igual)
+        async function fetchAndDrawCharts() {
+            loader.classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+            chartsContainer.classList.add('hidden');
+            const formData = new FormData(form);
+            const params = new URLSearchParams({
+                level: formData.get('level'),
+                start_date: formData.get('start_date') || '',
+                end_date: formData.get('end_date') || '',
+            });
+            try {
+                const response = await fetch(`${API_URL}?${params.toString()}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Erro ${response.status}: Falha ao buscar dados.`);
+                }
+                const data = await response.json();
+                updateCharts(data);
+                updateKPIs(data.summary_kpis, data.regional_highlights);
+                loader.classList.add('hidden');
+                chartsContainer.classList.remove('hidden');
+            } catch (error) {
+                console.error('Erro ao buscar dados dos gráficos:', error);
+                loader.classList.add('hidden');
+                errorDiv.querySelector('span').textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // ATUALIZADO: Função updateKPIs
+        function updateKPIs(kpis, highlights) {
+            // KPIs de Totais
+            document.getElementById('kpi-total-ativos').textContent = kpis.total_ativos;
+            document.getElementById('kpi-total-criticos').textContent = kpis.total_criticos;
+            document.getElementById('kpi-total-alertas').textContent = kpis.total_alertas;
+            document.getElementById('kpi-total-finalizados').textContent = kpis.total_finalizados;
+
+            // KPIs de Destaques
+            document.getElementById('kpi-top-critico-regiao').textContent = highlights.top_critico.regiao;
+            document.getElementById('kpi-top-critico-perc').textContent = highlights.top_critico.perc.toFixed(1) + '%';
+            
+            document.getElementById('kpi-top-alerta-regiao').textContent = highlights.top_alerta.regiao;
+            document.getElementById('kpi-top-alerta-perc').textContent = highlights.top_alerta.perc.toFixed(1) + '%';
+
+            document.getElementById('kpi-top-risco-regiao').textContent = highlights.top_risco_prem.regiao;
+            document.getElementById('kpi-top-risco-perc').textContent = highlights.top_risco_prem.perc.toFixed(1) + '%';
+
+            // --- NOVOS KPIs JS ---
+            document.getElementById('kpi-bottom-ame-regiao').textContent = highlights.bottom_ame.regiao;
+            document.getElementById('kpi-bottom-ame-perc').textContent = highlights.bottom_ame.perc.toFixed(1) + '%';
+
+            document.getElementById('kpi-top-vlbw-regiao').textContent = highlights.top_vlbw.regiao;
+            document.getElementById('kpi-top-vlbw-perc').textContent = highlights.top_vlbw.perc.toFixed(1) + '%';
+
+            document.getElementById('kpi-top-elbw-regiao').textContent = highlights.top_elbw.regiao;
+            document.getElementById('kpi-top-elbw-perc').textContent = highlights.top_elbw.perc.toFixed(1) + '%';
+        }
+
+        // Função updateCharts (Igual)
+        function updateCharts(data) {
+            Object.values(chartInstances).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            const textColor = isDark ? '#A6ADBB' : '#374151';
+            Chart.defaults.color = textColor;
+            Chart.defaults.borderColor = gridColor;
+
+            // (Gráfico 1: Geo)
+            const geoCtx = document.getElementById('geoChart').getContext('2d');
+            chartInstances.geo = new Chart(geoCtx, {
+                type: 'bar',
+                data: data.geo_distribution,
+                options: {
+                    responsive: true,
+                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+                    plugins: { legend: { position: 'top' } }
+                }
+            });
+
+            // (Gráfico 2: Status)
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            chartInstances.status = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.status_distribution.labels,
+                    datasets: [{
+                        label: 'Pacientes',
+                        data: data.status_distribution.data,
+                        backgroundColor: ['rgba(34, 197, 94, 0.7)', 'rgba(245, 158, 11, 0.7)', 'rgba(239, 68, 68, 0.7)'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+            
+            // (Gráfico 3: Proporcional)
+            const propCtx = document.getElementById('proportionalStatusChart').getContext('2d');
+            chartInstances.proportional = new Chart(propCtx, {
+                type: 'bar',
+                data: data.proportional_status,
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { stacked: false },
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { callback: function(value) { return value + '%' } }
+                        }
+                    },
+                    plugins: { 
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; } } }
+                    }
+                }
+            });
+
+            // (Gráfico 4: Risco)
+            const riskCtx = document.getElementById('riskChart').getContext('2d');
+            chartInstances.risk = new Chart(riskCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.risk_profile.labels,
+                    datasets: [{
+                        label: '% de Pacientes Ativos',
+                        data: data.risk_profile.data,
+                        backgroundColor: 'rgba(96, 165, 250, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: { 
+                            beginAtZero: true,
+                            ticks: { callback: function(value) { return value + '%' } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.x.toFixed(1) + '%'; } } }
+                    }
+                }
+            });
+        }
+
+        // --- Event Listeners (Igual) ---
+        updateButton.addEventListener('click', fetchAndDrawCharts);
+        
+        const endDateInput = document.getElementById('end_date');
+        const startDateInput = document.getElementById('start_date');
+        
+        if (!endDateInput.value) {
+            endDateInput.valueAsDate = new Date();
+        }
+        if (!startDateInput.value) {
+            let thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            startDateInput.valueAsDate = thirtyDaysAgo;
+        }
+
+        fetchAndDrawCharts(); // Carga inicial
+    });
+</script>
+{% endblock %}
