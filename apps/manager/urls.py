@@ -9,4 +9,7 @@ urlpatterns = [
     path("dashboard/", views.manager_dashboard, name="dashboard"),
     path("api/dashboard-stats/", views.dashboard_stats_api, name="api_dashboard_stats"),
     path("api/map-counts/", views.api_map_counts, name="api_map_counts"),
+    path("reports/", views.report_page_view, name="report_page"),
+    path("reports/generate/", views.generate_report_view, name="generate_report"),
+    path("api/report-charts/", views.api_report_charts_data, name="api_report_charts"),
 ]
