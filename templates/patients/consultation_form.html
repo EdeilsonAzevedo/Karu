@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %} {# Carrega os arquivos estáticos, se necessário #}
 
-{% block title %}Consulta de Rotina - {{ patient.first_name }} - Karu{% endblock title %}
+{% block title %}{% if is_editing %}Editar Consulta{% else %}Consulta de Rotina{% endif %} - {{ patient.first_name }} - Karu{% endblock title %}
 
 {% block content %}
 <div class="px-6 py-4 bg-base-200">
@@ -220,10 +220,15 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-end mb-8">
-            <button type="button" class="btn btn-outline" onclick="salvarRascunho()"><i data-lucide="save"
-                    class="w-4 h-4"></i> Salvar Rascunho</button>
-            <button type="submit" class="btn btn-primary"><i data-lucide="check" class="w-4 h-4"></i> Finalizar
-                Consulta</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="check" class="w-4 h-4"></i> Finalizar Consulta</button>
+
+            <button type="submit" class="btn btn-primary">
+                {% if is_editing %}
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Salvar Alterações
+                {% else %}
+                    <i data-lucide="check" class="w-4 h-4"></i> Finalizar Consulta
+                {% endif %}
+            </button>
         </div>
     </form>
 
