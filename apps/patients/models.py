@@ -6,6 +6,7 @@ from ..core.models import BaseModel
 
 cpf_validator = RegexValidator(regex=r"^\d{11}$", message="CPF deve ter 11 dígitos numéricos.")
 
+
 class Patient(BaseModel):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True, null=True)
@@ -35,8 +36,10 @@ class Patient(BaseModel):
 
     guardian_name = models.CharField("Nome do Responsável", max_length=200, blank=True)
     contact_phone = models.CharField("Telefone de Contato", max_length=20, blank=True)
-    
-    is_active = models.BooleanField("Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo.")
+
+    is_active = models.BooleanField(
+        "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
+    )
 
     is_active = models.BooleanField(
         "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
@@ -115,7 +118,7 @@ class InterdisciplinaryEvaluation(BaseModel):
 
 
 class Exam(BaseModel):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="exams")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="exams")
     type = models.CharField(max_length=50)
     result = models.TextField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
@@ -123,7 +126,7 @@ class Exam(BaseModel):
 
 
 class Vaccine(BaseModel):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="vaccines")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="vaccines")
     name = models.CharField(max_length=50)
     date = models.DateField()
     lot = models.CharField(max_length=50, blank=True, null=True)
