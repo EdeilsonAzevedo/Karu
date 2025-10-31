@@ -89,7 +89,7 @@ def signup_gestor(request):
         if form.is_valid():
             # Passe o request para o form poder acessar o usuário atual
             form.set_actor(request.user)
-            user = form.save(request=request)
+            form.save(request=request)
             messages.success(request, "Gestor criado com sucesso.")
             return redirect("home")
     else:
