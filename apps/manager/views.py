@@ -283,10 +283,11 @@ def dashboard_stats_api(request):
         data_atraso_str = ""
 
         if latest_consultation:
-            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()
+            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()  # type: ignore
 
             try:
-                consultation_details = latest_consultation.consultation_details
+                consultation_details = latest_consultation.consultation_details  # type: ignore
+
                 if (
                     consultation_details
                     and consultation_details.next_appointment_date
@@ -301,7 +302,7 @@ def dashboard_stats_api(request):
             critico_count += 1
             patient_data["real_status"] = "critico"
             sign = (
-                latest_consultation.warning_signs.filter(is_present=True).first()
+                latest_consultation.warning_signs.filter(is_present=True).first()  # type: ignore
                 if latest_consultation
                 else None
             )
@@ -315,7 +316,7 @@ def dashboard_stats_api(request):
             patient_data["real_status"] = "alerta"
             if sinal_count == 1:
                 sign = (
-                    latest_consultation.warning_signs.filter(is_present=True).first()
+                    latest_consultation.warning_signs.filter(is_present=True).first()  # type: ignore
                     if latest_consultation
                     else None
                 )
@@ -444,10 +445,12 @@ def api_map_counts(request):
         )
 
         if latest_consultation:
-            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()
+            # 4. Busca os sinais e detalhes (N+1 query)
+            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()  # type: ignore
 
             try:
-                consultation_details = latest_consultation.consultation_details
+                consultation_details = latest_consultation.consultation_details  # type: ignore
+
                 if (
                     consultation_details
                     and consultation_details.next_appointment_date

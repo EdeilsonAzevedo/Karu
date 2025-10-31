@@ -18,6 +18,7 @@ from .forms import (
     RecordForm,
     VaccineForm,
 )
+from .growth_charts import get_growth_chart_data
 from .models import (
     ClinicalEvaluation,
     ClinicalEvaluationType,
@@ -152,15 +153,15 @@ def patient_edit(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     try:
         record = Record.objects.get(patient=patient, record_type="discharge")
-        discharge = record.discharge
-    except (Record.DoesNotExist, Record.discharge.RelatedObjectDoesNotExist):
+        discharge = record.discharge  # type: ignore
+    except (Record.DoesNotExist, Record.discharge.RelatedObjectDoesNotExist):  # type: ignore
         record = None
         discharge = None
 
     existing_clinical_evals = (
-        {e.type: e for e in record.clinical_evaluations.all()} if record else {}
+        {e.type: e for e in record.clinical_evaluations.all()} if record else {}  # type: ignore
     )
-    existing_team_evals = {e.area: e for e in record.team_evaluations.all()} if record else {}
+    existing_team_evals = {e.area: e for e in record.team_evaluations.all()} if record else {}  # type: ignore
 
     if request.method == "POST":
         patient_form = PatientForm(request.POST, instance=patient)
@@ -255,92 +256,6 @@ def patient_edit(request, pk):
     return render(request, "patients/edit.html", context)
 
 
-def _get_growth_chart_data(patient):
-    # O cálculo da idade corrigida precisa dos dados de nascimento do paciente
-    gestational_weeks_at_birth = patient.gestational_age_weeks
-    gestational_days_at_birth = patient.gestational_age_days or 0
-    date_of_birth = patient.date_of_birth
-
-    records_for_chart = (
-        Record.objects.filter(
-            Q(consultation_details__isnull=False) | Q(discharge__isnull=False), patient=patient
-        )
-        .order_by("date")
-        .distinct()
-    )
-
-    chart_labels = []
-    patient_weight_data = []
-    patient_length_data = []
-    patient_head_data = []
-
-    for rec in records_for_chart:
-        # CÁLCULO DA IDADE CORRIGIDA PARA CADA PONTO DO GRÁFICO
-        chronological_age_days = (rec.date - date_of_birth).days
-
-        # Dias que faltavam para chegar a 40 semanas
-        days_to_full_term = (40 * 7) - (
-            (gestational_weeks_at_birth * 7) + gestational_days_at_birth
-        )
-
-        corrected_age_days = chronological_age_days - days_to_full_term
-        if corrected_age_days < 0:
-            corrected_age_days = 0  # Idade corrigida não pode ser negativa
-
-        corrected_age_weeks = round(corrected_age_days / 7, 1)
-        chart_labels.append(corrected_age_weeks)
-
-        # Pega os dados da consulta ou da alta
-        data_source = getattr(rec, "consultation_details", None) or getattr(rec, "discharge", None)
-
-        if data_source:
-            patient_weight_data.append(float(data_source.weight) if data_source.weight else None)
-            patient_length_data.append(float(data_source.length) if data_source.length else None)
-            patient_head_data.append(
-                float(data_source.head_circumference) if data_source.head_circumference else None
-            )
-
-    # LÓGICA DE PERCENTIL APENAS PARA DEMONSTRAÇÃO VISUAL
-    # Tem que substituir essa lógica por uma busca em tabelas de referencia da Intergrowth-21
-    # Esses valores servem apenas pro gráfico aparecer.
-    # PESO
-    weight_p10 = [weight * 0.9 if weight else None for weight in patient_weight_data]
-    weight_p50 = [weight * 1.0 if weight else None for weight in patient_weight_data]
-    weight_p90 = [weight * 1.1 if weight else None for weight in patient_weight_data]
-
-    # COMPRIMENTO
-    length_p10 = [length * 0.95 if length else None for length in patient_length_data]
-    length_p50 = [length * 1.0 if length else None for length in patient_length_data]
-    length_p90 = [length * 1.05 if length else None for length in patient_length_data]
-
-    # PERÍMETRO CEFÁLICO
-    head_p10 = [head * 0.98 if head else None for head in patient_head_data]
-    head_p50 = [head * 1.0 if head else None for head in patient_head_data]
-    head_p90 = [head * 1.02 if head else None for head in patient_head_data]
-
-    return {
-        "chart_labels": chart_labels,
-        "weight_data": {
-            "patient": patient_weight_data,
-            "p10": weight_p10,
-            "p50": weight_p50,
-            "p90": weight_p90,
-        },
-        "length_data": {
-            "patient": patient_length_data,
-            "p10": length_p10,
-            "p50": length_p50,
-            "p90": length_p90,
-        },
-        "head_data": {
-            "patient": patient_head_data,
-            "p10": head_p10,
-            "p50": head_p50,
-            "p90": head_p90,
-        },
-    }
-
-
 def get_weight_gain_analysis_data(patient):
     # Busca todos os registros com peso, ordenados por data
     records_with_weight = (
@@ -375,13 +290,13 @@ def get_weight_gain_analysis_data(patient):
         # Checa de forma segura se é um registro de consulta com peso
         if (
             hasattr(rec, "consultation_details")
-            and rec.consultation_details
-            and rec.consultation_details.weight is not None
+            and rec.consultation_details  # type: ignore
+            and rec.consultation_details.weight is not None  # type: ignore
         ):
-            weight = float(rec.consultation_details.weight)
+            weight = float(rec.consultation_details.weight)  # type: ignore
         # Se não for, checa de forma segura se é um registro de alta com peso
-        elif hasattr(rec, "discharge") and rec.discharge and rec.discharge.weight is not None:
-            weight = float(rec.discharge.weight)
+        elif hasattr(rec, "discharge") and rec.discharge and rec.discharge.weight is not None:  # type: ignore
+            weight = float(rec.discharge.weight)  # type: ignore
 
         # Só adiciona à lista se um peso válido foi encontrado
         if weight is not None:
@@ -443,7 +358,7 @@ def get_weight_gain_analysis_data(patient):
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
-    records_queryset = patient.records.all().order_by("-date")
+    records_queryset = patient.records.all().order_by("-date")  # type: ignore
 
     query_text = request.GET.get("q")
     if query_text:
@@ -459,7 +374,7 @@ def patient_detail(request, pk):
     patient_vaccines = patient.vaccines.all().order_by("-date")
 
     professional_strings = (
-        patient.records.exclude(professional__isnull=True)
+        patient.records.exclude(professional__isnull=True)  # type: ignore
         .exclude(professional__exact="")
         .values_list("professional", flat=True)
         .distinct()
@@ -471,29 +386,10 @@ def patient_detail(request, pk):
         role = parts[1].strip() if len(parts) > 1 else "Não especificado"
         processed_professionals.append({"name": name, "role": role})
 
-    chart_context = _get_growth_chart_data(patient)
+    chart_context = get_growth_chart_data(patient)
     weight_gain_context = get_weight_gain_analysis_data(patient)
 
-    today = timezone.now().date()
-    age_timedelta = today - patient.date_of_birth
-    age_in_days = age_timedelta.days
-    for record in consultation_records:
-        present_warning_count = 0
-        # Acessar .all() aqui é eficiente por causa do prefetch_related
-        for sign in record.warning_signs.all():
-            if sign.is_present:
-                present_warning_count += 1
-        # Anexa a contagem diretamente ao objeto record
-        record.present_warning_count = present_warning_count
-
     # Lógica de idade corrigida no header
-    days_from_gestation = (patient.gestational_age_weeks * 7) + (patient.gestational_age_days or 0)
-    days_to_full_term = (40 * 7) - days_from_gestation
-    corrected_age_in_days = age_in_days - days_to_full_term
-    if corrected_age_in_days < 0:
-        corrected_age_in_days = 0
-    corrected_age_weeks = corrected_age_in_days // 7
-    corrected_age_remaining_days = corrected_age_in_days % 7
 
     patient_status = {
         "text": "Acompanhamento Normal",
@@ -514,12 +410,12 @@ def patient_detail(request, pk):
             patient_status["badge_class"] = "badge-warning"
             patient_status["reasons"] = reasons_list
 
+    age_details = patient.get_age_details()
+
     context = {
         "patient": patient,
         "consultation_records": consultation_records,
-        "age_in_days": age_in_days,
-        "corrected_age_weeks": corrected_age_weeks,
-        "corrected_age_remaining_days": corrected_age_remaining_days,
+        "age_details": age_details,
         "patient_exams": patient_exams,
         "patient_vaccines": patient_vaccines,
         "team_professionals": processed_professionals,
