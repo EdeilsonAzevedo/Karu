@@ -87,7 +87,9 @@ def signup_gestor(request):
     if request.method == "POST":
         form = GestorSignupForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Passe o request para o form poder acessar o usuário atual
+            form.set_actor(request.user)
+            form.save(request=request)
             messages.success(request, "Gestor criado com sucesso.")
             return redirect("home")
     else:
@@ -100,7 +102,8 @@ def signup_profissional(request):
     if request.method == "POST":
         form = ProfissionalSignupForm(request.POST)
         if form.is_valid():
-            form.save()
+            form.set_actor(request.user)
+            form.save(request=request)
             messages.success(request, "Profissional criado com sucesso.")
             return redirect("home")
     else:
@@ -113,7 +116,8 @@ def signup_pais(request):
     if request.method == "POST":
         form = PaisSignupForm(request.POST)
         if form.is_valid():
-            form.save()
+            form.set_actor(request.user)
+            user = form.save(request=request)
             messages.success(request, "Pai/responsável criado com sucesso.")
             return redirect("home")
     else:
@@ -290,7 +294,7 @@ def desativar_usuario(request, user_id):
                 object_id=user.id,
                 object_repr=str(user),
                 action=LogEntry.Action.UPDATE,
-                changes=f'[{{"is_active": ["{was_active}", "False"]}}]',
+                changes=f'[{{"is_active": [{str(was_active).lower()}, false]}}]',
                 actor=request.user,
                 remote_addr=request.META.get("REMOTE_ADDR"),
             )
@@ -335,7 +339,7 @@ def ativar_usuario(request, user_id):
                 object_id=user.id,
                 object_repr=str(user),
                 action=LogEntry.Action.UPDATE,
-                changes=f'[{{"is_active": ["{was_active}", "True"]}}]',
+                changes=f'[{{"is_active": [{str(was_active).lower()}, true]}}]',
                 actor=request.user,
                 remote_addr=request.META.get("REMOTE_ADDR"),
             )

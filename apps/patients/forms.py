@@ -7,9 +7,11 @@ from .models import (
     ClinicalWarningSign,
     ConsultationRecord,
     DischargeRecord,
+    Exam,
     InterdisciplinaryEvaluation,
     Patient,
     Record,
+    Vaccine,
 )
 
 # Em seu arquivo forms.py
@@ -122,7 +124,7 @@ class RecordForm(forms.ModelForm):
         model = Record
         fields = ["date", "location", "professional", "notes"]  # 'notes' é opcional mas bom ter
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date"}),
+            "date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
         labels = {
@@ -143,15 +145,20 @@ class RecordForm(forms.ModelForm):
         textarea_classes = (
             "textarea textarea-bordered w-full transition-all duration-300 focus:textarea-primary"
         )
+
         for field_name, field in self.fields.items():
             if field_name in optional_fields:
                 field.required = False
                 field.label_suffix = ""
 
-            if isinstance(field.widget, forms.Textarea):
-                field.widget.attrs.update({"class": textarea_classes})
-            else:
-                field.widget.attrs.update({"class": input_classes})
+            widget = field.widget
+            if isinstance(widget, forms.Textarea):
+                widget.attrs.update({"class": textarea_classes})
+            elif isinstance(widget, forms.DateInput):
+                # Mantém o type="date" e adiciona a classe
+                widget.attrs.update({"class": input_classes, "type": "date"})
+            elif not isinstance(widget, forms.HiddenInput):
+                widget.attrs.update({"class": input_classes})
 
 
 class DischargeRecordForm(forms.ModelForm):
@@ -288,7 +295,7 @@ class ConsultationRecordForm(forms.ModelForm):
         }
 
         widgets = {
-            "next_appointment_date": forms.DateInput(attrs={"type": "date"}),
+            "next_appointment_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
             "uses_pacifier": forms.RadioSelect(choices=[(True, "Sim"), (False, "Não")]),
             "breastfeeding_observation": forms.RadioSelect,
             "warning_signs_observations": forms.Textarea(
@@ -311,6 +318,32 @@ class ConsultationRecordForm(forms.ModelForm):
             ),
         }
 
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            # Define as classes padrão do DaisyUI
+            input_classes = "input input-bordered w-full"
+            select_classes = "select select-bordered w-full"
+            textarea_classes = "textarea textarea-bordered w-full"
+            checkbox_classes = "checkbox"
+
+            for field_name, field in self.fields.items():
+                widget = field.widget
+                if isinstance(widget, forms.Textarea):
+                    widget.attrs.update({"class": textarea_classes})
+                elif isinstance(widget, forms.Select):
+                    widget.attrs.update({"class": select_classes})
+                elif isinstance(widget, forms.CheckboxInput):
+                    widget.attrs.update({"class": checkbox_classes})
+                elif isinstance(widget, forms.RadioSelect):
+                    pass  # Radio é estilizado pelo script no template
+                elif isinstance(widget, forms.DateInput):
+                    widget.attrs.update(
+                        {"class": input_classes, "type": "date"}
+                    )  # Garante o type="date"
+                elif not isinstance(widget, (forms.HiddenInput, forms.RadioSelect)):
+                    widget.attrs.update({"class": input_classes})
+
 
 class ClinicalWarningSignForm(forms.ModelForm):
     class Meta:
@@ -325,3 +358,62 @@ class ClinicalWarningSignForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Remove o label do lado do checkbox, pois o texto já está no HTML
         self.fields["is_present"].label = ""
+
+
+class ExamForm(forms.ModelForm):
+    class Meta:
+        model = Exam
+        # Inclui todos os campos exceto 'patient', que será definido na view
+        fields = ["type", "result", "date", "observations"]
+        labels = {
+            "type": "Tipo de Exame",
+            "result": "Resultado",
+            "date": "Data do Exame",
+            "observations": "Observações",
+        }
+        widgets = {
+            "date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "result": forms.Textarea(attrs={"rows": 3}),
+            "observations": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    # Opcional: Adicionar estilização com o Mixin ou __init__ como nos outros forms
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Aplica classes CSS (adapte conforme seu padrão)
+        for field in self.fields.values():
+            if isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.update({"class": "textarea textarea-bordered w-full"})
+            elif isinstance(field.widget, forms.DateInput):
+                field.widget.attrs.update(
+                    {"class": "input input-bordered w-full", "type": "date"}
+                )  # Força type date
+            elif not isinstance(field.widget, forms.HiddenInput):
+                field.widget.attrs.update({"class": "input input-bordered w-full"})
+
+
+# Novo formulário para Vacina
+class VaccineForm(forms.ModelForm):
+    class Meta:
+        model = Vaccine
+        # Inclui todos os campos exceto 'patient'
+        fields = ["name", "date", "lot"]
+        labels = {
+            "name": "Nome da Vacina",
+            "date": "Data de Aplicação",
+            "lot": "Lote (Opcional)",
+        }
+        widgets = {
+            "date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+        }
+
+    # Opcional: Adicionar estilização com o Mixin ou __init__
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if isinstance(field.widget, forms.DateInput):
+                field.widget.attrs.update(
+                    {"class": "input input-bordered w-full", "type": "date"}
+                )  # Força type date
+            elif not isinstance(field.widget, forms.HiddenInput):
+                field.widget.attrs.update({"class": "input input-bordered w-full"})

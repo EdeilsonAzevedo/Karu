@@ -81,8 +81,8 @@ class Patient(BaseModel):
 
     def __str__(self):
         if self.last_name:
-            return f"{self.first_name} {self.last_name}"
-        return self.first_name
+            return f"Paciente: {self.first_name} {self.last_name}"
+        return f"Paciente: {self.first_name}"
 
 
 class Record(BaseModel):
@@ -96,6 +96,28 @@ class Record(BaseModel):
     location = models.CharField(_("Local do Atendimento"), max_length=50, blank=True, null=True)
     professional = models.CharField(_("Profissional/Cargo"), max_length=150, blank=True, null=True)
 
+    def __str__(self):
+        """Representação em string do registro"""
+        tipo_display = self.get_record_type_display()
+
+        # Verifica se self.date é um objeto date/datetime válido
+        if hasattr(self.date, "strftime"):
+            return f"{tipo_display} - {self.date.strftime('%d/%m/%Y')}"
+        else:
+            # Se for string ou outro tipo, tenta converter
+            try:
+
+                if isinstance(self.date, str):
+                    # Tenta parsear a string para date
+                    from datetime import datetime
+
+                    date_obj = datetime.strptime(self.date, "%Y-%m-%d").date()
+                    return f"{tipo_display} - {date_obj.strftime('%d/%m/%Y')}"
+                else:
+                    return f"{tipo_display} - {str(self.date)}"
+            except (ValueError, AttributeError):
+                return f"{tipo_display} - Data inválida"
+
 
 class DischargeRecord(BaseModel):
     record = models.OneToOneField(Record, on_delete=models.CASCADE, related_name="discharge")
@@ -108,6 +130,20 @@ class DischargeRecord(BaseModel):
         max_length=20,
         choices=[("breastfeeding", "SME"), ("mixed", "SM+Fórmula"), ("formula", "Fórmula")],
     )
+
+    def __str__(self):
+        """Representação em string da alta hospitalar"""
+        try:
+            if self.record and hasattr(self.record, "date") and self.record.date:
+                # Versão mais simples e segura
+                date_str = str(self.record.date)
+                # Remove informações de time se houver
+                if " " in date_str:
+                    date_str = date_str.split(" ")[0]
+                return f"Alta Hospitalar - {date_str}"
+            return "Alta Hospitalar"
+        except Exception:
+            return "Alta Hospitalar"
 
 
 class ClinicalEvaluationType(models.TextChoices):
@@ -136,26 +172,59 @@ class ClinicalEvaluation(BaseModel):
         max_length=10, choices=[("normal", "Normal"), ("altered", "Alterada")]
     )
 
+    def __str__(self):
+        # Mapeamento manual para evitar problemas com choices
+        tipo_map = {
+            "pediatric": "Pediátrica",
+            "neurologic": "Neurológica",
+            "cardiac": "Cardiológica",
+            "visual": "Visual",
+            "auditory": "Auditiva",
+        }
+        tipo_display = tipo_map.get(self.type, self.type)
+        status_display = "Normal" if self.status == "normal" else "Alterada"
+        return f"Avaliação {tipo_display} - {status_display}"
+
 
 class InterdisciplinaryEvaluation(BaseModel):
     record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="team_evaluations")
     area = models.CharField(max_length=30, choices=InterdisciplinaryEvaluationArea.choices)
     notes = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        # Mapeamento manual para evitar problemas com choices
+        area_map = {
+            "nursing": "Enfermagem",
+            "physiotherapy": "Fisioterapia",
+            "speech": "Fonoaudiologia",
+            "psychology": "Psicologia",
+            "social_work": "Serviço Social",
+            "occupational_therapy": "Terapia Ocupacional",
+        }
+        area_display = area_map.get(self.area, self.area)
+        return f"Avaliação {area_display}"
+
 
 class Exam(BaseModel):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="exams")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="exams")
     type = models.CharField(max_length=50)
     result = models.TextField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
     observations = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        data_str = self.date.strftime("%d/%m/%Y") if self.date else "Sem data"
+        return f"Exame: {self.type} - {data_str}"
+
 
 class Vaccine(BaseModel):
-    record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="vaccines")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="vaccines")
     name = models.CharField(max_length=50)
     date = models.DateField()
     lot = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return f"Vacina: {self.name} - {self.date.strftime('%d/%m/%Y')}"
 
 
 class FollowUp(BaseModel):
@@ -164,6 +233,9 @@ class FollowUp(BaseModel):
     time = models.TimeField(blank=True, null=True)
     specialty = models.CharField(max_length=50, blank=True, null=True)
     professional = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Acompanhamento - {self.date.strftime('%d/%m/%Y')}"
 
 
 class ConsultationRecord(BaseModel):
@@ -237,6 +309,9 @@ class ConsultationRecord(BaseModel):
     )
     next_appointment_date = models.DateField(_("Data do próximo retorno"), null=True, blank=True)
 
+    def __str__(self):
+        return f"Consulta - {self.record.date.strftime('%d/%m/%Y')}"
+
 
 # ADICIONE ESTE NOVO MODELO para os checkboxes dos sinais de alerta
 class ClinicalWarningSign(BaseModel):
@@ -252,3 +327,18 @@ class ClinicalWarningSign(BaseModel):
     record = models.ForeignKey(Record, on_delete=models.CASCADE, related_name="warning_signs")
     type = models.CharField(_("Tipo de Sinal"), max_length=30, choices=WarningSignType.choices)
     is_present = models.BooleanField(_("Presente"), default=False)
+
+    def __str__(self):
+        # Mapeamento manual para evitar problemas com choices
+        tipo_map = {
+            "hypothermia": "Hipotermia",
+            "respiratory_pause": "Pausa Respiratória",
+            "skin_perfusion": "Perfusão da Pele",
+            "regurgitation": "Regurgitação",
+            "hypoactivity": "Hipoatividade",
+            "jaundice": "Icterícia",
+            "abnormalities": "Anormalidades",
+        }
+        tipo_display = tipo_map.get(self.type, self.type)
+        status = "Presente" if self.is_present else "Ausente"
+        return f"Sinal: {tipo_display} - {status}"

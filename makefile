@@ -3,7 +3,7 @@
 run:
 	poetry run python manage.py runserver
 test:
-	poetry run pytest -vv --tb=short --cov=apps --cov-report=term-missing --cov-report=html
+	poetry run pytest -vv --tb=short --create-db --cov=apps --cov-report=term-missing --cov-report=html
 lint:
 	poetry run ruff check apps
 

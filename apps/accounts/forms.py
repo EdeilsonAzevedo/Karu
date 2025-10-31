@@ -1,9 +1,12 @@
+import json
 from typing import TYPE_CHECKING
 
+from auditlog.models import LogEntry
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -61,6 +64,22 @@ class GestorSignupForm(forms.Form):
         label="Status", choices=[("Ativo", "Ativo"), ("Inativo", "Inativo")], required=False
     )
 
+    def __init__(self, *args, **kwargs):
+        self.actor = None
+        super().__init__(*args, **kwargs)
+
+    def set_actor(self, actor):
+        """Define o usuário que está realizando a ação para o auditlog"""
+        self.actor = actor
+
+    def get_actor(self, request=None):
+        """Obtém o usuário que está realizando a ação"""
+        if hasattr(self, "actor"):
+            return self.actor
+        elif request and hasattr(request, "user") and request.user.is_authenticated:
+            return request.user
+        return None
+
     def clean_email(self):
         return normalize_email(self.cleaned_data["email"])
 
@@ -80,7 +99,7 @@ class GestorSignupForm(forms.Form):
         return v
 
     @transaction.atomic
-    def save(self) -> AbstractUser:
+    def save(self, request=None):
         name = self.cleaned_data["name"].strip()
         cpf = self.cleaned_data["cpf"]
         email = self.cleaned_data["email"]
@@ -96,6 +115,7 @@ class GestorSignupForm(forms.Form):
             last_name="",
             email=email,
             is_active=active,
+            user_type=User.UserType.GESTOR,
         )
         user.set_password(raw_pw)
         user.save()
@@ -103,13 +123,53 @@ class GestorSignupForm(forms.Form):
         g, _ = Group.objects.get_or_create(name="gestores")
         user.groups.add(g)
 
-        GestorProfile.objects.create(
+        perfil = GestorProfile.objects.create(
             user=user,
             cpf=cpf,
             telefone=phone,
             unidade=unit,
             cargo=cargo,
         )
+
+        # REGISTRO NO AUDITLOG - Usuário
+        actor = self.get_actor(request)
+        content_type = ContentType.objects.get_for_model(User)
+
+        LogEntry.objects.log_create(
+            instance=user,
+            action=LogEntry.Action.CREATE,
+            changes=json.dumps(
+                [
+                    {
+                        "username": ["", user.username],
+                        "first_name": ["", user.first_name],
+                        "email": ["", user.email],
+                        "user_type": ["", user.user_type],
+                        "is_active": ["", user.is_active],
+                    }
+                ]
+            ),
+            actor=actor,
+        )
+
+        # REGISTRO NO AUDITLOG - Perfil
+        perfil_content_type = ContentType.objects.get_for_model(GestorProfile)
+        LogEntry.objects.log_create(
+            instance=perfil,
+            action=LogEntry.Action.CREATE,
+            changes=json.dumps(
+                [
+                    {
+                        "cpf": ["", perfil.cpf],
+                        "unidade": ["", perfil.unidade],
+                        "cargo": ["", perfil.cargo],
+                        "telefone": ["", perfil.telefone],
+                    }
+                ]
+            ),
+            actor=actor,
+        )
+
         return user
 
 
@@ -129,6 +189,22 @@ class ProfissionalSignupForm(forms.Form):
     status = forms.ChoiceField(
         label="Status", choices=[("Ativo", "Ativo"), ("Inativo", "Inativo")], required=False
     )
+
+    def __init__(self, *args, **kwargs):
+        self.actor = None
+        super().__init__(*args, **kwargs)
+
+    def set_actor(self, actor):
+        """Define o usuário que está realizando a ação para o auditlog"""
+        self.actor = actor
+
+    def get_actor(self, request=None):
+        """Obtém o usuário que está realizando a ação"""
+        if hasattr(self, "actor"):
+            return self.actor
+        elif request and hasattr(request, "user") and request.user.is_authenticated:
+            return request.user
+        return None
 
     def clean_email(self):
         return normalize_email(self.cleaned_data["email"])
@@ -166,7 +242,7 @@ class ProfissionalSignupForm(forms.Form):
         return cleaned
 
     @transaction.atomic
-    def save(self) -> AbstractUser:
+    def save(self, request=None):
         name = self.cleaned_data["name"].strip()
         cpf = self.cleaned_data["cpf"]
         email = self.cleaned_data["email"]
@@ -181,6 +257,7 @@ class ProfissionalSignupForm(forms.Form):
             last_name="",
             email=email,
             is_active=active,
+            user_type=User.UserType.PROFISSIONAL_SAUDE,
         )
         user.set_password(raw_pw)
         user.save()
@@ -188,7 +265,7 @@ class ProfissionalSignupForm(forms.Form):
         grp, _ = Group.objects.get_or_create(name="profissionais_saude")
         user.groups.add(grp)
 
-        ProfissionalSaudeProfile.objects.create(
+        perfil = ProfissionalSaudeProfile.objects.create(
             user=user,
             cpf=cpf,
             categoria=self.cleaned_data["category"],
@@ -198,6 +275,49 @@ class ProfissionalSignupForm(forms.Form):
             unidade=unit,
             telefone=phone,
         )
+
+        # REGISTRO NO AUDITLOG - Usuário
+        actor = self.get_actor(request)
+        content_type = ContentType.objects.get_for_model(User)
+
+        LogEntry.objects.log_create(
+            instance=user,
+            action=LogEntry.Action.CREATE,
+            changes=json.dumps(
+                [
+                    {
+                        "username": ["", user.username],
+                        "first_name": ["", user.first_name],
+                        "email": ["", user.email],
+                        "user_type": ["", user.user_type],
+                        "is_active": ["", user.is_active],
+                    }
+                ]
+            ),
+            actor=actor,
+        )
+
+        # REGISTRO NO AUDITLOG - Perfil
+        perfil_content_type = ContentType.objects.get_for_model(ProfissionalSaudeProfile)
+        LogEntry.objects.log_create(
+            instance=perfil,
+            action=LogEntry.Action.CREATE,
+            changes=json.dumps(
+                [
+                    {
+                        "cpf": ["", perfil.cpf],
+                        "categoria": ["", perfil.categoria],
+                        "especialidade": ["", perfil.especialidade],
+                        "conselho": ["", perfil.conselho or ""],
+                        "numero_registro": ["", perfil.numero_registro or ""],
+                        "unidade": ["", perfil.unidade],
+                        "telefone": ["", perfil.telefone],
+                    }
+                ]
+            ),
+            actor=actor,
+        )
+
         return user
 
 
@@ -210,6 +330,22 @@ class PaisSignupForm(forms.Form):
     status = forms.ChoiceField(
         label="Status", choices=[("Ativo", "Ativo"), ("Inativo", "Inativo")], required=False
     )
+
+    def __init__(self, *args, **kwargs):
+        self.actor = None
+        super().__init__(*args, **kwargs)
+
+    def set_actor(self, actor):
+        """Define o usuário que está realizando a ação para o auditlog"""
+        self.actor = actor
+
+    def get_actor(self, request=None):
+        """Obtém o usuário que está realizando a ação"""
+        if hasattr(self, "actor"):
+            return self.actor
+        elif request and hasattr(request, "user") and request.user.is_authenticated:
+            return request.user
+        return None
 
     def clean_email(self):
         return normalize_email(self.cleaned_data["email"])
@@ -230,7 +366,7 @@ class PaisSignupForm(forms.Form):
         return v
 
     @transaction.atomic
-    def save(self) -> AbstractUser:
+    def save(self, request=None):
         name = self.cleaned_data["name"].strip()
         cpf = self.cleaned_data["cpf"]
         email = self.cleaned_data["email"]
@@ -244,6 +380,7 @@ class PaisSignupForm(forms.Form):
             last_name="",
             email=email,
             is_active=active,
+            user_type=User.UserType.PAIS,
         )
         user.set_password(raw_pw)
         user.save()
@@ -251,9 +388,41 @@ class PaisSignupForm(forms.Form):
         grp, _ = Group.objects.get_or_create(name="pais")
         user.groups.add(grp)
 
-        PaisProfile.objects.create(
+        perfil = PaisProfile.objects.create(
             user=user,
             cpf=cpf,
             telefone=phone,
         )
+
+        # REGISTRO NO AUDITLOG - Usuário
+        actor = self.get_actor(request)
+        content_type = ContentType.objects.get_for_model(User)
+
+        LogEntry.objects.log_create(
+            instance=user,
+            action=LogEntry.Action.CREATE,
+            # CORREÇÃO: Use valores reais, não strings formatadas
+            changes=json.dumps(
+                [
+                    {
+                        "username": ["", user.username],
+                        "first_name": ["", user.first_name],
+                        "email": ["", user.email],
+                        "user_type": ["", user.user_type],
+                        "is_active": ["", user.is_active],  # Booleano real
+                    }
+                ]
+            ),
+            actor=actor,
+        )
+
+        # REGISTRO NO AUDITLOG - Perfil
+        perfil_content_type = ContentType.objects.get_for_model(PaisProfile)
+        LogEntry.objects.log_create(
+            instance=perfil,
+            action=LogEntry.Action.CREATE,
+            changes=json.dumps([{"cpf": ["", perfil.cpf], "telefone": ["", perfil.telefone]}]),
+            actor=actor,
+        )
+
         return user

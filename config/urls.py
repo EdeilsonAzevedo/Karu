@@ -20,13 +20,12 @@ from django.urls import include, path
 
 from apps.accounts.views import MyLoginView, MyLogoutView
 from apps.manager.views import manager_dashboard
+
 urlpatterns = [
     # ROTA PÚBLICA (landing)
-    path("", include("apps.core.urls")),   # <— raiz pública
-
+    path("", include("apps.core.urls")),  # <— raiz pública
     # ÁREA AUTENTICADA
     path("home/", manager_dashboard, name="home"),
-
     path("admin/", admin.site.urls),
     path("patients/", include("apps.patients.urls")),
     path("manager/", include("apps.manager.urls")),
