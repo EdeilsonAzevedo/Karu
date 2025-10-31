@@ -583,7 +583,6 @@ document.addEventListener('DOMContentLoaded', function () {
         head: JSON.parse(headElement.textContent)
     };
     
-    console.log('Chart data loaded:', { labels, chartData });
     
     const ctxGrowth = document.getElementById('growthChart')?.getContext('2d');
     let growthChart = null;
@@ -604,7 +603,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const unit = metric === 'weight' ? 'kg' : 'cm';
         const titleText = metric === 'weight' ? 'Peso' : metric === 'length' ? 'Comprimento' : 'Perímetro Cefálico';
         
-        console.log(`Rendering ${metric} chart with ${labels.length} labels`);
         
         // Prepare datasets with corrected colors
         const datasets = [];
@@ -785,7 +783,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         
-        console.log('Chart rendered successfully');
     }
     
     // Event listeners for metric tabs

@@ -28,12 +28,6 @@ def get_intergrowth_data(measurement_type, sex):
     sex_folder = "boys" if sex == "M" else "girls"
     csv_path = base_dir / "data" / "growth_charts" / sex_folder / f"{measurement_type}.csv"
 
-    print("DEBUG get_intergrowth_data:")
-    print(f"  measurement_type: {measurement_type}")
-    print(f"  sex: '{sex}'")
-    print(f"  sex_folder: {sex_folder}")
-    print(f"  csv_path: {csv_path}")
-    print(f"  Arquivo existe? {csv_path.exists()}")
 
     # Se não existir, retornar vazio
     if not csv_path.exists():
@@ -42,8 +36,6 @@ def get_intergrowth_data(measurement_type, sex):
 
     # Ler CSV
     df = pd.read_csv(csv_path)
-    print(f"  CSV lido: {len(df)} linhas")
-    print(f"  Colunas disponíveis: {df.columns.tolist()}")
 
     # Verificar quais colunas de percentil existem
     result = {
@@ -93,7 +85,6 @@ def get_intergrowth_data(measurement_type, sex):
         print("  AVISO: coluna 'centile_97th' não encontrada")
         result["p97"] = []
 
-    print(f"  Resultado: {len(result['labels'])} labels, {len(result['p50'])} valores P50")
 
     return result
 
@@ -159,12 +150,6 @@ def get_growth_chart_data(patient):
             )
 
             if data_source:
-                print(
-                    f"Record {rec.id} - Idade gestacional corrigida: {corrected_gestational_age_days} dias ({corrected_gestational_age_days // 7}s{corrected_gestational_age_days % 7}d) - Índice: {intergrowth_index}"
-                )
-                print(
-                    f"  W={data_source.weight}, L={data_source.length}, H={data_source.head_circumference}"
-                )
 
                 patient_weight_mapped[intergrowth_index] = (
                     float(data_source.weight) / 1000 if data_source.weight else None
