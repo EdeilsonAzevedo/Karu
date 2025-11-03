@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -34,13 +35,21 @@ from .models import (
 
 
 def patient_list(request):
-    """Lista + busca por nome, CPF e certidão (q geral ou campos específicos name/cpf/sal)."""
-    qs = Patient.objects.all().order_by("first_name", "last_name")
+    """Lista + busca por nome, CPF e certidão, com filtro de status (ativo/inativo)."""
+
+    current_status = request.GET.get("status", "active")
+
+    if current_status == "inactive":
+        qs = Patient.objects.filter(in_follow_up=False)
+    else:
+        qs = Patient.objects.filter(in_follow_up=True)
+
+    qs = qs.order_by("first_name", "last_name")
 
     q = request.GET.get("q")
     name = request.GET.get("name")
     cpf = request.GET.get("cpf")
-    sal = request.GET.get("sal")  # certidão
+    sal = request.GET.get("sal")
 
     if q:
         qs = qs.filter(
@@ -57,7 +66,8 @@ def patient_list(request):
         if sal:
             qs = qs.filter(birth_certificate_number__icontains=sal)
 
-    return render(request, "patients/list.html", {"patients": qs})
+    context = {"patients": qs, "current_status": current_status}
+    return render(request, "patients/list.html", context)
 
 
 @transaction.atomic
@@ -740,3 +750,23 @@ def vaccine_edit(request, pk, vaccine_pk):
         "patients/vaccine_form.html",
         {"form": form, "patient": patient, "action_url": action_url},
     )
+
+
+@require_POST
+def patient_discharge(request, pk):
+    """
+    Muda o status do paciente para inativo (encerra o acompanhamento).
+    """
+    patient = get_object_or_404(Patient, pk=pk)
+
+    if not patient.in_follow_up:
+        messages.warning(request, "Este paciente já está com o acompanhamento encerrado.")
+        return redirect("patients:list")
+
+    patient.in_follow_up = False
+    patient.save()
+
+    messages.success(
+        request, f"O acompanhamento de {patient.first_name} foi encerrado com sucesso."
+    )
+    return redirect("patients:list")

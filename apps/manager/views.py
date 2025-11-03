@@ -249,7 +249,7 @@ def dashboard_stats_api(request):
     today = timezone.now().date()
     current_year = today.year
 
-    all_patients = Patient.objects.filter(is_active=True).order_by("-created_at")
+    all_patients = Patient.objects.filter(in_follow_up=True).order_by("-created_at")
 
     total_ativos_count = all_patients.count()
 
@@ -367,7 +367,7 @@ def dashboard_stats_api(request):
                 content_type=patient_content_type,
                 action=LogEntry.Action.UPDATE,
                 timestamp__year=year,
-                changes_text__icontains='"is_active": [true, false]',
+                changes__contains={"in_follow_up": ["True", "False"]},
             )
             .annotate(month=TruncMonth("timestamp"))
             .values("month")
@@ -424,7 +424,7 @@ def api_map_counts(request):
     counts_microrregiao = defaultdict(create_count_entry)
     counts_macrorregiao = defaultdict(create_count_entry)
 
-    patients = Patient.objects.filter(is_active=True)
+    patients = Patient.objects.filter(in_follow_up=True)
 
     for patient in patients:
         city = patient.address_city
@@ -524,7 +524,7 @@ def _get_report_data(start_date=None, end_date=None):
         .prefetch_related("warning_signs")
     )
 
-    active_patients = Patient.objects.filter(is_active=True).prefetch_related(
+    active_patients = Patient.objects.filter(in_follow_up=True).prefetch_related(
         Prefetch("records", queryset=latest_consult_qs, to_attr="consultation_records")
     )
 
@@ -611,7 +611,7 @@ def _get_report_data(start_date=None, end_date=None):
             LogEntry.objects.filter(
                 content_type=patient_content_type,
                 action=LogEntry.Action.UPDATE,
-                changes_text__icontains='"is_active": [true, false]',
+                changes__contains={"in_follow_up": ["True", "False"]},
                 timestamp__date__gte=start_date,
                 timestamp__date__lte=end_date,
             )
@@ -626,9 +626,8 @@ def _get_report_data(start_date=None, end_date=None):
         )
 
         city_map = {
-            str(p["pk"]): normalize_str(p["address_city"])
+            str(p["pk"]): normalize_str(p["address_city"]) if p["address_city"] else "Sem Município"
             for p in discharged_patients_info
-            if p["address_city"]
         }
 
         for patient_id in discharged_patient_ids:

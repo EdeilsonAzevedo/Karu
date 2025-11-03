@@ -381,6 +381,7 @@ def traduzir_campo_simples(field_name):
         "treatment": "Tratamento",
         "prescription": "Prescrição",
         "recommendations": "Recomendações",
+        "in_follow_up": "Acompanhamento",
     }
 
     # Para campos não mapeados, tenta traduzir palavras comuns
