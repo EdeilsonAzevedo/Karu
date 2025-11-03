@@ -6,7 +6,6 @@ from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import Group
-from django.contrib.contenttypes.models import ContentType
 from django.core import exceptions
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -133,7 +132,6 @@ class GestorSignupForm(forms.Form):
 
         # REGISTRO NO AUDITLOG - Usuário
         actor = self.get_actor(request)
-        content_type = ContentType.objects.get_for_model(User)
 
         LogEntry.objects.log_create(
             instance=user,
@@ -153,7 +151,6 @@ class GestorSignupForm(forms.Form):
         )
 
         # REGISTRO NO AUDITLOG - Perfil
-        perfil_content_type = ContentType.objects.get_for_model(GestorProfile)
         LogEntry.objects.log_create(
             instance=perfil,
             action=LogEntry.Action.CREATE,
@@ -278,7 +275,6 @@ class ProfissionalSignupForm(forms.Form):
 
         # REGISTRO NO AUDITLOG - Usuário
         actor = self.get_actor(request)
-        content_type = ContentType.objects.get_for_model(User)
 
         LogEntry.objects.log_create(
             instance=user,
@@ -298,7 +294,6 @@ class ProfissionalSignupForm(forms.Form):
         )
 
         # REGISTRO NO AUDITLOG - Perfil
-        perfil_content_type = ContentType.objects.get_for_model(ProfissionalSaudeProfile)
         LogEntry.objects.log_create(
             instance=perfil,
             action=LogEntry.Action.CREATE,
@@ -396,7 +391,6 @@ class PaisSignupForm(forms.Form):
 
         # REGISTRO NO AUDITLOG - Usuário
         actor = self.get_actor(request)
-        content_type = ContentType.objects.get_for_model(User)
 
         LogEntry.objects.log_create(
             instance=user,
@@ -417,7 +411,6 @@ class PaisSignupForm(forms.Form):
         )
 
         # REGISTRO NO AUDITLOG - Perfil
-        perfil_content_type = ContentType.objects.get_for_model(PaisProfile)
         LogEntry.objects.log_create(
             instance=perfil,
             action=LogEntry.Action.CREATE,

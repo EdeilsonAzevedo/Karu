@@ -395,6 +395,16 @@ def patient_detail(request, pk):
         "consultation_details", "warning_signs", "clinical_evaluations", "team_evaluations"
     )
 
+    # Calcula a contagem de sinais de alerta presentes para cada registro
+    for record in consultation_records:
+        present_warning_count = 0
+        # Acessar .all() aqui é eficiente por causa do prefetch_related
+        for sign in record.warning_signs.all():
+            if sign.is_present:
+                present_warning_count += 1
+        # Anexa a contagem diretamente ao objeto record
+        record.present_warning_count = present_warning_count
+
     patient_exams = patient.exams.all().order_by("-date")
     patient_vaccines = patient.vaccines.all().order_by("-date")
 
@@ -538,14 +548,13 @@ def consultation_create(request, pk):
             # Prepara o contexto de erro para re-renderizar o formulário
             context = {
                 "patient": patient,
-                "record_form": record_form,  # Envia o form com os erros
-                "consultation_form": consultation_form,  # Envia o form com os erros
-                "clinical_forms": warning_sign_forms,  # Reenvia os forms com os dados preenchidos
+                "record_form": record_form,
+                "consultation_form": consultation_form,
+                "clinical_forms": warning_sign_forms,
                 "is_editing": False,
                 "previous_weight": previous_weight,
                 "previous_date": previous_date,
                 "baseline_type": baseline_type,
-                # Adiciona os dados de idade também ao contexto de erro
                 "corrected_age_weeks": corrected_age_weeks,
                 "corrected_age_remaining_days": corrected_age_remaining_days,
             }
@@ -616,8 +625,8 @@ def consultation_edit(request, pk, record_pk):
             Record.objects.filter(
                 patient=patient,
                 record_type="discharge",
-                date__lt=record.date,  # <-- Garante que a alta também veio antes
             )
+            .exclude(pk=record_pk)
             .select_related("discharge")
             .first()
         )
@@ -881,7 +890,6 @@ def vaccine_edit(request, pk, vaccine_pk):
     )
 
 
-<<<<<<< HEAD
 @require_POST
 def patient_discharge(request, pk):
     """
@@ -900,7 +908,8 @@ def patient_discharge(request, pk):
         request, f"O acompanhamento de {patient.first_name} foi encerrado com sucesso."
     )
     return redirect("patients:list")
-=======
+
+
 def exam_result(request, pk, exam_pk):
     # Busca o paciente e o exame, garantindo que o exame pertence ao paciente
     patient = get_object_or_404(Patient, pk=pk)
@@ -913,4 +922,3 @@ def exam_result(request, pk, exam_pk):
 
     # Renderiza o novo template que criaremos no próximo passo
     return render(request, "patients/exam_result.html", context)
->>>>>>> 2567738 (feat: correção da página de consulta)
