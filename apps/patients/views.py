@@ -128,8 +128,23 @@ def patient_create(request):
             record.record_type = "discharge"
             record.save()
 
+            birth_weight = patient_form.cleaned_data.get("birth_weight")
+            birth_length = patient_form.cleaned_data.get("birth_length")
+            birth_head_circumference = patient_form.cleaned_data.get("head_circumference")
+
+            # Cria a instância de Discharge, mas não salva ainda
             discharge = discharge_form.save(commit=False)
             discharge.record = record
+
+            # Copia os dados de nascimento para os dados de alta
+            # (Se o formulário de alta já tiver um valor, ele será usado, senão, usa o de nascimento)
+            if not discharge.weight and birth_weight:
+                discharge.weight = birth_weight
+            if not discharge.length and birth_length:
+                discharge.length = birth_length
+            if not discharge.head_circumference and birth_head_circumference:
+                discharge.head_circumference = birth_head_circumference
+
             discharge.save()
 
             for ctype_value, form in clinical_forms.items():
@@ -441,6 +456,39 @@ def patient_detail(request, pk):
 def consultation_create(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
 
+    previous_weight = None
+    previous_date = None
+    baseline_type = None
+    previous_consultation = (
+        Record.objects.filter(patient=patient, record_type="consultation").order_by("-date").first()
+    )
+
+    if previous_consultation:
+        previous_weight = previous_consultation.consultation_details.weight
+        previous_date = previous_consultation.date
+        baseline_type = "consulta"
+    else:
+        discharge_record = (
+            Record.objects.filter(patient=patient, record_type="discharge")
+            .select_related("discharge")
+            .first()
+        )
+        if discharge_record:
+            previous_weight = discharge_record.discharge.weight
+            previous_date = discharge_record.date
+            baseline_type = "alta"
+
+    today = timezone.now().date()
+    age_timedelta = today - patient.date_of_birth
+    age_in_days = age_timedelta.days
+    days_from_gestation = (patient.gestational_age_weeks * 7) + (patient.gestational_age_days or 0)
+    days_to_full_term = (40 * 7) - days_from_gestation
+    corrected_age_in_days = age_in_days - days_to_full_term
+    if corrected_age_in_days < 0:
+        corrected_age_in_days = 0
+    corrected_age_weeks = corrected_age_in_days // 7
+    corrected_age_remaining_days = corrected_age_in_days % 7
+
     if request.method == "POST":
         record_form = RecordForm(request.POST, prefix="record")
         consultation_form = ConsultationRecordForm(request.POST, prefix="consultation")
@@ -448,7 +496,9 @@ def consultation_create(request, pk):
         warning_sign_forms = []
         for value, label in ClinicalWarningSign.WarningSignType.choices:
             form = ClinicalWarningSignForm(request.POST, prefix=f"warning_{value}")
-            warning_sign_forms.append({"form": form, "value": value})
+            warning_sign_forms.append(
+                {"form": form, "value": value, "label": label}
+            )  # Passa o label p/ contexto de erro
 
         all_forms_valid = all(
             [
@@ -459,9 +509,17 @@ def consultation_create(request, pk):
         )
 
         if all_forms_valid:
+            # ... (Lógica de salvar o 'record' e 'consultation_details' - está correta) ...
             record = record_form.save(commit=False)
             record.patient = patient
             record.record_type = "consultation"
+
+            if "save_draft" in request.POST:
+                record.status = Record.StatusChoices.DRAFT
+                messages.success(request, "Rascunho da consulta salvo com sucesso!")
+            else:
+                record.status = Record.StatusChoices.FINAL
+                messages.success(request, "Consulta finalizada e salva com sucesso!")
             record.save()
 
             consultation_details = consultation_form.save(commit=False)
@@ -476,8 +534,28 @@ def consultation_create(request, pk):
 
             return redirect("patients:detail", pk=patient.pk)
 
+        else:  # Se o formulário POST for inválido
+            # Prepara o contexto de erro para re-renderizar o formulário
+            context = {
+                "patient": patient,
+                "record_form": record_form,  # Envia o form com os erros
+                "consultation_form": consultation_form,  # Envia o form com os erros
+                "clinical_forms": warning_sign_forms,  # Reenvia os forms com os dados preenchidos
+                "is_editing": False,
+                "previous_weight": previous_weight,
+                "previous_date": previous_date,
+                "baseline_type": baseline_type,
+                # Adiciona os dados de idade também ao contexto de erro
+                "corrected_age_weeks": corrected_age_weeks,
+                "corrected_age_remaining_days": corrected_age_remaining_days,
+            }
+            return render(
+                request, "patients/consultation_form.html", context
+            )  # Renderiza com os erros
+
     else:  # GET Request
-        record_form = RecordForm(prefix="record")
+        record_form = RecordForm(prefix="record", initial={"date": timezone.now().date()})
+
         consultation_form = ConsultationRecordForm(prefix="consultation")
 
         clinical_forms_with_labels = []
@@ -485,22 +563,19 @@ def consultation_create(request, pk):
             form = ClinicalWarningSignForm(prefix=f"warning_{value}", initial={"type": value})
             clinical_forms_with_labels.append({"form": form, "label": label})
 
-    today = timezone.now().date()
-    total_days_corrected = (patient.gestational_age_weeks * 7) + (
-        today - patient.date_of_birth
-    ).days
-    corrected_age_weeks = total_days_corrected // 7
-    corrected_age_remaining_days = total_days_corrected % 7
-
-    context = {
-        "patient": patient,
-        "record_form": record_form,
-        "consultation_form": consultation_form,
-        "clinical_forms": clinical_forms_with_labels,
-        "corrected_age_weeks": corrected_age_weeks,
-        "corrected_age_remaining_days": corrected_age_remaining_days,
-    }
-    return render(request, "patients/consultation_form.html", context)
+        context = {
+            "patient": patient,
+            "record_form": record_form,
+            "consultation_form": consultation_form,
+            "clinical_forms": clinical_forms_with_labels,
+            "is_editing": False,
+            "previous_weight": previous_weight,
+            "previous_date": previous_date,
+            "baseline_type": baseline_type,
+            "corrected_age_weeks": corrected_age_weeks,
+            "corrected_age_remaining_days": corrected_age_remaining_days,
+        }
+        return render(request, "patients/consultation_form.html", context)
 
 
 @transaction.atomic
@@ -515,6 +590,42 @@ def consultation_edit(request, pk, record_pk):
     except ConsultationRecord.DoesNotExist:
         # Se por algum motivo não existir, cria um novo (caso de segurança)
         consultation_details = ConsultationRecord.objects.create(record=record)
+
+    previous_weight = None
+    previous_date = None
+    baseline_type = None
+
+    # 1. Tenta buscar a última *consulta* com peso ANTES desta
+    previous_consultation = (
+        Record.objects.filter(
+            patient=patient,
+            record_type="consultation",
+            date__lt=record.date,  # <-- Apenas registros ANTES da data deste
+        )
+        .order_by("-date")
+        .first()
+    )
+
+    if previous_consultation:
+        previous_weight = previous_consultation.consultation_details.weight
+        previous_date = previous_consultation.date
+        baseline_type = "consulta"
+    else:
+        # 2. Se não houver consulta anterior, busca o registro de *alta*
+        discharge_record = (
+            Record.objects.filter(
+                patient=patient,
+                record_type="discharge",
+                date__lt=record.date,  # <-- Garante que a alta também veio antes
+            )
+            .select_related("discharge")
+            .first()
+        )
+
+        if discharge_record:
+            previous_weight = discharge_record.discharge.weight
+            previous_date = discharge_record.date
+            baseline_type = "alta"
 
     if request.method == "POST":
         # Instancia os formulários com os dados ENVIADOS (request.POST) e os dados EXISTENTES (instance=...)
@@ -541,8 +652,20 @@ def consultation_edit(request, pk, record_pk):
         )
 
         if all_forms_valid:
-            # Salva as alterações nos formulários principais
-            record_form.save()
+            # Pega a instância do record do formulário, mas não salva ainda
+            record = record_form.save(commit=False)
+
+            # Define o status ANTES de salvar
+            if "save_draft" in request.POST:
+                record.status = Record.StatusChoices.DRAFT
+                messages.success(request, "Rascunho atualizado com sucesso!")
+            else:
+                record.status = Record.StatusChoices.FINAL
+                messages.success(request, "Alterações da consulta salvas com sucesso!")
+
+            # Agora salva o record com o status correto
+            record.save()
+            # E salva o formulário de consulta
             consultation_form.save()
 
             # --- Lógica de Sincronização dos Sinais de Alerta ---
@@ -566,7 +689,10 @@ def consultation_edit(request, pk, record_pk):
                 "record_form": record_form,
                 "consultation_form": consultation_form,
                 "clinical_forms": warning_sign_forms,  # Reenvia os forms com erros
-                "is_editing": True,  # Flag para o template saber que está em modo de edição
+                "is_editing": True,
+                "previous_weight": previous_weight,
+                "previous_date": previous_date,
+                "baseline_type": baseline_type,
             }
             # (A lógica de idade corrigida será adicionada no final)
 
@@ -598,6 +724,9 @@ def consultation_edit(request, pk, record_pk):
             "consultation_form": consultation_form,
             "clinical_forms": clinical_forms_with_labels,
             "is_editing": True,  # Flag para o template
+            "previous_weight": previous_weight,
+            "previous_date": previous_date,
+            "baseline_type": baseline_type,
         }
 
     # Adiciona dados de idade (necessário em ambos os casos, GET ou POST com erro)
@@ -752,6 +881,7 @@ def vaccine_edit(request, pk, vaccine_pk):
     )
 
 
+<<<<<<< HEAD
 @require_POST
 def patient_discharge(request, pk):
     """
@@ -770,3 +900,17 @@ def patient_discharge(request, pk):
         request, f"O acompanhamento de {patient.first_name} foi encerrado com sucesso."
     )
     return redirect("patients:list")
+=======
+def exam_result(request, pk, exam_pk):
+    # Busca o paciente e o exame, garantindo que o exame pertence ao paciente
+    patient = get_object_or_404(Patient, pk=pk)
+    exam = get_object_or_404(Exam, pk=exam_pk, patient=patient)
+
+    context = {
+        "patient": patient,
+        "exam": exam,
+    }
+
+    # Renderiza o novo template que criaremos no próximo passo
+    return render(request, "patients/exam_result.html", context)
+>>>>>>> 2567738 (feat: correção da página de consulta)

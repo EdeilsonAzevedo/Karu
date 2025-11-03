@@ -10,9 +10,6 @@
         .tab-content {
             display: none;
         }
-        .tab-content.active {
-            display: block;
-        }
     </style>
 {% endblock %}
 
@@ -384,7 +381,7 @@
                                 <h3 class="card-title text-primary">
                                     <i data-lucide="clipboard-list" class="w-5 h-5"></i> Histórico de Exames
                                 </h3>
-                                <a href="{% comment %}{% url 'patients:exam_create' patient.pk %}{% endcomment %}" class="btn btn-primary btn-sm">
+                                <button class="btn btn-primary btn-sm" onclick="loadExamFormAndOpenModal('{% url 'patients:exam_add' patient.pk %}')">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
                                 </button>
                             </div>
@@ -402,7 +399,7 @@
                                             </label>
                                             <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300">
                                                 <li><a href="#" onclick="loadExamFormAndOpenModal('{% url 'patients:exam_edit' patient.pk exam.pk %}')"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
-                                                <li><a href="{% comment %}{% url 'patients:exam_result' patient.pk exam.pk %}{% endcomment %}"><i data-lucide="eye" class="w-4 h-4"></i> Ver Resultado</a></li>
+                                                <li><a href="{% url 'patients:exam_result' patient.pk exam.pk %}"><i data-lucide="eye" class="w-4 h-4"></i> Ver Resultado</a></li>
                                                 <li><a href="#" onclick="deleteItem('{% url 'patients:exam_delete' patient.pk exam.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                             </ul>
                                         </div>
@@ -460,7 +457,6 @@
 
                             <div class="space-y-4">
                                 {% for record in consultation_records %}
-                                    {# Usando 'collapse' básico + 'label' + 'group' para estilo e ícone customizado #}
                                     <div class="collapse bg-base-100 shadow rounded-lg group"> 
                                         <input type="checkbox" class="peer" id="record-{{ record.id }}" /> 
                                         
@@ -494,6 +490,11 @@
                                                         <span class="badge badge-error badge-sm flex items-center gap-1">
                                                             <i data-lucide="alert-triangle" class="w-3 h-3"></i>
                                                             {{ record.present_warning_count }} Alerta{% if record.present_warning_count > 1 %}s{% endif %} {# Lógica de Plural #}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if record.status == 'draft' %}
+                                                        <span class="badge badge-warning badge-sm flex items-center gap-1 font-semibold">
+                                                            <i data-lucide="edit-3" class="w-3 h-3"></i>RASCUNHO
                                                         </span>
                                                     {% endif %}
                                                 </div>
@@ -608,7 +609,19 @@
                                                             <i data-lucide="settings-2" class="w-4 h-4"></i> Ações
                                                         </label>
                                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                                            <li><a href="{% url 'patients:consultation_edit' patient.pk record.pk %}"><i data-lucide="edit" class="w-4 h-4"></i> Editar</a></li>
+                                                            {% if record.status == 'draft' %}
+                                                                <li>
+                                                                    <a href="{% url 'patients:consultation_edit' patient.pk record.pk %}">
+                                                                        <i data-lucide="check-circle" class="w-4 h-4 text-success"></i> Finalizar Rascunho
+                                                                    </a>
+                                                                </li>
+                                                            {% else %}
+                                                                <li>
+                                                                    <a href="{% url 'patients:consultation_edit' patient.pk record.pk %}">
+                                                                        <i data-lucide="edit" class="w-4 h-4"></i> Editar
+                                                                    </a>
+                                                                </li>
+                                                            {% endif %}
                                                             <li><a href="#" onclick="deleteItem('{% url 'patients:consultation_delete' patient.pk record.pk %}')" class="text-error"><i data-lucide="trash-2" class="w-4 h-4"></i> Excluir</a></li>
                                                         </ul>
                                                     </div>
