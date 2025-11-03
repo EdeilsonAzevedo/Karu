@@ -28,7 +28,6 @@ def get_intergrowth_data(measurement_type, sex):
     sex_folder = "boys" if sex == "M" else "girls"
     csv_path = base_dir / "data" / "growth_charts" / sex_folder / f"{measurement_type}.csv"
 
-
     # Se não existir, retornar vazio
     if not csv_path.exists():
         print("  ERRO: CSV não encontrado!")
@@ -84,7 +83,6 @@ def get_intergrowth_data(measurement_type, sex):
     else:
         print("  AVISO: coluna 'centile_97th' não encontrada")
         result["p97"] = []
-
 
     return result
 
@@ -150,7 +148,6 @@ def get_growth_chart_data(patient):
             )
 
             if data_source:
-
                 patient_weight_mapped[intergrowth_index] = (
                     float(data_source.weight) / 1000 if data_source.weight else None
                 )

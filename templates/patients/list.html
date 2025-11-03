@@ -5,7 +5,7 @@
 {% block content %}
 <main class="p-4 md:p-6 min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
     <div class="max-w-7xl mx-auto">
-        
+
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
@@ -14,18 +14,25 @@
                         <i data-lucide="baby" class="w-8 h-8 text-primary"></i>
                     </div>
                     <div>
-                        <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                        <h1
+                            class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                             Pacientes Cadastrados
                         </h1>
                         <p class="text-base-content/70 mt-1">
-                            Total de <span class="font-semibold text-primary">{{ patients|length }}</span> paciente(s) em acompanhamento
+                            Total de <span class="font-semibold text-primary">{{ patients|length }}</span> paciente(s)
+                            {% if current_status == "active" %}
+                                em acompanhamento
+                            {% else %}
+                                encerrados
+                            {% endif %}
                         </p>
                     </div>
                 </div>
             </div>
-            
+
             <div class="flex gap-2 w-full md:w-auto">
-                <a href="{% url 'patients:create' %}" class="btn btn-primary gap-2 shadow-lg hover:scale-105 transition-transform">
+                <a href="{% url 'patients:create' %}"
+                    class="btn btn-primary gap-2 shadow-lg hover:scale-105 transition-transform">
                     <i data-lucide="plus" class="w-4 h-4"></i>
                     Novo Paciente
                 </a>
@@ -36,6 +43,19 @@
             </div>
         </div>
 
+        <div class="tabs tabs-boxed mb-6 bg-base-100 p-2 shadow">
+            <a class="tab tab-lg flex-1 {% if current_status == 'active' %}tab-active{% endif %}"          
+                href="{% url 'patients:list' %}?status=active">
+                <i data-lucide="heart-pulse" class="w-5 h-5 mr-2"></i>
+                Em Acompanhamento
+            </a>
+            <a class="tab tab-lg flex-1 {% if current_status == 'inactive' %}tab-active{% endif %}"        
+                href="{% url 'patients:list' %}?status=inactive">
+                <i data-lucide="archive" class="w-5 h-5 mr-2"></i>
+                Encerrados (com Alta)
+            </a>
+        </div>
+
         <!-- Filter Card -->
         <div class="card bg-base-100 shadow-xl mb-6 border border-base-300">
             <div class="card-body">
@@ -43,7 +63,7 @@
                     <i data-lucide="filter" class="w-5 h-5 text-primary"></i>
                     <h2 class="card-title text-xl">Buscar Paciente</h2>
                 </div>
-                
+
                 <form method="get" action="{% url 'patients:list' %}" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <!-- Campo de Busca -->
@@ -54,13 +74,9 @@
                                     Buscar por Nome, CPF ou Certidão
                                 </span>
                             </label>
-                            <input 
-                                type="text" 
-                                name="q" 
-                                value="{{ request.GET.q|default:'' }}" 
-                                placeholder="Digite o nome, CPF ou número da certidão..." 
-                                class="input input-bordered input-primary w-full"
-                            />
+                            <input type="text" name="q" value="{{ request.GET.q|default:'' }}"
+                                placeholder="Digite o nome, CPF ou número da certidão..."
+                                class="input input-bordered input-primary w-full" />
                         </div>
 
                         <!-- Botões -->
@@ -98,7 +114,7 @@
         <!-- Table Card -->
         <div class="card bg-base-100 shadow-xl border border-base-300">
             <div class="card-body p-0">
-                
+
                 <!-- Table Header -->
                 <div class="bg-gradient-to-r from-primary/10 to-secondary/10 px-6 py-4 border-b border-base-300">
                     <div class="flex items-center justify-between">
@@ -161,7 +177,8 @@
                                 <td>
                                     <div class="flex items-center gap-3">
                                         <div class="avatar placeholder">
-                                            <div class="bg-gradient-to-br from-primary to-secondary text-primary-content rounded-full w-12 h-12">
+                                            <div
+                                                class="bg-gradient-to-br from-primary to-secondary text-primary-content rounded-full w-12 h-12">
                                                 <span class="text-lg font-bold">
                                                     {{ patient.first_name|slice:":1"|upper }}{{ patient.last_name|slice:":1"|upper }}
                                                 </span>
@@ -190,22 +207,30 @@
                                         <i data-lucide="baby" class="w-3 h-3"></i>
                                         {{ patient.gestational_age_weeks }}sem
                                         {% if patient.gestational_age_days %}
-                                            {{ patient.gestational_age_days }}d
+                                        {{ patient.gestational_age_days }}d
                                         {% endif %}
                                     </div>
                                 </td>
                                 <td class="text-center">
+                                    {% if patient.in_follow_up %}
                                     <div class="badge badge-success gap-2">
                                         <i data-lucide="heart-pulse" class="w-3 h-3"></i>
                                         Em acompanhamento
                                     </div>
+                                    {% else %}
+                                    <div class="badge badge-error badge-outline gap-2">
+                                        <i data-lucide="archive" class="w-3 h-3"></i>
+                                        Encerrado
+                                    </div>
+                                    {% endif %}
                                 </td>
                                 <td class="text-center">
                                     <div class="dropdown dropdown-end">
                                         <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
                                             <i data-lucide="more-vertical" class="w-4 h-4"></i>
                                         </label>
-                                        <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300 z-10">
+                                        <ul tabindex="0"
+                                            class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300 z-10">
                                             <li>
                                                 <a href="{% url 'patients:detail' patient.pk %}" class="gap-2">
                                                     <i data-lucide="file-text" class="w-4 h-4"></i>
@@ -219,7 +244,8 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <a href="{% url 'patients:consultation_create' patient.pk %}" class="gap-2">
+                                                <a href="{% url 'patients:consultation_create' patient.pk %}"
+                                                    class="gap-2">
                                                     <i data-lucide="plus-circle" class="w-4 h-4"></i>
                                                     Nova Consulta
                                                 </a>
@@ -241,9 +267,9 @@
                                             </p>
                                             <p class="text-sm text-base-content/50 mb-4">
                                                 {% if request.GET.q %}
-                                                    Tente ajustar sua busca ou limpar os filtros
+                                                Tente ajustar sua busca ou limpar os filtros
                                                 {% else %}
-                                                    Comece cadastrando o primeiro paciente
+                                                Comece cadastrando o primeiro paciente
                                                 {% endif %}
                                             </p>
                                             <a href="{% url 'patients:create' %}" class="btn btn-primary btn-sm">
@@ -265,17 +291,17 @@
 </main>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    lucide.createIcons();
-    
-    // Reaplica os ícones quando abre dropdowns
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.dropdown')) {
-            setTimeout(() => {
-                lucide.createIcons();
-            }, 50);
-        }
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+
+        // Reaplica os ícones quando abre dropdowns
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.dropdown')) {
+                setTimeout(() => {
+                    lucide.createIcons();
+                }, 50);
+            }
+        });
     });
-});
 </script>
 {% endblock content %}

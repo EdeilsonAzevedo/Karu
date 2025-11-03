@@ -76,12 +76,11 @@
                     <form method="dialog">
                         <button class="btn">Cancelar</button>
                     </form>
-                    <form method="POST" action="{% comment %}{% url 'patients:discharge' patient.pk %}{% endcomment %}">
+                    <form method="POST" action="{% url 'patients:discharge' patient.pk %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-success" disabled>
+                        <button type="submit" class="btn btn-success">
                             <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Alta
                         </button>
-                        <p class="text-xs text-warning mt-2">URL 'patients:discharge' precisa ser criada</p>
                     </form>
                 </div>
             </div>

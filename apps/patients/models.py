@@ -39,12 +39,10 @@ class Patient(BaseModel):
     guardian_name = models.CharField("Nome do Responsável", max_length=200, blank=True)
     contact_phone = models.CharField("Telefone de Contato", max_length=20, blank=True)
 
-    is_active = models.BooleanField(
-        "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
-    )
-
-    is_active = models.BooleanField(
-        "Ativo", default=True, help_text="Indica se o paciente está em acompanhamento ativo."
+    in_follow_up = models.BooleanField(
+        "Em Acompanhamento",
+        default=True,
+        help_text="Indica se o paciente está em acompanhamento ativo.",
     )
 
     address_street = models.CharField("Logradouro", max_length=255, blank=True)
@@ -106,7 +104,6 @@ class Record(BaseModel):
         else:
             # Se for string ou outro tipo, tenta converter
             try:
-
                 if isinstance(self.date, str):
                     # Tenta parsear a string para date
                     from datetime import datetime
