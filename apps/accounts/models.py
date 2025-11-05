@@ -131,12 +131,3 @@ class PaisProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} · CPF {self.cpf}"
-
-
-class Filho(models.Model):
-    pais = models.ForeignKey(PaisProfile, on_delete=models.CASCADE, related_name="filhos")
-    nome = models.CharField(max_length=100)
-    data_nascimento = models.DateField()
-
-    def __str__(self) -> str:
-        return f"{self.nome} ({self.pais.user.username})"

@@ -1,12 +1,17 @@
 from datetime import timedelta
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+
+from apps.accounts.forms import PaisProfileUpdateForm, PaisSignupForm
+from apps.accounts.models import PaisProfile
 
 from .forms import (
     ClinicalEvaluationForm,
@@ -77,6 +82,7 @@ def patient_create(request):
         # já cria uma instância com record_type fixé
         record_form = RecordForm(instance=Record(record_type="discharge"))
         discharge_form = DischargeRecordForm()
+        pais_form = PaisSignupForm(prefix="pais")
         clinical_forms = {
             ctype.value: ClinicalEvaluationForm(
                 prefix=f"clinic-{ctype.value}", initial={"type": ctype.value}
@@ -95,6 +101,7 @@ def patient_create(request):
         # instancia com record_type para a validação já ter o valor
         record_form = RecordForm(request.POST, instance=Record(record_type="discharge"))
         discharge_form = DischargeRecordForm(request.POST)
+        pais_form = PaisSignupForm(request.POST, prefix="pais")
         clinical_forms = {
             ctype.value: ClinicalEvaluationForm(request.POST, prefix=f"clinic-{ctype.value}")
             for ctype in ClinicalEvaluationType
@@ -109,6 +116,7 @@ def patient_create(request):
                 patient_form.is_valid(),
                 record_form.is_valid(),
                 discharge_form.is_valid(),
+                pais_form.is_valid(),
                 all(f.is_valid() for f in clinical_forms.values()),
                 all(f.is_valid() for f in team_forms.values()),
             ]
@@ -121,10 +129,15 @@ def patient_create(request):
             print("team", k, f.errors)
 
         if all_forms_valid:
-            patient = patient_form.save()
+            pais_form.set_actor(request.user)
+            pais_user = pais_form.save(request=request)
+            pais_profile = pais_user.pais
+            patient = patient_form.save(commit=False)
+            patient.guardian = pais_profile
+            patient.save()
+
             record = record_form.save(commit=False)
             record.patient = patient
-            # opcional (já está na instância), mas mantém por clareza:
             record.record_type = "discharge"
             record.save()
 
@@ -150,6 +163,7 @@ def patient_create(request):
         "patient_form": patient_form,
         "record_form": record_form,
         "discharge_form": discharge_form,
+        "pais_form": pais_form,
         "clinical_forms": clinical_forms,
         "team_forms": team_forms,
         "ClinicalEvaluationType": ClinicalEvaluationType,
@@ -161,6 +175,12 @@ def patient_create(request):
 @transaction.atomic
 def patient_edit(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
+
+    guardian_profile = patient.guardian
+    if not guardian_profile:
+        messages.error(request, "Erro: Paciente sem responsável associado.")
+        return redirect("patients:detail", pk=pk)
+
     try:
         record = Record.objects.get(patient=patient, record_type="discharge")
         discharge = record.discharge  # type: ignore
@@ -177,6 +197,7 @@ def patient_edit(request, pk):
         patient_form = PatientForm(request.POST, instance=patient)
         record_form = RecordForm(request.POST, instance=record)
         discharge_form = DischargeRecordForm(request.POST, instance=discharge)
+        pais_form = PaisProfileUpdateForm(request.POST, instance=guardian_profile, prefix="pais")
 
         clinical_forms = {
             ctype.value: ClinicalEvaluationForm(
@@ -200,6 +221,7 @@ def patient_edit(request, pk):
                 patient_form.is_valid(),
                 record_form.is_valid(),
                 discharge_form.is_valid(),
+                pais_form.is_valid(),
                 all(f.is_valid() for f in clinical_forms.values()),
                 all(f.is_valid() for f in team_forms.values()),
             ]
@@ -207,6 +229,8 @@ def patient_edit(request, pk):
 
         if all_forms_valid:
             patient = patient_form.save()
+            pais_form.save()
+
             record_instance = record_form.save(commit=False)
             record_instance.patient = patient
             record_instance.record_type = "discharge"
@@ -232,11 +256,16 @@ def patient_edit(request, pk):
                     eval_obj.notes = form.cleaned_data["notes"]
                     eval_obj.save()
 
+            messages.success(request, "Dados da alta atualizados com sucesso!")
             return redirect("patients:detail", pk=patient.pk)
-    else:  # GET request
+        else:
+            messages.error(request, "Formulário inválido. Verifique os campos.")
+
+    else:
         patient_form = PatientForm(instance=patient)
         record_form = RecordForm(instance=record)
         discharge_form = DischargeRecordForm(instance=discharge)
+        pais_form = PaisProfileUpdateForm(instance=guardian_profile, prefix="pais")
 
         clinical_forms = {
             ctype.value: ClinicalEvaluationForm(
@@ -258,6 +287,7 @@ def patient_edit(request, pk):
         "patient_form": patient_form,
         "record_form": record_form,
         "discharge_form": discharge_form,
+        "pais_form": pais_form,
         "clinical_forms": clinical_forms,
         "team_forms": team_forms,
         "ClinicalEvaluationType": ClinicalEvaluationType,
@@ -365,8 +395,23 @@ def get_weight_gain_analysis_data(patient):
     }
 
 
+@login_required
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
+    user = request.user
+
+    is_gestor_or_profissional = user.is_gestor or user.is_profissional or user.is_superuser
+    is_owner = False
+
+    if user.is_pais:
+        try:
+            if patient.guardian == user.pais:
+                is_owner = True
+        except PaisProfile.DoesNotExist:
+            is_owner = False
+
+    if not is_gestor_or_profissional and not is_owner:
+        return HttpResponseForbidden("Você não tem permissão para ver este prontuário.")
 
     records_queryset = patient.records.all().order_by("-date")  # type: ignore
 

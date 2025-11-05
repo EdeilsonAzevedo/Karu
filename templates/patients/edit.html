@@ -51,16 +51,40 @@
             <section class="card bg-base-200 shadow">
                 <div class="card-body">
                     <h2 class="card-title"><i data-lucide="users" class="w-5 h-5"></i>Dados do Responsável</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label {% if patient_form.guardian_name.field.required %}required{% endif %}"><span class="label-text">{{ patient_form.guardian_name.label }}</span></label>
-                            {{ patient_form.guardian_name }}
+                    
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">CPF (Login do Responsável)</span></label>
+                        <input type="text" value="{{ patient.guardian.cpf }}" class="input input-bordered" disabled />
+                        <div class="label"><span class="label-text-alt">O CPF é o login e não pode ser alterado.</span></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div class="form-control md:col-span-1">
+                            {{ pais_form.name.label_tag }}
+                            {{ pais_form.name }}
+                            {% for error in pais_form.name.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}
                         </div>
-                        <div class="form-control">
-                            <label class="label {% if patient_form.contact_phone.field.required %}required{% endif %}"><span class="label-text">{{ patient_form.contact_phone.label }}</span></label>
-                            {{ patient_form.contact_phone }}
+                        <div class="form-control md:col-span-2">
+                            {{ pais_form.email.label_tag }}
+                            {{ pais_form.email }}
+                            {% for error in pais_form.email.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}
                         </div>
                     </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div class="form-control">
+                            {{ pais_form.phone.label_tag }}
+                            {{ pais_form.phone }}
+                            {% for error in pais_form.phone.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}
+                        </div>
+                        <div class="form-control">
+                            {{ pais_form.new_password.label_tag }}
+                            {{ pais_form.new_password }}
+                            <div class="label"><span class="label-text-alt">{{ pais_form.new_password.help_text }}</span></div>
+                            {% for error in pais_form.new_password.errors %}<div class="label"><span class="label-text-alt text-error font-semibold">{{ error }}</span></div>{% endfor %}
+                        </div>
+                    </div>
+
                 </div>
             </section>
 

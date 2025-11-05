@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.accounts.models import PaisProfile
+
 from ..core.models import BaseModel
 from .utils import convert_days_to_age_components
 
@@ -36,8 +38,14 @@ class Patient(BaseModel):
     birth_length = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     head_circumference = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
 
-    guardian_name = models.CharField("Nome do Responsável", max_length=200, blank=True)
-    contact_phone = models.CharField("Telefone de Contato", max_length=20, blank=True)
+    guardian = models.ForeignKey(
+        PaisProfile,
+        on_delete=models.SET_NULL,
+        related_name="patients",
+        null=True,
+        blank=True,
+        verbose_name="Responsável (Conta de Acesso)",
+    )
 
     in_follow_up = models.BooleanField(
         "Em Acompanhamento",

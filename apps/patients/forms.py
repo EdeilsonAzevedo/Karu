@@ -27,8 +27,6 @@ class PatientForm(forms.ModelForm):
             "sex",
             "cpf",
             "birth_certificate_number",
-            "guardian_name",
-            "contact_phone",
             "address_street",
             "address_number",
             "address_complement",
@@ -49,8 +47,6 @@ class PatientForm(forms.ModelForm):
             "sex": "Sexo",
             "cpf": "CPF",
             "birth_certificate_number": "Nº da Certidão de Nascimento",
-            "guardian_name": "Nome do Responsável",
-            "contact_phone": "Telefone de Contato",
             "address_street": "Logradouro",
             "address_number": "Número",
             "address_complement": "Complemento",
@@ -65,9 +61,8 @@ class PatientForm(forms.ModelForm):
             "head_circumference": "PC ao nascer (cm)",
         }
         widgets = {
-            "date_of_birth": forms.DateInput(attrs={"type": "date"}),
+            "date_of_birth": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
             "cpf": forms.TextInput(attrs={"placeholder": "000.000.000-00"}),
-            "contact_phone": forms.TextInput(attrs={"placeholder": "(00) 00000-0000"}),
             "address_zip_code": forms.TextInput(attrs={"placeholder": "00000-000"}),
             "birth_weight": forms.NumberInput(attrs={"placeholder": "Ex: 3100"}),
             "birth_length": forms.NumberInput(attrs={"placeholder": "Ex: 49.5"}),
