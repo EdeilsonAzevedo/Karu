@@ -6,6 +6,7 @@ from .views import (
     ativar_usuario,
     desativar_usuario,
     detalhes_usuario,
+    editar_usuario,
     list_users,
     only_authenticated,
     only_gestores,
@@ -25,6 +26,7 @@ urlpatterns = [
     path("signup/pais/", signup_pais, name="signup_pais"),
     path("usuarios/", list_users, name="listar_usuarios"),
     path("usuarios/<int:user_id>/detalhes/", detalhes_usuario, name="detalhes_usuario"),
+    path("usuarios/<int:user_id>/editar/", editar_usuario, name="editar_usuario"),  # NOVA URL
     path("usuarios/<int:user_id>/desativar/", desativar_usuario, name="desativar_usuario"),
     path("usuarios/<int:user_id>/ativar/", ativar_usuario, name="ativar_usuario"),
 ]

@@ -1,3 +1,5 @@
+import json
+
 from auditlog.models import LogEntry
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -5,12 +7,14 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Q
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
+from .models import ProfissionalSaudeProfile, User
 
 User = get_user_model()
 
@@ -358,3 +362,319 @@ def ativar_usuario(request, user_id):
         logger.error(f"Erro ao ativar usuário {user_id}: {str(e)}")
         messages.error(request, f"Erro ao ativar usuário: {str(e)}")
         return redirect("accounts:listar_usuarios")
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name="gestores").exists())
+def editar_usuario(request, user_id):
+    """View para editar usuário"""
+    try:
+        user = get_object_or_404(User, id=user_id)
+
+        if request.method == "POST":
+            print(f"DEBUG: Iniciando edição do usuário {user_id}")
+
+            # Capturar dados antes das alterações
+            dados_anteriores = _capturar_dados_anteriores(user)
+            print(f"DEBUG: Dados anteriores: {dados_anteriores}")
+
+            # Atualizar dados básicos do usuário
+            user.first_name = request.POST.get("first_name", "").strip()
+            user.email = request.POST.get("email", "").strip().lower()
+            user.is_active = request.POST.get("is_active") == "on"
+
+            # Só permite alterar tipo de usuário se for superuser
+            if request.user.is_superuser:
+                novo_tipo = request.POST.get("user_type")
+                if novo_tipo in dict(User.UserType.choices):
+                    user.user_type = novo_tipo
+
+            print(
+                f"DEBUG: Dados novos do usuário - Nome: {user.first_name}, Email: {user.email}, Ativo: {user.is_active}"
+            )
+            user.save()
+
+            # Atualizar perfil específico
+            _atualizar_perfil_usuario(request, user)
+
+            # Registrar no auditlog
+            _registrar_edicao_auditlog(request, user, dados_anteriores)
+
+            # Sempre retornar JSON para requisições AJAX
+            return JsonResponse({"success": True, "message": "Usuário atualizado com sucesso!"})
+
+        else:
+            # GET request - retornar formulário de edição
+            context = _preparar_contexto_edicao(user, request)
+
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                html = render_to_string(
+                    "accounts/_editar_usuario_content.html", context, request=request
+                )
+                return HttpResponse(html)
+
+            return render(request, "accounts/editar_usuario.html", context)
+
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro ao editar usuário {user_id}: {str(e)}")
+
+        # Retornar erro em JSON
+        return JsonResponse(
+            {"success": False, "message": f"Erro ao atualizar usuário: {str(e)}"}, status=400
+        )
+
+
+def _preparar_contexto_edicao(user, request):
+    """Prepara o contexto para o template de edição"""
+    context = {
+        "usuario": user,
+        "info_adicional": {},
+        "tipos_usuario": User.UserType.choices,
+        "request": request,  # Passar request para o template
+    }
+
+    # Coletar informações específicas do tipo de usuário
+    if hasattr(user, "gestor"):
+        perfil = user.gestor
+        context["info_adicional"] = {
+            "tipo": "Gestor",
+            "unidade": perfil.unidade,
+            "cargo": perfil.cargo,
+            "departamento": perfil.departamento,
+            "telefone": perfil.telefone,
+        }
+        context["perfil_type"] = "gestor"
+
+    elif hasattr(user, "profissional"):
+        perfil = user.profissional
+        context["info_adicional"] = {
+            "tipo": "Profissional de Saúde",
+            "categoria": perfil.categoria,
+            "especialidade": perfil.especialidade,
+            "conselho": perfil.conselho,
+            "numero_registro": perfil.numero_registro,
+            "unidade": perfil.unidade,
+            "telefone": perfil.telefone,
+        }
+        context["categorias"] = ProfissionalSaudeProfile.Categoria.choices
+        context["perfil_type"] = "profissional"
+
+    elif hasattr(user, "pais"):
+        perfil = user.pais
+        context["info_adicional"] = {
+            "tipo": "Pais/Responsável",
+            "telefone": perfil.telefone,
+        }
+        context["perfil_type"] = "pais"
+
+    return context
+
+
+@transaction.atomic
+def _processar_edicao_usuario(request, user):
+    """Processa a edição do usuário"""
+    try:
+        dados_anteriores = _capturar_dados_anteriores(user)
+
+        # Atualizar dados básicos do usuário
+        user.first_name = request.POST.get("first_name", "").strip()
+        user.email = request.POST.get("email", "").strip().lower()
+        user.is_active = request.POST.get("is_active") == "on"
+
+        # Só permite alterar tipo de usuário se for superuser
+        if request.user.is_superuser:
+            novo_tipo = request.POST.get("user_type")
+            if novo_tipo in dict(User.UserType.choices):
+                user.user_type = novo_tipo
+
+        user.save()
+
+        # Atualizar perfil específico
+        _atualizar_perfil_usuario(request, user)
+
+        # Registrar no auditlog
+        _registrar_edicao_auditlog(request, user, dados_anteriores)
+
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"success": True, "message": "Usuário atualizado com sucesso!"})
+
+        messages.success(request, "Usuário atualizado com sucesso!")
+        return redirect("accounts:listar_usuarios")
+
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro ao processar edição do usuário {user.id}: {str(e)}")
+
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse(
+                {"success": False, "message": f"Erro ao atualizar usuário: {str(e)}"}, status=400
+            )
+
+        messages.error(request, f"Erro ao atualizar usuário: {str(e)}")
+        return redirect("accounts:listar_usuarios")
+
+
+def _capturar_dados_anteriores(user):
+    """Captura os dados anteriores para o auditlog"""
+    dados = {
+        "user": {
+            "first_name": user.first_name,
+            "email": user.email,
+            "user_type": user.user_type,
+            "is_active": user.is_active,
+        }
+    }
+
+    if hasattr(user, "gestor"):
+        perfil = user.gestor
+        dados["gestor"] = {
+            "telefone": perfil.telefone,
+            "unidade": perfil.unidade,
+            "cargo": perfil.cargo,
+            "departamento": perfil.departamento,
+        }
+    elif hasattr(user, "profissional"):
+        perfil = user.profissional
+        dados["profissional"] = {
+            "telefone": perfil.telefone,
+            "categoria": perfil.categoria,
+            "especialidade": perfil.especialidade,
+            "conselho": perfil.conselho,
+            "numero_registro": perfil.numero_registro,
+            "unidade": perfil.unidade,
+        }
+    elif hasattr(user, "pais"):
+        perfil = user.pais
+        dados["pais"] = {"telefone": perfil.telefone}
+
+    return dados
+
+
+def _atualizar_perfil_usuario(request, user):
+    """Atualiza o perfil específico do usuário"""
+    telefone = request.POST.get("telefone", "").strip()
+
+    if hasattr(user, "gestor"):
+        perfil = user.gestor
+        perfil.telefone = telefone
+        perfil.unidade = request.POST.get("unidade", "").strip()
+        perfil.cargo = request.POST.get("cargo", "").strip()
+        perfil.departamento = request.POST.get("departamento", "").strip()
+        perfil.save()
+
+    elif hasattr(user, "profissional"):
+        perfil = user.profissional
+        perfil.telefone = telefone
+        perfil.categoria = request.POST.get("categoria", "")
+        perfil.especialidade = request.POST.get("especialidade", "").strip()
+        perfil.conselho = request.POST.get("conselho", "").strip() or None
+        perfil.numero_registro = request.POST.get("numero_registro", "").strip() or None
+        perfil.unidade = request.POST.get("unidade", "").strip()
+        perfil.save()
+
+    elif hasattr(user, "pais"):
+        perfil = user.pais
+        perfil.telefone = telefone
+        perfil.save()
+
+
+def _registrar_edicao_auditlog(request, user, dados_anteriores):
+    """Registra a edição no auditlog"""
+    try:
+        changes = []
+
+        # Comparar dados do usuário
+        campos_user = ["first_name", "email", "user_type", "is_active"]
+        for campo in campos_user:
+            valor_anterior = dados_anteriores["user"].get(campo)
+            valor_novo = getattr(user, campo)
+
+            # Converter para string para comparação
+            str_anterior = str(valor_anterior) if valor_anterior is not None else ""
+            str_novo = str(valor_novo) if valor_novo is not None else ""
+
+            if str_anterior != str_novo:
+                changes.append({campo: [str_anterior, str_novo]})
+
+        # Comparar dados do perfil específico
+        if hasattr(user, "gestor"):
+            perfil = user.gestor
+            campos_perfil = ["telefone", "unidade", "cargo", "departamento"]
+            for campo in campos_perfil:
+                valor_anterior = dados_anteriores.get("gestor", {}).get(campo)
+                valor_novo = getattr(perfil, campo)
+
+                str_anterior = str(valor_anterior) if valor_anterior is not None else ""
+                str_novo = str(valor_novo) if valor_novo is not None else ""
+
+                if str_anterior != str_novo:
+                    changes.append({f"gestor_{campo}": [str_anterior, str_novo]})
+
+        elif hasattr(user, "profissional"):
+            perfil = user.profissional
+            campos_perfil = [
+                "telefone",
+                "categoria",
+                "especialidade",
+                "conselho",
+                "numero_registro",
+                "unidade",
+            ]
+            for campo in campos_perfil:
+                valor_anterior = dados_anteriores.get("profissional", {}).get(campo)
+                valor_novo = getattr(perfil, campo)
+
+                str_anterior = str(valor_anterior) if valor_anterior is not None else ""
+                str_novo = str(valor_novo) if valor_novo is not None else ""
+
+                if str_anterior != str_novo:
+                    changes.append({f"profissional_{campo}": [str_anterior, str_novo]})
+
+        elif hasattr(user, "pais"):
+            perfil = user.pais
+            campos_perfil = ["telefone"]
+            for campo in campos_perfil:
+                valor_anterior = dados_anteriores.get("pais", {}).get(campo)
+                valor_novo = getattr(perfil, campo)
+
+                str_anterior = str(valor_anterior) if valor_anterior is not None else ""
+                str_novo = str(valor_novo) if valor_novo is not None else ""
+
+                if str_anterior != str_novo:
+                    changes.append({f"pais_{campo}": [str_anterior, str_novo]})
+
+        # Registrar mudanças no auditlog
+        if changes:
+            content_type = ContentType.objects.get_for_model(User)
+
+            # Criar uma representação legível das mudanças
+            changes_text = " | ".join(
+                [
+                    f"{list(change.keys())[0]}: {list(change.values())[0][0]} → {list(change.values())[0][1]}"
+                    for change in changes
+                ]
+            )
+
+            LogEntry.objects.log_create(
+                instance=user,
+                action=LogEntry.Action.UPDATE,
+                changes=json.dumps(changes),
+                changes_text=changes_text,
+                actor=request.user,
+            )
+
+            print(f"DEBUG: Registradas {len(changes)} mudanças no auditlog para usuário {user.id}")
+            print(f"DEBUG: Mudanças: {changes}")
+        else:
+            print("DEBUG: Nenhuma mudança detectada para registro no auditlog")
+
+    except Exception as e:
+        print(f"DEBUG: Erro ao registrar no auditlog: {e}")
+        import traceback
+
+        traceback.print_exc()
