@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from django.urls import reverse
 
-from apps.patients.models import DischargeRecord, Patient, Record
+from apps.patients.models import DischargeRecord, PaisProfile, Patient, Record
 from apps.patients.tests.factories import PatientFactory
 
 # ============ TESTES DA VIEW PATIENT LIST ============
@@ -120,11 +120,9 @@ def test_patient_create_get(client):
 
 
 @pytest.mark.django_db
-def test_patient_create_post_success(client):
-    """Testa a criação bem-sucedida de um paciente com todos os dados."""
+def test_patient_create_post_success(client_logged_gestor):
     url = reverse("patients:create")
 
-    # Dados completos e válidos para todos os formulários da view
     form_data = {
         # PatientForm
         "first_name": "Ana",
@@ -157,20 +155,25 @@ def test_patient_create_post_success(client):
         # Campos calculados (enviados via hidden input)
         "chronological_age_days": 10,
         "corrected_age_weeks": 39,
+        "pais-name": "Mariana Silva (Responsável)",
+        "pais-cpf": "55555555555",
+        "pais-email": "mariana.responsavel@example.com",
+        "pais-phone": "(82) 91234-5678",
+        "pais-temp_password": "Senha@123",
+        "pais-temp_password2": "Senha@123",
+        "pais-status": "Ativo",
     }
 
-    response = client.post(url, form_data)
+    response = client_logged_gestor.post(url, form_data)
 
-    # 1. Verifica se redirecionou para a lista após o sucesso
     assert response.status_code == 302
     assert response.url == reverse("patients:list")
 
-    # 2. Verifica se os objetos foram criados no banco
     assert Patient.objects.count() == 1
     assert Record.objects.count() == 1
     assert DischargeRecord.objects.count() == 1
+    assert PaisProfile.objects.count() == 1
 
-    # 3. Verifica dados específicos para garantir a correção
     patient = Patient.objects.get(cpf="44444444444")
     assert patient.first_name == "Ana"
     assert patient.birth_weight == Decimal("3200.50")

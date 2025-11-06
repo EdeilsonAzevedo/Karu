@@ -141,6 +141,7 @@ def signup_pais(request):
         form = PaisSignupForm(request.POST)
         if form.is_valid():
             form.set_actor(request.user)
+            form.save(request=request)
             messages.success(request, "Pai/responsável criado com sucesso.")
             return redirect("home")
     else:

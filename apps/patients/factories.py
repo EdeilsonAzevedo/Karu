@@ -6,6 +6,8 @@ from factory.django import DjangoModelFactory
 from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice, FuzzyDecimal, FuzzyInteger
 
+from apps.accounts.factories import PaisProfileFactory
+
 from .models import (
     ClinicalEvaluation,
     ClinicalEvaluationType,
@@ -45,8 +47,7 @@ class PatientFactory(DjangoModelFactory):
     birth_length = FuzzyDecimal(35.0, 60.0, 1)
     head_circumference = FuzzyDecimal(25.0, 42.0, 1)
 
-    guardian_name = Faker("name")
-    contact_phone = Faker("phone_number")
+    guardian = SubFactory(PaisProfileFactory)
 
     address_street = Faker("street_name")
     address_number = FuzzyInteger(1, 9999)

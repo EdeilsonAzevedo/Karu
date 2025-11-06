@@ -3,6 +3,8 @@ from decimal import Decimal
 
 import factory
 
+from apps.accounts.factories import PaisProfileFactory
+
 # Importar usando caminho absoluto em vez de relativo
 from apps.patients.models import (
     ClinicalEvaluation,
@@ -31,6 +33,8 @@ class PatientFactory(factory.django.DjangoModelFactory):
     birth_weight = Decimal("3.50")
     birth_length = Decimal("50.0")
     head_circumference = Decimal("35.0")
+
+    guardian = factory.SubFactory(PaisProfileFactory)
 
 
 class RecordFactory(factory.django.DjangoModelFactory):

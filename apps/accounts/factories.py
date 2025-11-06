@@ -5,7 +5,7 @@ from factory.faker import Faker
 from factory.fuzzy import FuzzyChoice
 from faker import Faker as PyFaker
 
-from .models import Filho, GestorProfile, PaisProfile, ProfissionalSaudeProfile, User
+from .models import GestorProfile, PaisProfile, ProfissionalSaudeProfile, User
 
 Faker._DEFAULT_LOCALE = "pt_BR"
 
@@ -25,7 +25,6 @@ class UserFactory(DjangoModelFactory):
     last_name = Faker("last_name")
     email = LazyAttribute(lambda o: f"{o.username}@exemplo.com")
     password = LazyFunction(lambda: make_password("123456"))
-    user_type = FuzzyChoice([c[0] for c in User.UserType.choices])
 
 
 class GestorProfileFactory(DjangoModelFactory):
@@ -73,12 +72,3 @@ class PaisProfileFactory(DjangoModelFactory):
     user = SubFactory(UserFactory, user_type=User.UserType.PAIS)
     cpf = Sequence(lambda n: cpf_digits(n + 30_000))
     telefone = Faker("phone_number")
-
-
-class FilhoFactory(DjangoModelFactory):
-    class Meta:
-        model = Filho
-
-    pais = SubFactory(PaisProfileFactory)
-    nome = Faker("first_name")
-    data_nascimento = Faker("date_of_birth", minimum_age=0, maximum_age=17)
