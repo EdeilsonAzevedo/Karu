@@ -2,8 +2,10 @@ import json
 
 from auditlog.models import LogEntry
 from django import template
+from django.contrib.auth import get_user_model
 
 register = template.Library()
+User = get_user_model()
 
 
 @register.filter(name="format_changes")
@@ -18,194 +20,454 @@ def format_changes(log_entry):
 
     # Tentar parsear as mudanças do campo changes
     try:
-        # Para registros manuais, o campo changes pode ser uma string JSON
         if isinstance(log_entry.changes, str):
             changes_dict = json.loads(log_entry.changes)
-            # Converter para o formato esperado pelo código existente
             changes = {}
             for change in changes_dict:
                 for field, values in change.items():
                     changes[field] = values
         else:
-            # Para registros automáticos, usar changes_dict normal
             changes = log_entry.changes_dict
     except (json.JSONDecodeError, AttributeError, TypeError):
-        # Fallback para changes_dict normal
         changes = getattr(log_entry, "changes_dict", {})
 
-    # Se a ação for DELETAR, mostre uma mensagem simples.
+    # Identificar o tipo de objeto
+    object_type = identificar_tipo_objeto_detalhado(log_entry.content_type.model)
+
+    # Se a ação for DELETAR
     if action == LogEntry.Action.DELETE:
-        return f"O registro '{log_entry.object_repr}' foi excluído permanentemente."
+        return formatar_exclusao_simples(object_type)
 
-    # Se a ação for ATUALIZAR, mostre apenas os campos que realmente mudaram
+    # Se a ação for ATUALIZAR
     if action == LogEntry.Action.UPDATE:
-        lines = []
-        changes_count = 0
+        return formatar_alteracao_simples(changes, object_type)
 
-        for field, (old, new) in changes.items():
-            # Pula campos que não mudaram realmente
-            if old == new:
-                continue
-
-            # Mensagem especial para ativação/desativação
-            if field == "is_active":
-                # Usar o object_repr diretamente como nome
-                usuario_nome = log_entry.object_repr
-
-                if new is True or str(new).lower() == "true":
-                    lines.append(
-                        f"• A conta de {usuario_nome} foi ativada (acesso restaurado ao sistema)"
-                    )
-                else:
-                    lines.append(
-                        f"• A conta de {usuario_nome} foi desativada (acesso ao sistema removido)"
-                    )
-                changes_count += 1
-                continue
-
-            # Traduz nomes de campos comuns
-            field_name = traduzir_campo(field)
-            lines.append(f'• {field_name}: de "{formatar_valor(old)}" para "{formatar_valor(new)}"')
-            changes_count += 1
-
-        if changes_count == 0:
-            return "Foram feitas alterações menores no registro."
-
-        return "\n".join(lines)
-
-    # Se a ação for CRIAR, mostre informações resumidas
+    # Se a ação for CRIAR
     if action == LogEntry.Action.CREATE:
-        # Tenta identificar o tipo de objeto para mensagem personalizada
-        object_type = identificar_tipo_objeto(log_entry.object_repr)
+        return formatar_criacao_simples(log_entry, changes, object_type)
 
-        if object_type == "usuário":
-            return formatar_criacao_usuario(log_entry, changes)
-        elif object_type == "paciente":
-            return formatar_criacao_paciente(log_entry, changes)
-        else:
-            return formatar_criacao_generica(log_entry, changes)
-
-    return "Ação registrada no sistema."  # Fallback genérico
+    return "Ação registrada no sistema."
 
 
-def traduzir_campo(field_name):
-    """Traduz nomes de campos técnicos para português amigável"""
-    traducoes = {
-        "first_name": "Nome",
-        "last_name": "Sobrenome",
-        "full_name": "Nome completo",
-        "name": "Nome",
-        "email": "E-mail",
-        "username": "Usuário",
-        "cpf": "CPF",
-        "phone": "Telefone",
-        "birth_date": "Data de nascimento",
-        "address": "Endereço",
-        "is_active": "Status",
-        "password": "Senha",
-        "user": "Usuário vinculado",
-        "created_at": "Data de criação",
-        "updated_at": "Última atualização",
+def identificar_tipo_objeto_detalhado(model_name):
+    """Identifica o tipo de objeto baseado no nome do modelo"""
+    tipos = {
+        # Modelos principais
+        "patient": "paciente",
+        "record": "prontuário",
+        "dischargerecord": "alta hospitalar",
+        "consultationrecord": "consulta",
+        "clinicalevaluation": "avaliação clínica",
+        "interdisciplinaryevaluation": "avaliação da equipe",
+        "exam": "exame",
+        "vaccine": "vacina",
+        "followup": "acompanhamento",
+        "clinicalwarningsign": "sinal de alerta clínico",
+        # Modelos de usuários
+        "user": "usuário do sistema",
+        "gestorprofile": "perfil de gestor",
+        "profissionalsaudeprofile": "perfil de profissional",
+        "paisprofile": "perfil de pais/responsável",
+        # Outros modelos do sistema (adicionar conforme necessário)
+        "medicalhistory": "histórico médico",
+        "developmentmilestone": "marco de desenvolvimento",
+        "growthchart": "gráfico de crescimento",
+        "medication": "medicação",
+        "allergy": "alergia",
+        "hospitalization": "hospitalização",
+        "emergencycontact": "contato de emergência",
+        "insurance": "convênio",
     }
-    return traducoes.get(field_name, field_name.replace("_", " ").title())
+    return tipos.get(model_name, "registro")
 
 
-def formatar_valor(valor):
-    """Formata valores para exibição mais amigável"""
-    if valor is None or valor == "":
-        return "não informado"
-    elif valor is True or str(valor).lower() == "true":
-        return "Ativo"
-    elif valor is False or str(valor).lower() == "false":
-        return "Inativo"
-    elif isinstance(valor, str) and len(valor) > 50:
-        return f"{valor[:50]}..."
-    return str(valor)
+def formatar_exclusao_simples(object_type):
+    """Formata exclusão de forma simples"""
+    return f"{object_type.title()} foi excluído permanentemente."
 
 
-def identificar_tipo_objeto(object_repr):
-    """Identifica o tipo de objeto baseado na representação"""
-    repr_lower = object_repr.lower()
-    if "user" in repr_lower or "usuário" in repr_lower or "@" in repr_lower:
-        return "usuário"
-    elif "patient" in repr_lower or "paciente" in repr_lower:
-        return "paciente"
-    return "registro"
+def formatar_alteracao_simples(changes, object_type):
+    """Formata alterações de forma simples e direta"""
+    campos_alterados = []
 
+    for field, (old, new) in changes.items():
+        if old == new:
+            continue
 
-def formatar_criacao_usuario(log_entry, changes):
-    """Formata criação de usuário de forma amigável"""
-    nome = (
-        changes.get("first_name", ("", ""))[1]
-        if isinstance(changes.get("first_name"), (list, tuple))
-        else changes.get("first_name", "")
-    )
-    email = (
-        changes.get("email", ("", ""))[1]
-        if isinstance(changes.get("email"), (list, tuple))
-        else changes.get("email", "")
-    )
-    username = (
-        changes.get("username", ("", ""))[1]
-        if isinstance(changes.get("username"), (list, tuple))
-        else changes.get("username", "")
-    )
+        # Traduz nomes de campos
+        field_name = traduzir_campo_simples(field)
 
-    if nome and email:
-        return f"Usuário criado: {nome} ({email})"
-    elif nome:
-        return f"Usuário criado: {nome}"
-    elif email:
-        return f"Usuário criado: {email}"
-    elif username:
-        return f"Usuário criado: {username}"
+        # Formata valores
+        old_formatted = formatar_valor_simples(old, field)
+        new_formatted = formatar_valor_simples(new, field)
+
+        # Para campo is_active, trata de forma especial
+        if field == "is_active":
+            if new is True:
+                campos_alterados.append("Conta ativada")
+            elif new is False:
+                campos_alterados.append("Conta desativada")
+            else:
+                campos_alterados.append(f"{field_name}: {old_formatted} → {new_formatted}")
+        else:
+            campos_alterados.append(f"{field_name}: {old_formatted} → {new_formatted}")
+
+    if campos_alterados:
+        # Linguagem mais amigável para usuários
+        if object_type == "usuário do sistema":
+            if len(campos_alterados) == 1 and "Conta ativada" in campos_alterados[0]:
+                return "Usuário ativado no sistema"
+            elif len(campos_alterados) == 1 and "Conta desativada" in campos_alterados[0]:
+                return "Usuário desativado no sistema"
+            else:
+                return "Usuário alterado: " + ", ".join(campos_alterados)
+        else:
+            return f"{object_type.title()} alterado: " + ", ".join(campos_alterados)
     else:
-        return "Novo usuário criado no sistema"
+        if object_type == "usuário do sistema":
+            return "Usuário atualizado"
+        else:
+            return f"{object_type.title()} atualizado"
 
 
-def formatar_criacao_paciente(log_entry, changes):
-    """Formata criação de paciente de forma amigável"""
-    nome = ""
+def formatar_criacao_paciente_detalhada(changes):
+    """Formata criação de paciente de forma detalhada"""
+    detalhes = []
+
     if "first_name" in changes:
         nome = (
             changes["first_name"][1]
             if isinstance(changes["first_name"], (list, tuple))
             else changes["first_name"]
         )
-    elif "name" in changes:
-        nome = changes["name"][1] if isinstance(changes["name"], (list, tuple)) else changes["name"]
-    elif "full_name" in changes:
+        if nome:
+            detalhes.append(f"Nome: {nome}")
+
+    if "last_name" in changes:
+        sobrenome = (
+            changes["last_name"][1]
+            if isinstance(changes["last_name"], (list, tuple))
+            else changes["last_name"]
+        )
+        if sobrenome:
+            detalhes.append(f"Sobrenome: {sobrenome}")
+
+    if detalhes:
+        return "Paciente cadastrado: " + ", ".join(detalhes)
+    else:
+        return "Novo paciente cadastrado"
+
+
+# Atualize a função formatar_criacao_simples para usar a nova função
+def formatar_criacao_simples(log_entry, changes, object_type):
+    """Formata criação de forma simples"""
+
+    if object_type == "paciente":
+        return formatar_criacao_paciente_detalhada(changes)
+    elif object_type == "usuário do sistema":
+        return formatar_criacao_usuario_detalhada(changes)
+    elif object_type == "perfil de gestor":
+        return formatar_criacao_perfil_gestor(changes)
+    elif object_type == "perfil de profissional":
+        return formatar_criacao_perfil_profissional(changes)
+    elif object_type == "perfil de pais/responsável":
+        return formatar_criacao_perfil_pais(changes)
+    elif object_type == "consulta":
+        return "Nova consulta registrada"
+    elif object_type == "alta hospitalar":
+        return "Alta hospitalar registrada"
+    elif object_type == "prontuário":
+        return "Prontuário criado"
+    elif object_type == "avaliação clínica":
+        return "Avaliação clínica registrada"
+    elif object_type == "avaliação da equipe":
+        return "Avaliação da equipe registrada"
+    elif object_type == "exame":
+        return "Exame registrado"
+    elif object_type == "vacina":
+        return "Vacina registrada"
+    elif object_type == "sinal de alerta clínico":
+        return "Sinal de alerta registrado"
+    else:
+        return f"Novo {object_type} criado"
+
+
+def formatar_criacao_paciente_simples(changes):
+    """Formata criação de paciente de forma simples"""
+    nome = ""
+
+    # Extrai nome do paciente
+    if "first_name" in changes:
         nome = (
-            changes["full_name"][1]
-            if isinstance(changes["full_name"], (list, tuple))
-            else changes["full_name"]
+            changes["first_name"][1]
+            if isinstance(changes["first_name"], (list, tuple))
+            else changes["first_name"]
         )
 
-    cpf = (
-        changes.get("cpf", ("", ""))[1]
-        if isinstance(changes.get("cpf"), (list, tuple))
-        else changes.get("cpf", "")
-    )
+    if "last_name" in changes:
+        sobrenome = (
+            changes["last_name"][1]
+            if isinstance(changes["last_name"], (list, tuple))
+            else changes["last_name"]
+        )
+        if nome and sobrenome:
+            nome = f"{nome} {sobrenome}"
 
-    if nome and cpf:
-        return f"Paciente cadastrado: {nome} (CPF: {cpf})"
-    elif nome:
+    if nome:
         return f"Paciente cadastrado: {nome}"
-    elif cpf:
-        return f"Paciente cadastrado com CPF: {cpf}"
     else:
-        return "Novo paciente cadastrado no sistema"
+        return "Novo paciente cadastrado"
 
 
-def formatar_criacao_generica(log_entry, changes):
-    """Formata criação genérica de forma amigável"""
-    # Tenta encontrar um campo de nome para personalizar a mensagem
-    for field in ["name", "first_name", "full_name", "title", "description"]:
-        if field in changes:
-            nome = (
-                changes[field][1] if isinstance(changes[field], (list, tuple)) else changes[field]
-            )
-            if nome and len(str(nome)) < 100:
-                return f"Registro criado: {nome}"
+def formatar_criacao_usuario_detalhada(changes):
+    """Formata criação de usuário de forma detalhada"""
+    detalhes = []
 
-    return f"Novo registro criado: {log_entry.object_repr}"
+    # Informações básicas do usuário
+    if "username" in changes:
+        cpf = (
+            changes["username"][1]
+            if isinstance(changes["username"], (list, tuple))
+            else changes["username"]
+        )
+        detalhes.append(f"CPF: {formatar_valor_simples(cpf, 'cpf')}")
+
+    if detalhes:
+        return "Usuário criado: " + ", ".join(detalhes)
+    else:
+        return "Novo usuário criado"
+
+
+def formatar_criacao_perfil_gestor(changes):
+    """Formata criação de perfil de gestor"""
+    detalhes = []
+
+    if "unidade" in changes:
+        unidade = (
+            changes["unidade"][1]
+            if isinstance(changes["unidade"], (list, tuple))
+            else changes["unidade"]
+        )
+        if unidade:
+            detalhes.append(f"Unidade: {unidade}")
+
+    if "cargo" in changes:
+        cargo = (
+            changes["cargo"][1] if isinstance(changes["cargo"], (list, tuple)) else changes["cargo"]
+        )
+        if cargo:
+            detalhes.append(f"Cargo: {cargo}")
+
+    return "Perfil de gestor criado" + (": " + ", ".join(detalhes) if detalhes else "")
+
+
+def formatar_criacao_perfil_profissional(changes):
+    """Formata criação de perfil de profissional"""
+    detalhes = []
+
+    if "categoria" in changes:
+        categoria = (
+            changes["categoria"][1]
+            if isinstance(changes["categoria"], (list, tuple))
+            else changes["categoria"]
+        )
+        if categoria:
+            detalhes.append(f"Categoria: {categoria}")
+
+    if "unidade" in changes:
+        unidade = (
+            changes["unidade"][1]
+            if isinstance(changes["unidade"], (list, tuple))
+            else changes["unidade"]
+        )
+        if unidade:
+            detalhes.append(f"Unidade: {unidade}")
+
+    return "Perfil de profissional criado" + (": " + ", ".join(detalhes) if detalhes else "")
+
+
+def formatar_criacao_perfil_pais(changes):
+    """Formata criação de perfil de pais/responsável"""
+    detalhes = []
+
+    if "telefone" in changes:
+        telefone = (
+            changes["telefone"][1]
+            if isinstance(changes["telefone"], (list, tuple))
+            else changes["telefone"]
+        )
+        if telefone:
+            detalhes.append(f"Telefone: {telefone}")
+
+    return "Perfil de pais/responsável criado" + (": " + ", ".join(detalhes) if detalhes else "")
+
+
+def traduzir_campo_simples(field_name):
+    """Traduz nomes de campos de forma simples"""
+    traducoes = {
+        # Campos de usuário
+        "first_name": "Nome",
+        "last_name": "Sobrenome",
+        "name": "Nome",
+        "email": "E-mail",
+        "username": "CPF",
+        "cpf": "CPF",
+        "contact_phone": "Telefone",
+        "is_active": "Status da conta",
+        "user_type": "Tipo de Usuário",
+        # Campos de paciente
+        "date_of_birth": "Data de nascimento",
+        "birth_weight": "Peso ao nascer",
+        "gestational_age_weeks": "Idade gestacional (semanas)",
+        "birth_certificate_number": "Número da certidão de nascimento",
+        "mother_name": "Nome da mãe",
+        "father_name": "Nome do pai",
+        "address_street": "Logradouro",
+        "address_number": "Número",
+        "address_complement": "Complemento",
+        "address_neighborhood": "Bairro",
+        "address_city": "Cidade",
+        "address_state": "Estado",
+        "address_zipcode": "CEP",
+        # Campos médicos/antropométricos
+        "weight": "Peso",
+        "length": "Comprimento",
+        "head_circumference": "Perímetro cefálico",
+        "feeding_type": "Tipo de alimentação",
+        "birth_height": "Altura ao nascer",
+        # Campos de consulta/prontuário
+        "date": "Data",
+        "professional": "Profissional",
+        "location": "Local",
+        "status": "Status",
+        "type": "Tipo",
+        "result": "Resultado",
+        "observations": "Observações",
+        "notes": "Anotações",
+        "next_appointment_date": "Data da próxima consulta",
+        "appointment_type": "Tipo de consulta",
+        # Campos de exames
+        "exam_type": "Tipo de exame",
+        "exam_date": "Data do exame",
+        "requesting_professional": "Profissional solicitante",
+        "laboratory": "Laboratório",
+        # Campos de vacinas
+        "vaccine_name": "Nome da vacina",
+        "vaccine_date": "Data da vacina",
+        "dose": "Dose",
+        "batch_number": "Número do lote",
+        # Campos de sinais de alerta
+        "warning_type": "Tipo de sinal",
+        "is_present": "Está presente",
+        "severity": "Gravidade",
+        "description": "Descrição",
+        # Campos de perfis
+        "unidade": "Unidade",
+        "cargo": "Cargo",
+        "categoria": "Categoria",
+        "especialidade": "Especialidade",
+        "conselho": "Conselho",
+        "numero_registro": "Número de Registro",
+        "telefone": "Telefone",
+        "departamento": "Departamento",
+        # Campos gerais do sistema
+        "created_at": "Data de criação",
+        "updated_at": "Data de atualização",
+        "is_completed": "Está concluído",
+        "is_approved": "Está aprovado",
+        "reason": "Motivo",
+        "comments": "Comentários",
+        "diagnosis": "Diagnóstico",
+        "treatment": "Tratamento",
+        "prescription": "Prescrição",
+        "recommendations": "Recomendações",
+        "in_follow_up": "Acompanhamento",
+    }
+
+    # Para campos não mapeados, tenta traduzir palavras comuns
+    if field_name not in traducoes:
+        field_lower = field_name.lower()
+        if "date" in field_lower:
+            return "Data"
+        elif "time" in field_lower:
+            return "Hora"
+        elif "name" in field_lower:
+            return "Nome"
+        elif "description" in field_lower:
+            return "Descrição"
+        elif "number" in field_lower or "num" in field_lower:
+            return "Número"
+        elif "value" in field_lower:
+            return "Valor"
+        elif "type" in field_lower:
+            return "Tipo"
+        elif "category" in field_lower:
+            return "Categoria"
+        elif "status" in field_lower:
+            return "Status"
+        elif "active" in field_lower:
+            return "Ativo"
+        elif "created" in field_lower:
+            return "Criado em"
+        elif "updated" in field_lower:
+            return "Atualizado em"
+
+    return traducoes.get(field_name, field_name.replace("_", " ").title())
+
+
+def formatar_valor_simples(valor, field_name):
+    """Formata valores de forma simples"""
+    if valor is None or valor == "":
+        return "não informado"
+    elif valor is True:
+        if field_name == "is_active":
+            return "Ativo"
+        elif field_name == "is_present":
+            return "Presente"
+        elif field_name == "is_completed":
+            return "Concluído"
+        elif field_name == "is_approved":
+            return "Aprovado"
+        return "Sim"
+    elif valor is False:
+        if field_name == "is_active":
+            return "Inativo"
+        elif field_name == "is_present":
+            return "Ausente"
+        elif field_name == "is_completed":
+            return "Pendente"
+        elif field_name == "is_approved":
+            return "Reprovado"
+        return "Não"
+    elif field_name == "cpf" and valor and len(str(valor)) == 11:
+        cpf_str = str(valor)
+        return f"{cpf_str[:3]}.{cpf_str[3:6]}.{cpf_str[6:9]}-{cpf_str[9:]}"
+    elif field_name == "username" and valor and len(str(valor)) == 11:
+        # Formata CPF também quando vem do campo username
+        cpf_str = str(valor)
+        return f"{cpf_str[:3]}.{cpf_str[3:6]}.{cpf_str[6:9]}-{cpf_str[9:]}"
+    elif field_name in ["address_zipcode", "zipcode"] and valor and len(str(valor)) == 8:
+        cep_str = str(valor)
+        return f"{cep_str[:5]}-{cep_str[5:]}"
+    elif isinstance(valor, str) and len(valor) > 30:
+        return f"{valor[:30]}..."
+
+    # Traduz valores específicos de campos enum
+    if field_name == "feeding_type" and valor:
+        alimentacao_traduzida = {
+            "breastfeeding": "Aleitamento materno",
+            "formula": "Fórmula infantil",
+            "mixed": "Misto",
+            "complementary": "Alimentação complementar",
+        }
+        return alimentacao_traduzida.get(valor, valor)
+
+    if field_name == "gender" and valor:
+        genero_traduzido = {
+            "M": "Masculino",
+            "F": "Feminino",
+            "O": "Outro",
+        }
+        return genero_traduzido.get(valor, valor)
+
+    return str(valor)

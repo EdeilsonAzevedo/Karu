@@ -7,6 +7,12 @@
         html {
             scroll-behavior: smooth;
         }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 {% endblock %}
 
@@ -70,12 +76,11 @@
                     <form method="dialog">
                         <button class="btn">Cancelar</button>
                     </form>
-                    <form method="POST" action="{% comment %}{% url 'patients:discharge' patient.pk %}{% endcomment %}">
+                    <form method="POST" action="{% url 'patients:discharge' patient.pk %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-success" disabled>
+                        <button type="submit" class="btn btn-success">
                             <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Alta
                         </button>
-                        <p class="text-xs text-warning mt-2">URL 'patients:discharge' precisa ser criada</p>
                     </form>
                 </div>
             </div>
@@ -87,28 +92,52 @@
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <!-- Idade Atual -->
-            <div class="stats shadow-lg bg-gradient-to-br from-primary to-primary-focus text-primary-content">
-                <div class="stat">
-                    <div class="stat-figure text-primary-content/30">
-                        <i data-lucide="calendar-days" class="w-8 h-8"></i>
-                    </div>
-                    <div class="stat-title text-primary-content/80">Idade Atual</div>
-                    <div class="stat-value">{{ age_in_days }} dias</div>
-                    <div class="stat-desc text-primary-content/60">Desde o nascimento</div>
-                </div>
+<div class="stats shadow-lg bg-gradient-to-br from-primary to-primary-focus text-primary-content">
+        <div class="stat">
+            <div class="stat-figure text-primary-content/30">
+                <i data-lucide="calendar-days" class="w-8 h-8"></i>
             </div>
+            <div class="stat-title text-primary-content/80">Idade Cronológica</div>
+            
+            <div class="stat-value text-4xl">
+                {{ age_details.chronological.months }}m {{ age_details.chronological.weeks }}s {{ age_details.chronological.days }}d
+            </div>
+            
+            <div class="stat-desc text-primary-content/60">
+                (Total: {{ age_details.chronological.total_days }} dias)
+            </div>
+        </div>
+    </div>
 
-            <!-- Idade Corrigida -->
-            <div class="stats shadow-lg bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content">
-                <div class="stat">
-                    <div class="stat-figure text-secondary-content/30">
-                        <i data-lucide="clock" class="w-8 h-8"></i>
-                    </div>
-                    <div class="stat-title text-secondary-content/80">Idade Corrigida</div>
-                    <div class="stat-value text-2xl">{{ corrected_age_weeks }}s {{ corrected_age_remaining_days }}d</div>
-                    <div class="stat-desc text-secondary-content/60">Semanas e dias</div>
-                </div>
+    <div class="stats shadow-lg bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content">
+        <div class="stat">
+            <div class="stat-figure text-secondary-content/30">
+                <i data-lucide="clock" class="w-8 h-8"></i>
             </div>
+            <div class="stat-title text-secondary-content/80">Idade Corrigida</div>
+
+            {% if age_details.corrected.is_negative %}
+                
+                <div class="stat-value text-4xl text-red-300">
+                    {{ age_details.corrected.total_days }} dias
+                </div>
+                <div class="stat-desc text-secondary-content/60">
+                    (-{{ age_details.corrected.months }}m {{ age_details.corrected.weeks }}s {{ age_details.corrected.days }}d para a DPP)
+                </div>
+                
+            {% else %}
+
+                <div class="stat-value text-4xl">
+                    {{ age_details.corrected.months }}m {{ age_details.corrected.weeks }}s {{ age_details.corrected.days }}d
+                </div>
+                <div class="stat-desc text-secondary-content/60">
+                    (Total: {{ age_details.corrected.total_days }} dias)
+                </div>
+
+            {% endif %}
+        </div>
+    </div>
+
 
             <!-- Últimos Dados -->
             <div class="stats shadow-lg bg-gradient-to-br from-info to-info-focus text-info-content">
@@ -239,39 +268,49 @@
 
         <!-- Tabs Navigation -->
         <div class="card bg-base-100 shadow-xl border border-base-300">
-            <div class="tabs tabs-lifted">
-                <input type="radio" name="patient_tabs" class="tab text-lg h-14 whitespace-nowrap" aria-label="Curvas de Evolução" checked="checked" />
-                <div class="tab-content bg-base-100 border-base-300 rounded-box p-6">
-                    <!-- Curvas de Crescimento -->
-                    <div class="mb-6">
-                        <div class="flex items-center gap-2 mb-4">
-                            <i data-lucide="trending-up" class="w-6 h-6 text-primary"></i>
-                            <h3 class="text-xl font-bold">Curvas de Crescimento - Intergrowth-21</h3>
-                        </div>
-                        <div class="tabs tabs-boxed mb-6" id="growthChartTabs">
-                            <button class="tab tab-active" data-metric="weight">Peso (g)</button>
-                            <button class="tab" data-metric="length">Comprimento (cm)</button>
-                            <button class="tab" data-metric="head">Perímetro Cefálico (cm)</button>
-                        </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                            <div class="lg:col-span-3">
-                                <div class="bg-base-200 p-4 rounded-lg h-96">
-                                    <canvas id="growthChart"></canvas>
-                                </div>
+            <!-- Tab Headers -->
+            <div class="tabs tabs-lifted" role="tablist">
+                <button type="button" class="tab tab-lifted tab-active text-lg h-14 whitespace-nowrap" data-tab="curves" role="tab">
+                    Curvas de Evolução
+                </button>
+                <button type="button" class="tab tab-lifted text-lg h-14 whitespace-nowrap" data-tab="alerts" role="tab">
+                    Alertas
+                </button>
+                <button type="button" class="tab tab-lifted text-lg h-14 whitespace-nowrap" data-tab="exams" role="tab">
+                    Exames
+                </button>
+                <button type="button" class="tab tab-lifted text-lg h-14 whitespace-nowrap" data-tab="vaccines" role="tab">
+                    Vacinas
+                </button>
+                <button type="button" class="tab tab-lifted text-lg h-14 whitespace-nowrap" data-tab="history" role="tab">
+                    Histórico de Consultas
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="tab-contents">
+                <!-- Curvas de Evolução Tab -->
+                <div id="tab-curves" class="tab-content active bg-base-100 border-base-300 rounded-box p-6">
+                    <div class="w-full">
+                        <!-- Stats Sidebar -->
+                    
+
+                        <!-- Growth Chart -->
+                        <div class="lg:col-span-3">
+                            <div id="growthChartTabs" class="tabs tabs-boxed mb-4 bg-base-200 ">
+                                <a class="tab tab-active" data-metric="weight">Peso</a> 
+                                <a class="tab" data-metric="length">Comprimento</a> 
+                                <a class="tab" data-metric="head">Perímetro Cefálico</a>
                             </div>
-                            <div class="space-y-4">
-                                <div class="stats stats-vertical shadow">
-                                    <div class="stat"><div class="stat-title">Último Peso</div><div class="stat-value text-lg">{{ weight_data.patient|last|default:'N/A' }}g</div></div>
-                                    <div class="stat"><div class="stat-title">Último Comp.</div><div class="stat-value text-lg">{{ length_data.patient|last|default:'N/A' }}cm</div></div>
-                                    <div class="stat"><div class="stat-title">Último PC</div><div class="stat-value text-lg">{{ head_data.patient|last|default:'N/A' }}cm</div></div>
-                                </div>
-                                <div class="alert alert-info shadow"><i data-lucide="info" class="w-4 h-4"></i><span class="text-xs">Eixo X: Idade Corrigida (semanas)</span></div>
+
+                            <div class="bg-base-200 p-4 rounded-lg h-[60vh]">
+                                <canvas id="growthChart"></canvas>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Ganho de Peso -->
-                    <div>
+                    <!-- Ganho de Peso Section -->
+                    <div class="mt-8">
                         <div class="flex items-center gap-2 mb-4">
                             <i data-lucide="bar-chart-3" class="w-6 h-6 text-secondary"></i>
                             <h3 class="text-xl font-bold">Análise de Ganho de Peso</h3>
@@ -284,24 +323,40 @@
                             </div>
                             <div class="space-y-4">
                                 <div class="stats stats-vertical shadow">
-                                    <div class="stat"><div class="stat-title">Ganho Médio</div><div class="stat-value text-success">{{ average_gain_30_days }}g/dia</div><div class="stat-desc">Últimos 30 dias</div></div>
-                                    <div class="stat"><div class="stat-title">Ganho Atual</div><div class="stat-value text-primary">{{ current_gain_7_days }}g/dia</div><div class="stat-desc">Último período</div></div>
+                                    <div class="stat">
+                                        <div class="stat-title">Ganho Médio</div>
+                                        <div class="stat-value text-success">{{ average_gain_30_days }}g/dia</div>
+                                        <div class="stat-desc">Últimos 30 dias</div>
+                                    </div>
+                                    <div class="stat">
+                                        <div class="stat-title">Ganho Atual</div>
+                                        <div class="stat-value text-primary">{{ current_gain_7_days }}g/dia</div>
+                                        <div class="stat-desc">Último período</div>
+                                    </div>
                                 </div>
                                 {% if status == 'adequate' %}
-                                <div class="alert alert-success shadow"><i data-lucide="check-circle" class="w-4 h-4"></i><span class="text-xs">Ganho adequado</span></div>
+                                <div class="alert alert-success shadow">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    <span class="text-xs">Ganho adequado</span>
+                                </div>
                                 {% elif status == 'low' or status == 'high' %}
-                                <div class="alert alert-warning shadow"><i data-lucide="alert-triangle" class="w-4 h-4"></i><span class="text-xs">Fora do ideal (15-30g/dia)</span></div>
+                                <div class="alert alert-warning shadow">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                    <span class="text-xs">Fora do ideal (15-30g/dia)</span>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <input type="radio" name="patient_tabs" class="tab text-lg h-14 whitespace-nowrap" aria-label="Alertas" />
-                <div class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                <!-- Alertas Tab -->
+                <div id="tab-alerts" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
                     <div class="card bg-base-200 shadow">
                         <div class="card-body">
-                            <h3 class="card-title text-error mb-4"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Sinais de Alerta</h3>
+                            <h3 class="card-title text-error mb-4">
+                                <i data-lucide="alert-triangle" class="w-5 h-5"></i> Sinais de Alerta
+                            </h3>
                             {% with latest_record=consultation_records.first %}
                                 {% if latest_record and latest_record.warning_signs.all %}
                                     <ul class="list-disc list-inside">
@@ -321,13 +376,15 @@
                     </div>
                 </div>
 
-                <input type="radio" name="patient_tabs" class="tab text-lg h-14 whitespace-nowrap" aria-label="Exames" />
-                <div class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                <!-- Exames Tab -->
+                <div id="tab-exams" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
                     <div class="card bg-base-200 shadow">
                         <div class="card-body">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="card-title text-primary"><i data-lucide="clipboard-list" class="w-5 h-5"></i> Histórico de Exames</h3>
-                                <button class="btn btn-primary btn-sm" onclick="loadExamFormAndOpenModal('{% url 'patients:exam_add' patient.pk %}')">
+                                <h3 class="card-title text-primary">
+                                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> Histórico de Exames
+                                </h3>
+                                <a href="{% comment %}{% url 'patients:exam_create' patient.pk %}{% endcomment %}" class="btn btn-primary btn-sm">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Adicionar
                                 </button>
                             </div>
@@ -358,8 +415,8 @@
                     </div>
                 </div>
 
-                <input type="radio" name="patient_tabs" class="tab text-lg h-14 whitespace-nowrap" aria-label="Vacinas" />
-                <div class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                <!-- Vacinas Tab -->
+                <div id="tab-vaccines" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
                     <div class="card bg-base-200 shadow">
                         <div class="card-body">
                             <div class="flex justify-between items-center mb-4">
@@ -393,11 +450,13 @@
                     </div>
                 </div>
 
-                <input type="radio" name="patient_tabs" class="tab text-lg h-14 whitespace-nowrap" aria-label="Histórico de Consultas" />
-                <div class="tab-content bg-base-100 border-base-300 rounded-box p-6">
+                <!-- Histórico de Consultas Tab -->
+                <div id="tab-history" class="tab-content bg-base-100 border-base-300 rounded-box p-6">
                     <div class="card bg-base-200 shadow">
                         <div class="card-body">
-                            <h3 class="card-title text-primary mb-6"><i data-lucide="history" class="w-6 h-6"></i> Histórico de Consultas</h3>
+                            <h3 class="card-title text-primary mb-6">
+                                <i data-lucide="history" class="w-6 h-6"></i> Histórico de Consultas
+                            </h3>
 
                             <div class="space-y-4">
                                 {% for record in consultation_records %}
@@ -610,89 +669,338 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // Initialize Lucide icons
     lucide.createIcons();
     
-    // Reaplica os ícones quando troca de tab
-    const tabInputs = document.querySelectorAll('input[name="patient_tabs"]');
-    tabInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            setTimeout(() => {
-                lucide.createIcons();
-            }, 100);
+    // ===== TAB FUNCTIONALITY =====
+    const tabButtons = document.querySelectorAll('.tabs button[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.dataset.tab;
+            
+            // Update active button
+            tabButtons.forEach(btn => btn.classList.remove('tab-active'));
+            button.classList.add('tab-active');
+            
+            // Update active content
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === `tab-${targetTab}`) {
+                    content.classList.add('active');
+                }
+            });
+            
+            // Reinitialize icons after tab change
+            setTimeout(() => lucide.createIcons(), 100);
         });
     });
     
-    // Reaplica os ícones quando abre dropdowns
+    // Reinitialize icons when opening dropdowns
     document.addEventListener('click', function(e) {
         if (e.target.closest('.dropdown')) {
-            setTimeout(() => {
-                lucide.createIcons();
-            }, 50);
+            setTimeout(() => lucide.createIcons(), 50);
         }
     });
     
-    const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+    // ===== GROWTH CHARTS =====
+    
+    // Load chart data
+    const labelsElement = document.getElementById('chart-labels');
+    const weightElement = document.getElementById('weight-data');
+    const lengthElement = document.getElementById('length-data');
+    const headElement = document.getElementById('head-data');
+    
+    if (!labelsElement || !weightElement || !lengthElement || !headElement) {
+        console.error('Chart data elements not found');
+        return;
+    }
+    
+    const labels = JSON.parse(labelsElement.textContent);
     const chartData = {
-        weight: JSON.parse(document.getElementById('weight-data').textContent),
-        length: JSON.parse(document.getElementById('length-data').textContent),
-        head: JSON.parse(document.getElementById('head-data').textContent)
+        weight: JSON.parse(weightElement.textContent),
+        length: JSON.parse(lengthElement.textContent),
+        head: JSON.parse(headElement.textContent)
     };
+    
+    
     const ctxGrowth = document.getElementById('growthChart')?.getContext('2d');
-    let growthChart;
+    let growthChart = null;
+    
     function renderGrowthChart(metric) {
-        if (!ctxGrowth) return;
-        if (growthChart) { growthChart.destroy(); }
+        if (!ctxGrowth) {
+            console.error('Canvas growthChart not found');
+            return;
+        }
+        
+        // Destroy existing chart if it exists
+        if (growthChart) { 
+            growthChart.destroy(); 
+            growthChart = null;
+        }
+        
         const data = chartData[metric];
-        const unit = metric === 'weight' ? 'g' : 'cm';
+        const unit = metric === 'weight' ? 'kg' : 'cm';
+        const titleText = metric === 'weight' ? 'Peso' : metric === 'length' ? 'Comprimento' : 'Perímetro Cefálico';
+        
+        
+        // Prepare datasets with corrected colors
+        const datasets = [];
+        
+        // P3 (red - lower limit)
+        if (data.p3 && data.p3.length > 0) {
+            datasets.push({
+                label: 'P3',
+                data: data.p3,
+                borderColor: 'rgba(239, 68, 68, 0.8)',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.4,
+                fill: false
+            });
+        }
+        
+        // P10 (blue)
+        if (data.p10 && data.p10.length > 0) {
+            datasets.push({
+                label: 'P10',
+                data: data.p10,
+                borderColor: 'rgba(59, 130, 246, 0.7)',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.4,
+                fill: false
+            });
+        }
+        
+        // P50 (green - median)
+        if (data.p50 && data.p50.length > 0) {
+            datasets.push({
+                label: 'P50 (Mediana)',
+                data: data.p50,
+                borderColor: 'rgba(34, 197, 94, 0.9)',
+                backgroundColor: 'transparent',
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.4,
+                fill: false
+            });
+        }
+        
+        // P90 (blue)
+        if (data.p90 && data.p90.length > 0) {
+            datasets.push({
+                label: 'P90',
+                data: data.p90,
+                borderColor: 'rgba(59, 130, 246, 0.7)',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.4,
+                fill: false
+            });
+        }
+        
+        // P97 (red - upper limit)
+        if (data.p97 && data.p97.length > 0) {
+            datasets.push({
+                label: 'P97',
+                data: data.p97,
+                borderColor: 'rgba(239, 68, 68, 0.8)',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.4,
+                fill: false
+            });
+        }
+        
+        // Patient data (highlighted)
+        if (data.patient && data.patient.some(v => v !== null && v !== undefined)) {
+            datasets.push({
+                label: 'Paciente',
+                data: data.patient,
+                borderColor: 'rgba(168, 85, 247, 1)',
+                backgroundColor: 'rgba(168, 85, 247, 1)',
+                borderWidth: 3,
+                pointRadius: 8,
+                pointHoverRadius: 10,
+                pointStyle: 'circle',
+                tension: 0.1,
+                fill: false
+            });
+        }
+        
+        // Create new chart
         growthChart = new Chart(ctxGrowth, {
             type: 'line',
             data: {
                 labels: labels,
-                datasets: [
-                    { label: 'Paciente', data: data.patient, borderColor: 'rgba(59, 130, 246, 1)', backgroundColor: 'rgba(59, 130, 246, 1)', borderWidth: 3, pointRadius: 5, tension: 0.1 },
-                    { label: 'P90', data: data.p90, borderColor: 'rgba(239, 68, 68, 0.5)', borderWidth: 1.5, pointRadius: 0, borderDash: [5, 5] },
-                    { label: 'P50', data: data.p50, borderColor: 'rgba(75, 85, 99, 0.5)', borderWidth: 1.5, pointRadius: 0 },
-                    { label: 'P10', data: data.p10, borderColor: 'rgba(239, 68, 68, 0.5)', borderWidth: 1.5, pointRadius: 0, borderDash: [5, 5] }
-                ]
+                datasets: datasets
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Curva de ${titleText} - Intergrowth-21`,
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 12,
+                            font: { size: 11 },
+                            filter: function(item, chart) {
+                                // Show only key percentiles in legend
+                                return ['P3', 'P50 (Mediana)', 'P97', 'Paciente'].includes(item.text);
+                            }
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        padding: 12,
+                        callbacks: {
+                            title: function(context) {
+                                return 'Idade Corrigida: ' + context[0].label + ' semanas';
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y.toFixed(1) + ' ' + unit;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
                 scales: {
-                    y: { beginAtZero: false, title: { display: true, text: `Valor (${unit})` } },
-                    x: { title: { display: true, text: 'Idade Corrigida (Semanas)' } }
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: `${titleText} (${unit})`,
+                            font: { size: 13, weight: 'bold' }
+                        },
+                        grid: { 
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: true
+                        },
+                        ticks: {
+                            font: { size: 11 }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Idade Corrigida (Semanas)',
+                            font: { size: 13, weight: 'bold' }
+                        },
+                        grid: { 
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: true
+                        },
+                        ticks: {
+                            font: { size: 11 },
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    }
                 }
             }
         });
+        
     }
-    const tabs = document.querySelectorAll('#growthChartTabs .tab');
-    tabs.forEach(tab => {
+    
+    // Event listeners for metric tabs
+    const metricTabs = document.querySelectorAll('#growthChartTabs .tab');
+    metricTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('tab-active'));
+            metricTabs.forEach(t => t.classList.remove('tab-active'));
             tab.classList.add('tab-active');
             renderGrowthChart(tab.dataset.metric);
         });
     });
-    if (labels.length > 0) { renderGrowthChart('weight'); }
     
-    const barLabels = JSON.parse(document.getElementById('bar-chart-labels').textContent);
-    const barData = JSON.parse(document.getElementById('bar-chart-data').textContent);
-    const barColors = JSON.parse(document.getElementById('bar-chart-colors').textContent);
-    const ctxWeightGain = document.getElementById('weightGainChart')?.getContext('2d');
-    if (barLabels.length > 0 && ctxWeightGain) {
-        new Chart(ctxWeightGain, {
-            type: 'bar',
-            data: {
-                labels: barLabels,
-                datasets: [{ label: 'Ganho Diário (g/dia)', data: barData, backgroundColor: barColors }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, title: { display: true, text: 'g/dia' } } },
-                plugins: { legend: { display: false } }
-            }
-        });
+    // Initial chart render
+    if (labels && labels.length > 0) {
+        renderGrowthChart('weight');
+    } else {
+        console.warn('No labels available for chart rendering');
+    }
+    
+    // ===== WEIGHT GAIN CHART =====
+    
+    const barLabelsElement = document.getElementById('bar-chart-labels');
+    const barDataElement = document.getElementById('bar-chart-data');
+    const barColorsElement = document.getElementById('bar-chart-colors');
+    
+    if (barLabelsElement && barDataElement && barColorsElement) {
+        const barLabels = JSON.parse(barLabelsElement.textContent);
+        const barData = JSON.parse(barDataElement.textContent);
+        const barColors = JSON.parse(barColorsElement.textContent);
+        const ctxWeightGain = document.getElementById('weightGainChart')?.getContext('2d');
+        
+        if (barLabels.length > 0 && ctxWeightGain) {
+            new Chart(ctxWeightGain, {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'Ganho Diário (g/dia)',
+                        data: barData,
+                        backgroundColor: barColors,
+                        borderColor: barColors.map(color => color.replace('0.7', '1')),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Evolução do Ganho de Peso',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Ganho (g/dia)',
+                                font: { size: 13, weight: 'bold' }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Período',
+                                font: { size: 13, weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
 });
     function loadExamFormAndOpenModal(url) { 
@@ -815,5 +1123,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 </script>
-
 {% endblock %}

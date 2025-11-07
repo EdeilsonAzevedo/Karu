@@ -28,4 +28,5 @@ urlpatterns = [
         views.consultation_edit,
         name="consultation_edit",
     ),
+    path("<uuid:pk>/discharge/", views.patient_discharge, name="discharge"),
 ]

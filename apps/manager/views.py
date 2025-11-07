@@ -249,7 +249,7 @@ def dashboard_stats_api(request):
     today = timezone.now().date()
     current_year = today.year
 
-    all_patients = Patient.objects.filter(is_active=True).order_by("-created_at")
+    all_patients = Patient.objects.filter(in_follow_up=True).order_by("-created_at")
 
     total_ativos_count = all_patients.count()
 
@@ -283,10 +283,11 @@ def dashboard_stats_api(request):
         data_atraso_str = ""
 
         if latest_consultation:
-            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()
+            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()  # type: ignore
 
             try:
-                consultation_details = latest_consultation.consultation_details
+                consultation_details = latest_consultation.consultation_details  # type: ignore
+
                 if (
                     consultation_details
                     and consultation_details.next_appointment_date
@@ -301,7 +302,7 @@ def dashboard_stats_api(request):
             critico_count += 1
             patient_data["real_status"] = "critico"
             sign = (
-                latest_consultation.warning_signs.filter(is_present=True).first()
+                latest_consultation.warning_signs.filter(is_present=True).first()  # type: ignore
                 if latest_consultation
                 else None
             )
@@ -315,7 +316,7 @@ def dashboard_stats_api(request):
             patient_data["real_status"] = "alerta"
             if sinal_count == 1:
                 sign = (
-                    latest_consultation.warning_signs.filter(is_present=True).first()
+                    latest_consultation.warning_signs.filter(is_present=True).first()  # type: ignore
                     if latest_consultation
                     else None
                 )
@@ -366,7 +367,7 @@ def dashboard_stats_api(request):
                 content_type=patient_content_type,
                 action=LogEntry.Action.UPDATE,
                 timestamp__year=year,
-                changes_text__icontains='"is_active": [true, false]',
+                changes__contains={"in_follow_up": ["True", "False"]},
             )
             .annotate(month=TruncMonth("timestamp"))
             .values("month")
@@ -423,7 +424,7 @@ def api_map_counts(request):
     counts_microrregiao = defaultdict(create_count_entry)
     counts_macrorregiao = defaultdict(create_count_entry)
 
-    patients = Patient.objects.filter(is_active=True)
+    patients = Patient.objects.filter(in_follow_up=True)
 
     for patient in patients:
         city = patient.address_city
@@ -444,10 +445,12 @@ def api_map_counts(request):
         )
 
         if latest_consultation:
-            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()
+            # 4. Busca os sinais e detalhes (N+1 query)
+            sinal_count = latest_consultation.warning_signs.filter(is_present=True).count()  # type: ignore
 
             try:
-                consultation_details = latest_consultation.consultation_details
+                consultation_details = latest_consultation.consultation_details  # type: ignore
+
                 if (
                     consultation_details
                     and consultation_details.next_appointment_date
@@ -521,7 +524,7 @@ def _get_report_data(start_date=None, end_date=None):
         .prefetch_related("warning_signs")
     )
 
-    active_patients = Patient.objects.filter(is_active=True).prefetch_related(
+    active_patients = Patient.objects.filter(in_follow_up=True).prefetch_related(
         Prefetch("records", queryset=latest_consult_qs, to_attr="consultation_records")
     )
 
@@ -608,7 +611,7 @@ def _get_report_data(start_date=None, end_date=None):
             LogEntry.objects.filter(
                 content_type=patient_content_type,
                 action=LogEntry.Action.UPDATE,
-                changes_text__icontains='"is_active": [true, false]',
+                changes__contains={"in_follow_up": ["True", "False"]},
                 timestamp__date__gte=start_date,
                 timestamp__date__lte=end_date,
             )
@@ -623,9 +626,8 @@ def _get_report_data(start_date=None, end_date=None):
         )
 
         city_map = {
-            str(p["pk"]): normalize_str(p["address_city"])
+            str(p["pk"]): normalize_str(p["address_city"]) if p["address_city"] else "Sem Município"
             for p in discharged_patients_info
-            if p["address_city"]
         }
 
         for patient_id in discharged_patient_ids:
