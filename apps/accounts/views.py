@@ -12,6 +12,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
@@ -28,6 +29,29 @@ class MyLoginView(LoginView):
         if self.request.POST.get("remember_me"):
             self.request.session.set_expiry(60 * 60 * 24 * 30)
         return super().form_valid(form)
+
+    def get_success_url(self):
+        user = self.request.user
+
+        # Se for Gestor ou Profissional, vai para a 'home' normal
+        if not user.is_pais:
+            return reverse("home")  # Ou seu dashboard principal
+
+        # Se for Pai/Responsável
+        try:
+            # 1. Busca o primeiro paciente (filho) vinculado a este responsável
+            #    Usamos o related_name "patients" que definimos no Modelo
+            first_patient = user.pais.patients.first()
+
+            if first_patient:
+                # 2. Se encontrou, redireciona para a página de detalhes desse paciente
+                return reverse("patients:detail", kwargs={"pk": first_patient.pk})
+            else:
+                # 3. Se é um pai sem paciente vinculado, manda para a home
+                return reverse("home")
+        except Exception:
+            # 4. Se der erro (ex: user.pais não existe), manda para a home
+            return reverse("home")
 
 
 class MyLogoutView(LogoutView):

@@ -1,8 +1,14 @@
-# apps/patients/tests/conftest.py
 import pytest
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from pytest_factoryboy import register
 
-# Importar usando caminho absoluto
+from apps.accounts.factories import (
+    GestorProfileFactory,
+    PaisProfileFactory,
+    ProfissionalSaudeProfileFactory,
+    UserFactory,
+)
 from apps.patients.tests.factories import (
     ClinicalEvaluationFactory,
     DischargeRecordFactory,
@@ -23,6 +29,11 @@ register(InterdisciplinaryEvaluationFactory)
 register(ExamFactory)
 register(VaccineFactory)
 register(FollowUpFactory)
+
+register(UserFactory)
+register(GestorProfileFactory)
+register(ProfissionalSaudeProfileFactory)
+register(PaisProfileFactory)
 
 
 @pytest.fixture
@@ -52,7 +63,7 @@ def multiple_patients():
             first_name="Maria",
             last_name="Santos",
             cpf="22222222222",
-            birth_certificate_number="CERT123456",  # ADICIONAR ESTA LINHA
+            birth_certificate_number="CERT123456",
         ),
         PatientFactory(first_name="Pedro", last_name="Oliveira", cpf="33333333333"),
     ]
@@ -74,3 +85,35 @@ def patient_form_data():
         "weight": "3.80",
         "feeding_type": "breastfeeding",
     }
+
+
+User = get_user_model()
+
+
+@pytest.fixture
+def ensure_groups(db):
+    """Cria os grupos necessários e retorna dict com instâncias."""
+    groups = {}
+    for name in ["gestores", "profissionais_saude", "pais"]:
+        groups[name], _ = Group.objects.get_or_create(name=name)
+    return groups
+
+
+@pytest.fixture
+def gestor_user(db, ensure_groups):
+    """Usuário no grupo gestores (pode criar prof/pais)."""
+    u = User.objects.create_user(
+        username="11111111111",
+        first_name="Gestor",
+        email="gestor@example.com",
+        password="Gestor@1234",
+        is_active=True,
+    )
+    u.groups.add(ensure_groups["gestores"])
+    return u
+
+
+@pytest.fixture
+def client_logged_gestor(client, gestor_user):
+    client.login(username=gestor_user.username, password="Gestor@1234")
+    return client

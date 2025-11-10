@@ -350,7 +350,7 @@ class ProfissionalSignupForm(forms.Form):
 
 class PaisSignupForm(forms.Form):
     name = forms.CharField(label="Nome completo", required=True)
-    cpf = forms.CharField(label="CPF", required=True, validators=[cpf_validator])
+    cpf = forms.CharField(label="CPF", required=True)
     email = forms.EmailField(label="E-mail", required=True)
     phone = forms.CharField(label="Telefone", required=False, validators=[phone_br_validator])
     temp_password = forms.CharField(label="Senha temporária", required=False)
@@ -361,6 +361,25 @@ class PaisSignupForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.actor = None
         super().__init__(*args, **kwargs)
+
+        input_classes = (
+            "input input-bordered w-full transition-all duration-300 focus:input-primary"
+        )
+
+        self.fields["name"].widget.attrs.update({"class": input_classes})
+        self.fields["email"].widget.attrs.update({"class": input_classes})
+        self.fields["cpf"].widget.attrs.update(
+            {"class": input_classes, "placeholder": "000.000.000-00"}
+        )
+        self.fields["phone"].widget.attrs.update(
+            {"class": input_classes, "placeholder": "(00) 00000-0000"}
+        )
+        self.fields["temp_password"].widget.attrs.update({"class": input_classes})
+
+        # Oculta o campo 'status' no formulário de cadastro de recém-nascido,
+        # pois o usuário deve ser sempre 'Ativo' nesse contexto.
+        self.fields["status"].widget = forms.HiddenInput()
+        self.fields["status"].initial = "Ativo"
 
     def set_actor(self, actor):
         """Define o usuário que está realizando a ação para o auditlog"""
@@ -378,12 +397,28 @@ class PaisSignupForm(forms.Form):
         return normalize_email(self.cleaned_data["email"])
 
     def clean_cpf(self):
-        cpf = self.cleaned_data["cpf"]
-        if User.objects.filter(username=cpf).exists():
+        cpf_raw = self.cleaned_data.get("cpf") or ""
+        cpf_digits = "".join(filter(str.isdigit, cpf_raw))
+
+        if len(cpf_digits) != 11:
+            raise ValidationError("CPF deve conter 11 dígitos (somente números).")
+
+        if User.objects.filter(username=cpf_digits).exists():
             raise ValidationError("Já existe um usuário com este CPF.")
-        if PaisProfile.objects.filter(cpf=cpf).exists():
+        if PaisProfile.objects.filter(cpf=cpf_digits).exists():
             raise ValidationError("Já existe um responsável com este CPF.")
-        return cpf
+
+        return cpf_digits
+
+    def clean_temp_password(self):
+        pwd = self.cleaned_data.get("temp_password") or ""
+        if not pwd:
+            return pwd
+        try:
+            password_validation.validate_password(pwd)
+        except exceptions.ValidationError as e:
+            raise e
+        return pwd
 
     def clean_phone(self):
         v = (self.cleaned_data.get("phone") or "").strip()
@@ -453,6 +488,86 @@ class PaisSignupForm(forms.Form):
         return user
 
 
+class PaisProfileUpdateForm(forms.ModelForm):
+    """
+    Formulário para ATUALIZAR um PaisProfile e os dados do User associado,
+    incluindo a redefinição de senha.
+    """
+
+    # Campos do User (first_name é usado para o nome completo)
+    name = forms.CharField(label="Nome completo", required=True)
+    email = forms.EmailField(label="E-mail", required=True)
+
+    # Campo do PaisSignupForm (para consistência) que mapeia para PaisProfile.telefone
+    phone = forms.CharField(label="Telefone", required=False, validators=[phone_br_validator])
+
+    # Campo para Redefinição de Senha (conforme solicitado)
+    new_password = forms.CharField(
+        label="Redefinir Senha (Opcional)",
+        required=False,
+        widget=forms.PasswordInput(render_value=False, attrs={"autocomplete": "new-password"}),
+        help_text="Deixe em branco para não alterar a senha.",
+    )
+
+    class Meta:
+        model = PaisProfile
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance:
+            if self.instance.user:
+                self.fields["name"].initial = self.instance.user.first_name
+                self.fields["email"].initial = self.instance.user.email
+            self.fields["phone"].initial = self.instance.telefone
+
+        input_classes = (
+            "input input-bordered w-full transition-all duration-300 focus:input-primary"
+        )
+        self.fields["name"].widget.attrs.update({"class": input_classes})
+        self.fields["email"].widget.attrs.update({"class": input_classes})
+        self.fields["phone"].widget.attrs.update(
+            {"class": input_classes, "placeholder": "(00) 00000-0000"}
+        )
+        self.fields["new_password"].widget.attrs.update({"class": input_classes})
+
+    def clean_phone(self):
+        v = (self.cleaned_data.get("phone") or "").strip()
+        if not v:
+            return ""
+        phone_br_validator(v)
+        return v
+
+    def clean_new_password(self):
+        pwd = self.cleaned_data.get("new_password") or ""
+        if not pwd:
+            return ""
+        try:
+            password_validation.validate_password(pwd)
+        except exceptions.ValidationError as e:
+            raise e
+        return pwd
+
+    @transaction.atomic
+    def save(self, commit=True):
+        profile = self.instance
+        user = profile.user
+
+        user.first_name = self.cleaned_data["name"]
+        user.email = self.cleaned_data["email"]
+
+        profile.telefone = self.cleaned_data["phone"]
+
+        new_password = self.cleaned_data.get("new_password")
+        if new_password:
+            user.set_password(new_password)
+
+        if commit:
+            user.save()
+            profile.save()
+
+        return profile
 class PasswordResetByDataForm(forms.Form):
     cpf = forms.CharField(label="CPF", required=True)
     email = forms.EmailField(label="E-mail", required=True)
