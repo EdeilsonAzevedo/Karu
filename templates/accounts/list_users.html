@@ -368,6 +368,12 @@
                                                     Ver Detalhes
                                                 </button>
                                             </li>
+                                            <li>
+                                                <button onclick="showEditUserModal({{ user.id }})" class="gap-2 text-warning hover:bg-warning/10">
+                                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                                    Editar Usuário
+                                                </button>
+                                            </li>
                                             {% if user.is_active %}
                                             <li>
                                                 <button onclick="showDeactivateModal('{{ user.get_full_name|default:user.username }}', '{{ user.username }}', {{ user.id }})" class="gap-2 text-error hover:bg-error/10">
@@ -473,6 +479,24 @@
         <div class="modal-action">
             <form method="dialog">
                 <button class="btn">Fechar</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<!-- Modal de Edição de Usuário -->
+<dialog id="editUserModal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <h3 class="font-bold text-lg mb-4">Editar Usuário</h3>
+        <div id="editUserContent" class="flex-1 overflow-y-auto">
+            <!-- Conteúdo será carregado via AJAX -->
+        </div>
+        <div class="modal-action mt-4">
+            <form method="dialog">
+                <button class="btn btn-ghost">Cancelar</button>
             </form>
         </div>
     </div>
@@ -645,5 +669,188 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Função para mostrar modal de edição
+function showEditUserModal(userId) {
+    console.log('Abrindo modal de edição para usuário:', userId);
+    
+    // Mostrar loading
+    document.getElementById('editUserContent').innerHTML = `
+        <div class="flex justify-center items-center py-8">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <span class="ml-2">Carregando formulário...</span>
+        </div>
+    `;
+    document.getElementById('editUserModal').showModal();
+    
+    fetch(`/accounts/usuarios/${userId}/editar/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro na resposta do servidor: ' + response.status);
+        }
+        return response.text();
+    })
+    .then(html => {
+        document.getElementById('editUserContent').innerHTML = html;
+        // Re-inicializar ícones após carregar o conteúdo
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao carregar formulário de edição:', error);
+        document.getElementById('editUserContent').innerHTML = `
+            <div class="alert alert-error">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                <div>
+                    <h4 class="font-bold">Erro ao carregar formulário</h4>
+                    <p>Não foi possível carregar o formulário de edição.</p>
+                    <p class="text-sm opacity-70">${error.message}</p>
+                </div>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+}
+
+// Função para submeter o formulário de edição via AJAX
+function submitEditForm(event) {
+    event.preventDefault(); // Impedir o comportamento padrão do formulário
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Mostrar loading
+    submitButton.innerHTML = `
+        <span class="loading loading-spinner loading-sm"></span>
+        Salvando...
+    `;
+    submitButton.disabled = true;
+
+    // Obter o token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrftoken
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro na resposta do servidor: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Mostrar mensagem de sucesso
+            showNotification('success', data.message);
+            // Fechar modal
+            document.getElementById('editUserModal').close();
+            // Recarregar a página para atualizar a lista
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showNotification('error', data.message);
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao salvar edição:', error);
+        showNotification('error', 'Erro ao salvar alterações. Tente novamente.');
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+// Função auxiliar para mostrar notificações
+function showNotification(type, message) {
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} fixed top-4 right-4 z-50 max-w-sm shadow-lg`;
+    notification.innerHTML = `
+        <div class="flex items-center gap-2">
+            <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Inicializar ícones
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    // Remover após 5 segundos
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+// Adicionar event listener para forms de edição quando carregados via AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    // Esta função será chamada quando novos forms forem carregados via AJAX
+    // Adicionar event listener para forms de edição quando carregados via AJAX
+    function initializeEditForms() {
+        const editForm = document.getElementById('editUserForm');
+        if (editForm) {
+            // Remover event listeners anteriores para evitar duplicação
+            editForm.removeEventListener('submit', submitEditForm);
+            // Adicionar novo event listener
+            editForm.addEventListener('submit', submitEditForm);
+            console.log('Formulário de edição inicializado');
+        }
+    }
+
+    // Observar mudanças no conteúdo do modal
+    const editContent = document.getElementById('editUserContent');
+    if (editContent) {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    setTimeout(initializeEditForms, 100);
+                }
+            });
+        });
+        
+        observer.observe(editContent, { childList: true, subtree: true });
+    }
+
+    // Inicializar forms quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeEditForms();
+    });
+});
+
 </script>
 {% endblock content %}
