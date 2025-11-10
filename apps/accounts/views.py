@@ -118,7 +118,7 @@ def signup_pais(request):
         form = PaisSignupForm(request.POST)
         if form.is_valid():
             form.set_actor(request.user)
-            user = form.save(request=request)
+            # user = form.save(request=request)
             messages.success(request, "Pai/responsável criado com sucesso.")
             return redirect("home")
     else:
@@ -359,8 +359,8 @@ def ativar_usuario(request, user_id):
         logger.error(f"Erro ao ativar usuário {user_id}: {str(e)}")
         messages.error(request, f"Erro ao ativar usuário: {str(e)}")
         return redirect("accounts:listar_usuarios")
-    
-    
+
+
 @require_http_methods(["GET", "POST"])
 def password_reset_manual(request):
     form = PasswordResetByDataForm(request.POST or None)
