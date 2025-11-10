@@ -185,6 +185,7 @@
         </div>
 
         <!-- Sidebar -->
+        {% if not hide_sidebar %}
         <div class="drawer-side z-50">
             <label for="main-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
 
@@ -274,6 +275,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

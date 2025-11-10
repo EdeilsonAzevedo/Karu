@@ -193,7 +193,7 @@
             <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" name="remember_me" />
             <span class="label-text text-sm">Lembrar de mim</span>
           </label>
-          <a href="#" class="text-primary text-sm hover:text-primary-focus font-medium transition-colors hover:underline">
+          <a href="{% url 'accounts:password_reset_manual' %}" class="text-primary text-sm hover:underline font-medium">
             Esqueci minha senha
           </a>
         </div>
