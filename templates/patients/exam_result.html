@@ -1,0 +1,76 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Resultado de Exame - {{ patient.first_name }} - Karu{% endblock title %}
+
+{% block content %}
+<div class="px-6 py-4 bg-base-200">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex items-center gap-4 bg-base-100 p-4 rounded-lg shadow">
+            <div class="avatar placeholder">
+                <div class="bg-primary text-primary-content rounded-full w-12">
+                    <span class="text-lg font-bold">{{ patient.first_name|first }}{{ patient.last_name|first }}</span>
+                </div>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-base-content">{{ patient.first_name }} {{ patient.last_name }}</h1>
+                <div class="flex gap-4 text-sm text-base-content/70">
+                    <span>Nascimento: {{ patient.date_of_birth|date:"d/m/Y" }}</span>
+                    <span>IG: {{ patient.gestational_age_weeks }} semanas</span>
+                </div>
+            </div>
+            <div class="ml-auto">
+                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-outline btn-primary">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar ao Prontuário
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto p-4 max-w-4xl">
+    <div class="card bg-base-100 shadow-xl border border-base-300/50">
+        <div class="card-body">
+
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="card-title text-primary mb-2">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                        Detalhes do Exame: {{ exam.type }}
+                    </h2>
+                    <p class="text-base-content/70">Data do Exame: {{ exam.date|date:"d/m/Y" }}</p>
+                </div>
+                <div>
+                    <a href="#" onclick="window.print(); return false;" class="btn btn-sm btn-ghost"><i data-lucide="printer" class="w-4 h-4"></i> Imprimir</a>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-semibold text-lg">Resultado</h4>
+                    <div class="prose max-w-none break-words bg-base-200/50 p-4 rounded-lg mt-2">
+                        {{ exam.result|default:"Resultado não disponível."|linebreaks }}
+                    </div>
+                </div>
+
+                {% if exam.observations %}
+                <div>
+                    <h4 class="font-semibold text-lg">Observações</h4>
+                    <div class="prose max-w-none break-words bg-base-200/50 p-4 rounded-lg mt-2">
+                        {{ exam.observations|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="card-actions justify-end mt-6">
+                <a href="{% url 'patients:detail' patient.pk %}" class="btn btn-primary">
+                     Voltar ao Prontuário
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

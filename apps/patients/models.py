@@ -84,10 +84,21 @@ class Patient(BaseModel):
 
 
 class Record(BaseModel):
+    class StatusChoices(models.TextChoices):
+        DRAFT = "draft", _("Rascunho")
+        FINAL = "final", _("Finalizado")
+
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="records")
     record_type = models.CharField(
         max_length=20,
         choices=[("discharge", "Alta"), ("consultation", "Consulta"), ("followup", "Seguimento")],
+    )
+    status = models.CharField(
+        _("Status"),
+        max_length=10,
+        choices=StatusChoices.choices,
+        default=StatusChoices.FINAL,  # O padrão será "Finalizado"
+        db_index=True,  # Bom para performance se filtrarmos por status
     )
     date = models.DateField()
     notes = models.TextField(blank=True, null=True)
