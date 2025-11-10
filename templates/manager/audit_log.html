@@ -107,12 +107,10 @@
                                             </div>
                                             <div class="text-sm opacity-50">
                                                 {% if log.actor.user_type == 'gestor' %}
-                                                    {% with gestor=log.actor.gestorprofile %}
-                                                        Gestor - {{ gestor.unidade|default:"Unidade não informada" }}
-                                                    {% endwith %}
+                                                    Gestor
                                                 {% elif log.actor.user_type == 'profissional_saude' %}
                                                     {% with profissional=log.actor.profissionalsaudeprofile %}
-                                                        {{ profissional.get_categoria_display }} - {{ profissional.unidade|default:"Unidade não informada" }}
+                                                        {{ profissional.get_categoria_display }}
                                                     {% endwith %}
                                                 {% elif log.actor.user_type == 'pais' %}
                                                     Pais/Responsável
