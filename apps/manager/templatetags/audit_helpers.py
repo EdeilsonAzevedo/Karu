@@ -382,6 +382,19 @@ def traduzir_campo_simples(field_name):
         "prescription": "Prescrição",
         "recommendations": "Recomendações",
         "in_follow_up": "Acompanhamento",
+        # Novos campos para edição
+        "first_name": "Nome",
+        "email": "E-mail",
+        "user_type": "Tipo de Usuário",
+        "is_active": "Status da Conta",
+        "telefone": "Telefone",
+        "unidade": "Unidade",
+        "cargo": "Cargo",
+        "departamento": "Departamento",
+        "categoria": "Categoria",
+        "especialidade": "Especialidade",
+        "conselho": "Conselho",
+        "numero_registro": "Número de Registro",
     }
 
     # Para campos não mapeados, tenta traduzir palavras comuns

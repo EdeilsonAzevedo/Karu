@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 {% load static %} {# Carrega os arquivos estáticos, se necessário #}
 
-{% block title %}{% if is_editing %}Editar Consulta{% else %}Consulta de Rotina{% endif %} - {{ patient.first_name }} - Karu{% endblock title %}
+{% load l10n %} {% block title %}{% if is_editing %}Editar Consulta{% else %}Consulta de Rotina{% endif %} - {{ patient.first_name }} - Karu{% endblock title %}
 
 {% block content %}
 <div class="px-6 py-4 bg-base-200">
@@ -88,10 +88,24 @@
                 <div class="divider"></div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Peso anterior
-                                (gramas)</span></label>
-                        <input type="number" id="pesoAnterior" placeholder="Para cálculo do ganho"
-                            class="input input-bordered" value="">
+                        <label class="label"><span class="label-text font-semibold">Peso anterior (g)</span></label>
+                        <input type="number" id="pesoAnterior" 
+                            class="input input-bordered" 
+                            value="{{ previous_weight|unlocalize|default:'' }}" 
+                            readonly 
+                            data-previous-date="{% if previous_date %}{{ previous_date|date:'Y-m-d' }}{% endif %}">
+                        
+                        <label class="label">
+                            <span class="label-text-alt">
+                                {% if baseline_type == "consulta" %}
+                                    Peso da Consulta Anterior ({{ previous_date|date:"d/m/Y" }})
+                                {% elif baseline_type == "alta" %}
+                                    <span class="text-warning font-semibold">Base: Peso da Alta ({{ previous_date|date:"d/m/Y" }})</span>
+                                {% else %}
+                                    Nenhum peso anterior encontrado.
+                                {% endif %}
+                            </span>
+                        </label>
                     </div>
                     <div class="stats shadow">
                         <div class="stat">
@@ -220,9 +234,11 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-end mb-8">
-            <button type="submit" class="btn btn-primary"><i data-lucide="check" class="w-4 h-4"></i> Finalizar Consulta</button>
-
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" name="save_draft" class="btn btn-outline">
+                <i data-lucide="save" class="w-4 h-4"></i> Salvar Rascunho
+            </button>
+            
+            <button type="submit" name="save_final" class="btn btn-primary">
                 {% if is_editing %}
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Salvar Alterações
                 {% else %}
@@ -238,12 +254,83 @@
 </div>
 
 <script>
-    // Inicializar ícones Lucide
+    // --- FUNÇÃO DE CÁLCULO DE GANHO DE PESO (CORRIGIDA) ---
+    function calcularGanhoPeso() {
+        // IDs dos campos do formulário Django
+        const dataConsultaInput = document.getElementById('id_record-date');
+        const pesoAtualInput = document.getElementById('id_consultation-weight');
+        
+        // Nossos campos de cálculo
+        const pesoAnteriorInput = document.getElementById('pesoAnterior');
+        const ganhoElement = document.getElementById('ganhoCalculado');
+
+        if (!dataConsultaInput || !pesoAtualInput || !pesoAnteriorInput || !ganhoElement) {
+            // Não loga erro, pois o DOM pode não estar pronto
+            return; 
+        }
+
+        // Pega os valores
+        const pesoAtual = parseFloat(pesoAtualInput.value);
+        const pesoAnterior = parseFloat(pesoAnteriorInput.value);
+        const dataConsultaStr = dataConsultaInput.value; // Formato YYYY-MM-DD
+        const dataAnteriorStr = pesoAnteriorInput.dataset.previousDate; // Formato YYYY-MM-DD
+
+        const resetDisplay = () => {
+            ganhoElement.textContent = '-- g/dia';
+            ganhoElement.className = 'stat-value text-secondary';
+        };
+
+        if (pesoAtual && pesoAnterior && dataConsultaStr && dataAnteriorStr) {
+            try {
+                const dataAtual = new Date(dataConsultaStr + "T00:00:00Z");
+                const dataAnterior = new Date(dataAnteriorStr + "T00:00:00Z");
+                
+                const diffTime = dataAtual.getTime() - dataAnterior.getTime();
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays > 0) { // Garante que a data atual é depois da anterior
+                    const ganhoTotal = pesoAtual - pesoAnterior;
+                    const ganhoDiario = Math.round(ganhoTotal / diffDays); // <-- LÓGICA CORRIGIDA
+
+                    ganhoElement.textContent = `${ganhoDiario} g/dia`;
+                    
+                    if (ganhoDiario < 15) { ganhoElement.className = 'stat-value text-error'; }
+                    else if (ganhoDiario > 30) { ganhoElement.className = 'stat-value text-warning'; }
+                    else { ganhoElement.className = 'stat-value text-success'; }
+                } else {
+                    resetDisplay(); 
+                }
+            } catch (e) {
+                resetDisplay();
+            }
+        } else {
+            resetDisplay();
+        }
+    }
+
+    // --- FUNÇÃO PARA MOSTRAR TOAST ---
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} fixed top-4 right-4 w-auto z-50 shadow-lg`;
+        toast.innerHTML = `<i data-lucide="${type === 'warning' ? 'alert-triangle' : 'info'}" class="w-4 h-4"></i><span>${message}</span>`;
+        document.body.appendChild(toast);
+        lucide.createIcons();
+        setTimeout(() => { toast.remove(); }, 3000);
+    }
+
+    // --- FUNÇÃO DE RASCUNHO (Frontend) ---
+    function salvarRascunho() {
+        // NOTA: Este botão não salva no backend (ainda)
+        showToast('Rascunho salvo com sucesso!', 'success');
+    }
+
+    // --- LISTENER PRINCIPAL (UM SÓ) ---
     document.addEventListener('DOMContentLoaded', function () {
+        
+        // 1. Inicializa ícones Lucide
         lucide.createIcons();
 
-        // Adicionar classes CSS aos formulários Django que não podem ser estilizados via widgets
-        // Isso garante que o visual fique idêntico ao seu HTML estático.
+        // 2. Adiciona classes CSS aos formulários Django (seu código original)
         document.querySelectorAll('.form-control input[type="text"], .form-control input[type="date"], .form-control input[type="number"]').forEach(function (input) {
             input.classList.add('input', 'input-bordered', 'w-full');
         });
@@ -256,7 +343,6 @@
         document.querySelectorAll('.form-control input[type="checkbox"]').forEach(function (checkbox) {
             checkbox.classList.add('checkbox', 'checkbox-xs', 'mr-2');
         });
-        // Estilizando os radio buttons
         document.querySelectorAll('input[type="radio"]').forEach(function (radio) {
             radio.classList.add('radio');
             let label = radio.parentElement;
@@ -271,47 +357,16 @@
                 }
             }
         });
-    });
 
-    // Cálculo automático do ganho de peso
-    function calcularGanhoPeso() {
-        const pesoAtual = document.getElementById('id_consultation-weight').value; // Django adiciona 'id_' e o prefixo
-        const pesoAnterior = document.getElementById('pesoAnterior').value;
-        const ganhoElement = document.getElementById('ganhoCalculado');
-
-        if (pesoAtual && pesoAnterior) {
-            const ganho = parseFloat(pesoAtual) - parseFloat(pesoAnterior);
-            const ganhoDiario = Math.round(ganho / 7); // Assumindo 7 dias entre consultas
-            ganhoElement.textContent = `${ganhoDiario} g/dia`;
-
-            if (ganhoDiario < 15) { ganhoElement.className = 'stat-value text-error'; }
-            else if (ganhoDiario > 30) { ganhoElement.className = 'stat-value text-warning'; }
-            else { ganhoElement.className = 'stat-value text-success'; }
-        }
-    }
-
-    // Função para mostrar toast
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type} fixed top-4 right-4 w-auto z-50 shadow-lg`;
-        toast.innerHTML = `<i data-lucide="${type === 'warning' ? 'alert-triangle' : 'info'}" class="w-4 h-4"></i><span>${message}</span>`;
-        document.body.appendChild(toast);
-        lucide.createIcons();
-        setTimeout(() => { toast.remove(); }, 3000);
-    }
-
-    // Salvar rascunho (funcionalidade de frontend)
-    function salvarRascunho() {
-        showToast('Rascunho salvo com sucesso!', 'success');
-    }
-
-    // Adicionar listeners para cálculo automático
-    document.addEventListener('DOMContentLoaded', function () {
+        // 3. Adiciona listeners para cálculo automático (LUGAR CORRETO)
         const pesoAtualInput = document.getElementById('id_consultation-weight');
-        const pesoAnteriorInput = document.getElementById('pesoAnterior');
-
+        const dataConsultaInput = document.getElementById('id_record-date');
+        
         if (pesoAtualInput) pesoAtualInput.addEventListener('input', calcularGanhoPeso);
-        if (pesoAnteriorInput) pesoAnteriorInput.addEventListener('input', calcularGanhoPeso);
+        if (dataConsultaInput) dataConsultaInput.addEventListener('input', calcularGanhoPeso);
+
+        // 4. Roda o cálculo uma vez quando a página carrega
+        calcularGanhoPeso();
     });
 </script>
 {% endblock content %}

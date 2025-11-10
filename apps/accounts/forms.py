@@ -1,11 +1,12 @@
 import json
-from typing import TYPE_CHECKING
+import re
+from typing import TYPE_CHECKING, List, Optional
 
 from auditlog.models import LogEntry
 from django import forms
 from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import AbstractUser, Group
 from django.core import exceptions
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -14,6 +15,8 @@ from django.db import transaction
 from .models import GestorProfile, PaisProfile, ProfissionalSaudeProfile
 
 User = get_user_model()
+
+_digits = re.compile(r"\D+")
 
 if TYPE_CHECKING:
     pass
@@ -25,8 +28,37 @@ phone_br_validator = RegexValidator(
 )
 
 
-def normalize_email(email: str) -> str:
+def _only_digits(s: Optional[str]) -> str:
+    return _digits.sub("", s or "")
+
+
+def normalize_email(email: Optional[str]) -> str:
     return (email or "").strip().lower()
+
+
+def _phones_for_user(user) -> List[str]:
+    """
+    Retorna todos os telefones cadastrados para o usuário
+    nos perfis Gestor/Profissional/Pais, normalizados (apenas dígitos).
+    Ajuste os nomes dos campos/related_name conforme seu models.py.
+    """
+    phones: list[str] = []
+
+    phones += [
+        t for t in GestorProfile.objects.filter(user=user).values_list("telefone", flat=True) if t
+    ]
+    phones += [
+        t
+        for t in ProfissionalSaudeProfile.objects.filter(user=user).values_list(
+            "telefone", flat=True
+        )
+        if t
+    ]
+    phones += [
+        t for t in PaisProfile.objects.filter(user=user).values_list("telefone", flat=True) if t
+    ]
+
+    return [_only_digits(p) for p in phones]
 
 
 def ensure_password(temp_password: str | None) -> str:
@@ -536,3 +568,60 @@ class PaisProfileUpdateForm(forms.ModelForm):
             profile.save()
 
         return profile
+class PasswordResetByDataForm(forms.Form):
+    cpf = forms.CharField(label="CPF", required=True)
+    email = forms.EmailField(label="E-mail", required=True)
+    phone = forms.CharField(label="Telefone", required=True)
+    new_password = forms.CharField(label="Nova senha", widget=forms.PasswordInput, required=True)
+    new_password2 = forms.CharField(
+        label="Confirmar nova senha", widget=forms.PasswordInput, required=True
+    )
+
+    user: AbstractUser | None = None
+
+    def clean(self):
+        cleaned = super().clean()
+
+        cpf = _only_digits(cleaned.get("cpf"))
+        email = normalize_email(cleaned.get("email"))
+        phone = _only_digits(cleaned.get("phone"))
+
+        if len(cpf) != 11:
+            self.add_error("cpf", "Informe exatamente 11 dígitos.")
+        if len(phone) < 10:
+            self.add_error("phone", "Informe um telefone válido (com DDD).")
+
+        pwd1 = (cleaned.get("new_password") or "").strip()
+        pwd2 = (cleaned.get("new_password2") or "").strip()
+        if pwd1 != pwd2:
+            self.add_error("new_password2", "As senhas não coincidem.")
+        if pwd1:
+            try:
+                password_validation.validate_password(pwd1)
+            except exceptions.ValidationError as e:
+                self.add_error("new_password", e)
+
+        if self.errors:
+            return cleaned
+
+        try:
+            user = User.objects.get(username=cpf, email__iexact=email)
+        except User.DoesNotExist:
+            raise ValidationError("Não foi possível validar os dados informados.")
+
+        phones_db = _phones_for_user(user)
+        if not phones_db:
+            raise ValidationError("Telefone não cadastrado para este usuário. Contate o suporte.")
+        if phone not in phones_db:
+            raise ValidationError("Não foi possível validar os dados informados.")
+
+        self.user = user
+        return cleaned
+
+    def save(self):
+        if not self.user:
+            raise RuntimeError("Chame form.is_valid() antes de salvar.")
+        pwd = self.cleaned_data["new_password"]
+        self.user.set_password(pwd)
+        self.user.save(update_fields=["password"])
+        return self.user

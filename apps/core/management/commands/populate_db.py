@@ -381,6 +381,7 @@ class Command(BaseCommand):
     def create_medical_records(self, patients, num_records):
         """Cria registros médicos realistas"""
 
+        feeding_types = ["breastfeeding", "mixed", "formula"]
         # Unidades de saúde de Maceió e região
         locations = [
             "Hospital Universitário",
