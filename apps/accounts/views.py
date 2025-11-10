@@ -12,9 +12,11 @@ from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.views.decorators.http import require_http_methods
 
 from .forms import GestorSignupForm, PaisSignupForm, ProfissionalSignupForm
 from .models import ProfissionalSaudeProfile, User
+from .forms import GestorSignupForm, PaisSignupForm, PasswordResetByDataForm, ProfissionalSignupForm
 
 User = get_user_model()
 
@@ -121,7 +123,7 @@ def signup_pais(request):
         form = PaisSignupForm(request.POST)
         if form.is_valid():
             form.set_actor(request.user)
-            user = form.save(request=request)
+            form.save(request=request)
             messages.success(request, "Pai/responsável criado com sucesso.")
             return redirect("home")
     else:
@@ -175,7 +177,7 @@ def list_users(request):
 
     context = {
         "page_obj": page_obj,
-        "gropos_disponiveis": tipos_disponiveis,
+        "grupos_disponiveis": tipos_disponiveis,
         "filtros": {"nome": name, "cpf": cpf, "tipo": tipo},
         "total_resultados": paginator.count,
         "gestores_count": gestores_count,
@@ -678,3 +680,17 @@ def _registrar_edicao_auditlog(request, user, dados_anteriores):
         import traceback
 
         traceback.print_exc()
+@require_http_methods(["GET", "POST"])
+def password_reset_manual(request):
+    form = PasswordResetByDataForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(
+            request, "Senha alterada com sucesso. Faça login com seu CPF e a nova senha."
+        )
+        return redirect("login")
+    return render(
+        request,
+        "accounts/password_reset_manual.html",
+        {"form": form, "hide_sidebar": True},
+    )

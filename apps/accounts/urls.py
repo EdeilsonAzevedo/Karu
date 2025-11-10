@@ -10,6 +10,7 @@ from .views import (
     list_users,
     only_authenticated,
     only_gestores,
+    password_reset_manual,
     signup_gestor,
     signup_pais,
     signup_profissional,
@@ -29,4 +30,5 @@ urlpatterns = [
     path("usuarios/<int:user_id>/editar/", editar_usuario, name="editar_usuario"),  # NOVA URL
     path("usuarios/<int:user_id>/desativar/", desativar_usuario, name="desativar_usuario"),
     path("usuarios/<int:user_id>/ativar/", ativar_usuario, name="ativar_usuario"),
+    path("password/reset/manual/", password_reset_manual, name="password_reset_manual"),
 ]
